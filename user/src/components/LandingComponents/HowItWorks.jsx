@@ -1,0 +1,64 @@
+import React from 'react'
+import { LayoutDashboard, TrendingUp, UserPlus } from 'lucide-react'
+
+const iconColors = [
+  'text-[#315e8d] bg-[#e9f0f8]',
+  'text-emerald-700 bg-emerald-50',
+  'text-sky-700 bg-sky-50',
+]
+
+const steps = [
+  {
+    step: '01',
+    icon: <UserPlus size={22} />,
+    title: 'Set Up Your Workspace',
+    desc: 'Create your account, define your team, and launch your first project in minutes.',
+  },
+  {
+    step: '02',
+    icon: <LayoutDashboard size={22} />,
+    title: 'Plan and Assign Work',
+    desc: 'Break goals into clear tasks, assign owners, and keep scope under control from day one.',
+  },
+  {
+    step: '03',
+    icon: <TrendingUp size={22} />,
+    title: 'Track Delivery Daily',
+    desc: 'Monitor progress with real-time updates and move releases forward with confidence.',
+  },
+]
+
+const HowItWorks = () => {
+  return (
+    <section id="how-it-works" className="px-5 py-24 lg:px-12">
+      <div className="max-w-7xl mx-auto space-y-12">
+        <div className="max-w-2xl mx-auto text-center space-y-3">
+          <p className="text-xs font-semibold text-[#315e8d] uppercase tracking-[0.2em]">Simple Flow</p>
+          <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight">From Kickoff to Release in 3 Steps</h2>
+          <p className="text-base text-slate-600 leading-relaxed">
+            No complex onboarding. Your team gets structure quickly, without slowing down development.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {steps.map((step, i) => (
+            <article key={step.step} className="relative flex flex-col items-center text-center gap-4 p-8 bg-white/90 border border-[#dbe5f1] rounded-2xl">
+              <div className="absolute -top-3.5 left-6 text-xs font-bold text-slate-600 bg-[#edf3fa] border border-[#dbe5f1] px-2.5 py-1 rounded-full">
+                {step.step}
+              </div>
+
+              <div className={`w-12 h-12 flex items-center justify-center rounded-2xl ${iconColors[i]}`}>
+                {step.icon}
+              </div>
+
+              <h3 className="text-base font-semibold text-slate-800">{step.title}</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">{step.desc}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export default HowItWorks
