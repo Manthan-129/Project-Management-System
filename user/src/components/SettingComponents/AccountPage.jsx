@@ -7,7 +7,7 @@ import OTP from '../AuthComponents/OTP.jsx'
 import api from '../../api/axiosInstance.js'
 
 const AccountPage = () => {
-    const { user, setUser, token, logout } = useContext(AppContext);
+    const { user, setUser, authHeaders, logout } = useContext(AppContext);
     const [isSendingOtp, setIsSendingOtp]= useState(false);
     const [isResendingOtp, setIsResendingOtp]= useState(false);
     const [isVerifyingOtp, setIsVerifyingOtp]= useState(false);
@@ -25,9 +25,6 @@ const AccountPage = () => {
     const [showEmailPass, setShowEmailPass] = useState(false);
     const [showDeactivatePass, setShowDeactivatePass] = useState(false);
     const [showDeletePass, setShowDeletePass] = useState(false);
-
-
-    const authHeaders = { Authorization: `Bearer ${token}` };
     const trimmedNewEmail = newEmail.trim();
     const isValidNewEmail = /^\S+@\S+\.\S+$/.test(trimmedNewEmail);
 

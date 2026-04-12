@@ -6,7 +6,7 @@ import api from '../../api/axiosInstance.js'
 import { toast } from 'react-toastify'
 
 const NotificationPage = () => {
-    const { token, logout } = useContext(AppContext);
+    const { authHeaders, logout } = useContext(AppContext);
 
     const [isFetching, setIsFetching]= useState(false);
     const [isSaving, setIsSaving]= useState(false);
@@ -41,7 +41,7 @@ const NotificationPage = () => {
       try {
         setIsFetching(true);
         const { data } = await api.get('/settings/get-notification-settings', {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: authHeaders,
         });
 
         if (data?.success && data?.notificationSettings) {
@@ -68,7 +68,7 @@ const NotificationPage = () => {
 
     useEffect(()=>{
       fetchPreferences();
-    },[token])
+    },[authHeaders])
 
     const handleSave= async()=>{
       try {
@@ -77,7 +77,7 @@ const NotificationPage = () => {
           '/settings/update-notification-settings',
           preferences,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: authHeaders,
           }
         );
 

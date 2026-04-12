@@ -8,7 +8,7 @@ import OTP from '../AuthComponents/OTP'
 import api from '../../api/axiosInstance.js'
 
 const SecurityPage = () => {
-    const { token, logout } = useContext(AppContext)
+    const { authHeaders, logout } = useContext(AppContext)
 
     const [isFetchingStatus, setIsFetchingStatus] = useState(false)
     const [isChangingPassword, setIsChangingPassword] = useState(false)
@@ -36,7 +36,7 @@ const SecurityPage = () => {
         try {
             setIsFetchingStatus(true)
             const { data } = await api.get('/settings/2fa-status', {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: authHeaders,
             })
 
             if (data?.success) {
@@ -67,7 +67,7 @@ const SecurityPage = () => {
                     newPassword: data.newPassword,
                 },
                 {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: authHeaders,
                 }
             )
 
@@ -99,7 +99,7 @@ const SecurityPage = () => {
                 endpoint,
                 {},
                 {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: authHeaders,
                 }
             )
 
@@ -133,7 +133,7 @@ const SecurityPage = () => {
                 endpoint,
                 { otp },
                 {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: authHeaders,
                 }
             )
 

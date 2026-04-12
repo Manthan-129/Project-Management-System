@@ -7,7 +7,7 @@ import LoadingPage from '../LoadingPage.jsx'
 
 const AppearancePage = () => {
 
-    const { token, logout } = useContext(AppContext);
+    const { authHeaders, logout } = useContext(AppContext);
 
     const [isFetching, setIsFetching]= useState(false);
     const [isSaving, setIsSaving]= useState(false);
@@ -52,7 +52,7 @@ const AppearancePage = () => {
         try {
             setIsFetching(true);
             const { data } = await api.get('/settings/get-appearance-settings', {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: authHeaders,
             });
 
             if (data?.success) {
@@ -86,7 +86,7 @@ const AppearancePage = () => {
         } finally {
             setIsFetching(false);
         }
-    }, [token, logout, applyThemeToDocument]);
+    }, [authHeaders, logout, applyThemeToDocument]);
 
     const handleSave= async ()=>{
         try {
@@ -94,7 +94,7 @@ const AppearancePage = () => {
             const { data } = await api.put(
                 '/settings/update-appearance-settings',
                 { theme, sidebarPosition },
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: authHeaders }
             );
 
             if (data?.success) {

@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { Github, Info, Link, Linkedin, Unlink } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -7,7 +7,7 @@ import { AppContext } from '../../context/AppContext.jsx'
 import api from '../../api/axiosInstance.js'
 
 const IntegrationPage = () => {
-    const { token, navigate, logout } = useContext(AppContext);
+    const { authHeaders, navigate, logout } = useContext(AppContext);
     const location = useLocation();
 
     const [connections, setConnections] = useState({
@@ -24,9 +24,6 @@ const IntegrationPage = () => {
         { key: 'linkedin', name: 'LinkedIn', icon: Linkedin, description: 'Connect LinkedIn to sync your public professional profile data.' },
         { key: 'bitbucket', name: 'Bitbucket', icon: Link, description: 'Link Bitbucket to sync your repositories.' },
     ];
-
-    const authHeaders = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
-
     const getErrorMessage = (error, fallbackMessage) => {
         return error?.response?.data?.message || fallbackMessage;
     };

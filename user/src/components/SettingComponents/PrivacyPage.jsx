@@ -6,7 +6,7 @@ import api from '../../api/axiosInstance.js'
 import { toast } from 'react-toastify'
 
 const PrivacyPage = () => {
-    const { token, logout } = useContext(AppContext);
+    const { authHeaders, logout } = useContext(AppContext);
 
     const [isFetching, setIsFetching]= useState(false);
     const [isSaving, setIsSaving]= useState(false);
@@ -48,7 +48,7 @@ const PrivacyPage = () => {
         try {
             setIsFetching(true);
             const { data } = await api.get('/settings/get-privacy-settings', {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: authHeaders,
             });
 
             if (data?.success && data?.privacySettings) {
@@ -79,7 +79,7 @@ const PrivacyPage = () => {
             const { data } = await api.put(
                 '/settings/update-privacy-settings',
                 settings,
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: authHeaders }
             );
 
             if (data?.success) {
@@ -113,7 +113,7 @@ const PrivacyPage = () => {
 
     useEffect(() => {
         fetchPrivacySettings();
-    }, [token]);
+    }, [authHeaders]);
 
     if (isFetching) return <LoadingPage />;
 
