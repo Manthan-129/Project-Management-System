@@ -11,13 +11,13 @@ const SettingPage = () => {
   }, [ensureAuthenticated]);
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex min-h-screen bg-slate-50 overflow-hidden">
 
         {/* Sidebar navigation */}
         <Sidebar />
 
         {/* Main content area — renders the active settings page */}
-        <main className="flex-1 overflow-y-auto">
+      <main className="min-w-0 flex-1 overflow-y-auto">
             <Outlet />
         </main>
 

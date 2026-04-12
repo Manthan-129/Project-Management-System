@@ -11,11 +11,11 @@ const DashboardPage = () => {
   }, [ensureAuthenticated]);
 
   return (
-    <div className="flex h-screen bg-gray-50/80">
+    <div className="flex min-h-screen bg-gray-50/80">
         <DashboardSidebar />
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto">
+      <main className="min-w-0 flex-1 overflow-y-auto">
             <Outlet />
         </main>
     </div>

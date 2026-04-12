@@ -12,7 +12,7 @@ import Testimonials from '../components/LandingComponents/Testimonials.jsx'
 
 const LandingPage = () => {
   return (
-    <div className="relative overflow-x-clip">
+    <main className="relative min-h-screen overflow-x-clip">
         <Navbar />
         <Hero />
         <Stats />
@@ -23,7 +23,7 @@ const LandingPage = () => {
         <ProgressTracking />
         <Testimonials />
         <Footer />
-    </div>
+    </main>
   )
 }
 
