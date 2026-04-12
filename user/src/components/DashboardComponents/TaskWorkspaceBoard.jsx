@@ -152,36 +152,53 @@ const TaskWorkspaceBoard = () => {
 
 
     const tabs= [
-        {key: 'assignedTaskToMe', label: 'Assigned Task To Me', count: taskByCategory.assignedTaskToMe.length, icon: Inbox},
-        {key: 'assignedTaskByMeAsAdmin', label: 'Assigned Task By Me As Admin', count: taskByCategory.assignedTaskByMeAsAdmin.length, icon: Send},
-        {key: 'assignedTaskByMeAsLeader', label: 'Assigned Task By Me As Leader', count: taskByCategory.assignedTaskByMeAsLeader.length, icon: UserCheck},
+        {key: 'assignedTaskToMe', label: 'Assigned Task To Me', count: taskByCategory.assignedTaskToMe, icon: Inbox},
+        {key: 'assignedTaskByMeAsAdmin', label: 'Assigned Task By Me As Admin', count: taskByCategory.assignedTaskByMeAsAdmin, icon: Send},
+        {key: 'assignedTaskByMeAsLeader', label: 'Assigned Task By Me As Leader', count: taskByCategory.assignedTaskByMeAsLeader, icon: UserCheck},
     ];
 
     const tasksByStatus= getTasksByStatus;
 
   return (
-    <div>
+    <div className="min-h-screen bg-[#f0f4f8] px-4 py-6 lg:px-8">
 
-        {/* Headers */}
-        <div>
-            <div>
-                <FolderKanban size={18} />
-                <span>Task Workspace</span>
+        {/* Header */}
+        <div className="mb-6 [animation:fadeUp_.4s_ease_both]">
+            <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-7 h-7 rounded-lg bg-[#e9f0f8] flex items-center justify-center">
+                    <FolderKanban size={14} className="text-[#315e8d]" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-[.18em] text-[#315e8d]">
+                    Task Workspace
+                </span>
             </div>
-            <h1>My Tasks</h1>    
-            <p>View and manage tasks across your three task pages</p>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">My Tasks</h1>
+            <p className="text-sm text-slate-500 mt-1">View and manage tasks across your three task pages</p>
         </div>
 
         {/* Tabs */}
-        <div>
+        <div className="mb-6 flex items-center gap-2 flex-wrap [animation:fadeUp_.4s_ease_.05s_both]">
             {tabs.map((t)=>{
                 const TabIcon= t.icon;
+                const isActive= tab === t.key;
                 return (
-                    <button key={t.key} onClick={()=> setTab(t.key)}>
-                        <TabIcon size={16} />
+                    <button
+                        key={t.key}
+                        onClick={()=> setTab(t.key)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                            isActive
+                                ? 'bg-[#315e8d] text-white border-[#315e8d] shadow-sm'
+                                : 'bg-white text-slate-500 border-[#dbe5f1] hover:bg-[#e9f0f8] hover:text-[#315e8d]'
+                        }`}
+                    >
+                        <TabIcon size={14} />
                         <span>{t.label}</span>
                         {t.count > 0 && (
-                            <span>{t.count}</span>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-lg ${
+                                isActive ? 'bg-white/20 text-white' : 'bg-[#e9f0f8] text-[#315e8d]'
+                            }`}>
+                                {t.count}
+                            </span>
                         )}
                     </button>
                 )
@@ -189,66 +206,107 @@ const TaskWorkspaceBoard = () => {
         </div>
 
         {/* Kanban Board */}
-        <div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 [animation:fadeUp_.4s_ease_.1s_both]">
             {KANBAN_COLUMNS.map(col=>{
                 const Icon= col.icon;
                 const colTasks= tasksByStatus[col.key] || [];
 
                 return (
-                    <div key={col.key}>
-                        <div>
-                            <div>
-                                <Icon size={16} />
+                    <div key={col.key} className={`flex flex-col rounded-2xl border ${col.tone} min-h-[200px]`}>
+
+                        {/* Column Header */}
+                        <div className="flex items-center gap-2 px-4 py-3 border-b border-inherit">
+                            <div className="w-7 h-7 rounded-lg bg-white/70 flex items-center justify-center shrink-0">
+                                <Icon size={14} className="text-slate-600" />
                             </div>
-                            <h3>{col.name}</h3>
-                            <span>{colTasks.length}</span>
+                            <h3 className="text-xs font-bold text-slate-700 flex-1">{col.name}</h3>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-white/70 text-slate-500">
+                                {colTasks.length}
+                            </span>
                         </div>
 
-                        <div>
+                        {/* Tasks */}
+                        <div className="flex flex-col gap-2 p-3 flex-1">
                             {colTasks.map(task=>{
                                 const daysLeft = calculateDaysLeft(task.dueDate);
                                 const isOverDue= daysLeft !== null && daysLeft < 0;
 
                                 return (
-                                    <article key={task._id}>
-                                        <div>
-                                            <h4>{task.title}</h4>
-                                            <span>{task.priority}</span>
+                                    <article
+                                        key={task._id}
+                                        className="bg-white rounded-xl border border-[#dbe5f1] px-3 py-3 flex flex-col gap-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm"
+                                    >
+                                        {/* Title & Priority */}
+                                        <div className="flex items-start justify-between gap-2">
+                                            <h4 className="text-xs font-bold text-slate-800 leading-snug line-clamp-2">
+                                                {task.title}
+                                            </h4>
+                                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 capitalize ${
+                                                task.priority === 'high'   ? 'bg-red-50 text-red-600 border-red-200' :
+                                                task.priority === 'medium' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                                                                             'bg-slate-50 text-slate-500 border-slate-200'
+                                            }`}>
+                                                {task.priority}
+                                            </span>
                                         </div>
 
-                                        <div>
-                                            <span><FolderKanban size={11} />{task.team.name}</span>
-
-                                            <span><CalendarDays size={11} />{formatDueDate(task.dueDate)}</span>
+                                        {/* Team & Due Date */}
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                                                <FolderKanban size={10} />{task.team.name}
+                                            </span>
+                                            <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                                                <CalendarDays size={10} />{formatDueDate(task.dueDate)}
+                                            </span>
                                         </div>
 
-                                        <div>
+                                        {/* Assigned By/To & Days Left */}
+                                        <div className="flex items-center justify-between gap-2">
                                             {tab === 'assignedTaskToMe' ? (
-                                                <p><span>By: {task.assignedBy.firstName}</span></p>
-                                            )
-                                        :
-                                        (
-                                            <p><span>To: {task.assignedTo.firstName}</span></p>
-                                        )}
-                                        
-                                        {daysLeft !== null && (
-                                            <p className={`font-semibold ${isOverDue ? 'text-red-600' : daysLeft === 0 ? 'text-amber-600' : 'text-gray-600'}`}>{isOverDue ? `${Math.abs(daysLeft)} days overdue` : daysLeft === 0 ? 'Due today' : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`}</p>
-                                        )}
+                                                <p className="text-[10px] text-slate-400 font-medium">
+                                                    By: <span className="font-bold text-slate-600">{task.assignedBy.firstName}</span>
+                                                </p>
+                                            ) : (
+                                                <p className="text-[10px] text-slate-400 font-medium">
+                                                    To: <span className="font-bold text-slate-600">{task.assignedTo.firstName}</span>
+                                                </p>
+                                            )}
+
+                                            {daysLeft !== null && (
+                                                <p className={`text-[10px] font-semibold ${
+                                                    isOverDue      ? 'text-red-600' :
+                                                    daysLeft === 0 ? 'text-amber-600' :
+                                                                     'text-slate-500'
+                                                }`}>
+                                                    {isOverDue
+                                                        ? `${Math.abs(daysLeft)}d overdue`
+                                                        : daysLeft === 0
+                                                        ? 'Due today'
+                                                        : `${daysLeft}d left`}
+                                                </p>
+                                            )}
                                         </div>
 
-                                        <div>
-                                            <button onClick={()=> extendTaskDueDate(task._id, task.dueDate)}>+1 Day</button>
+                                        {/* Extend Due Date */}
+                                        <div className="pt-1 border-t border-slate-100">
+                                            <button
+                                                onClick={()=> extendTaskDueDate(task._id, task.dueDate)}
+                                                className="w-full text-[10px] font-bold text-[#315e8d] bg-[#e9f0f8] hover:bg-[#dbe5f1] rounded-lg py-1 transition-all duration-150 cursor-pointer"
+                                            >
+                                                +1 Day
+                                            </button>
                                         </div>
                                     </article>
                                 )
                             })}
 
+                            {/* Empty State */}
                             {colTasks.length === 0 && (
-                                <div>
-                                    <div>
-                                        <Icon size={18} />
+                                <div className="flex flex-col items-center justify-center flex-1 py-6 gap-2">
+                                    <div className="w-9 h-9 rounded-xl bg-white/70 flex items-center justify-center">
+                                        <Icon size={16} className="text-slate-300" />
                                     </div>
-                                    <p>No tasks here</p>
+                                    <p className="text-[11px] text-slate-400 font-medium">No tasks here</p>
                                 </div>
                             )}
                         </div>
