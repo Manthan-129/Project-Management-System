@@ -7,14 +7,7 @@ export const AppContext = createContext();
 
 export const AppContextProvider = (props) => {
     const navigate = useNavigate();
-    const [user, setUser] = useState({
-        firstName: 'Manthan',
-        lastName: 'Singla',
-        email: 'manthan29singla@gmail.com',
-        username: 'Mant@29',
-    });
-
-    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const [user, setUser] = useState(null);
     const [notifications, setNotifications] = useState([]);
     const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
     const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -22,12 +15,20 @@ export const AppContextProvider = (props) => {
         return token ? { Authorization: `Bearer ${token}` } : {};
     }, [token]);
 
+    useEffect(() => {
+        if (token) {
+            localStorage.setItem('token', token);
+            return;
+        }
+
+        localStorage.removeItem('token');
+    }, [token]);
+
     const logout = async () => {
         setUser(null);
         setToken('');
         setNotifications([]);
         setUnreadNotificationsCount(0);
-        localStorage.removeItem('token');
         navigate('/');
     };
 
@@ -44,6 +45,33 @@ export const AppContextProvider = (props) => {
 
         return true;
     }, [token, navigate]);
+
+    const fetchCurrentUser = useCallback(async () => {
+        if (!token) {
+            setUser(null);
+            return;
+        }
+
+        try {
+            const { data } = await api.get('/auth/user-info', {
+                headers: authHeaders,
+            });
+
+            if (data?.success && data?.user) {
+                setUser(data.user);
+                return;
+            }
+
+            setUser(null);
+        } catch (error) {
+            if (error?.response?.status === 401) {
+                await logout();
+                return;
+            }
+
+            setUser(null);
+        }
+    }, [token, authHeaders]);
 
     const updateProfile = async (profileData) => {
         try {
@@ -91,6 +119,10 @@ export const AppContextProvider = (props) => {
             }
         }
     };
+
+    useEffect(() => {
+        fetchCurrentUser();
+    }, [fetchCurrentUser]);
 
     const markNotificationAsRead = async (notificationId) => {
         try {
@@ -149,7 +181,6 @@ export const AppContextProvider = (props) => {
 
     const value = {
         navigate,
-        backendUrl,
         user,
         setUser,
         updateProfile,
@@ -157,6 +188,7 @@ export const AppContextProvider = (props) => {
         setToken,
         logout,
         ensureAuthenticated,
+        fetchCurrentUser,
         notifications,
         setNotifications,
         unreadNotificationsCount,
