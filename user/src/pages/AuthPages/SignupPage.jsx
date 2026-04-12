@@ -46,7 +46,6 @@ const SignupPage = () => {
                 setFormData(payload);
                 setOtp('');
                 setOpenOtp(true);
-                setToken(response.token || '');
                 toast.success(response.message || 'OTP sent to email successfully');
                 return;
             }

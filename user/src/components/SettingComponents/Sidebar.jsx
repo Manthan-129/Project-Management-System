@@ -47,17 +47,17 @@ const Sidebar = () => {
     }
 
   return (
-    <aside className="flex flex-col h-full w-64 bg-white border-r border-slate-200 px-4 py-6 space-y-6">
+    <aside className="flex h-full w-72 flex-col border-r border-white/70 bg-white/85 px-4 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl space-y-6">
 
         {/* ── Logo / Header ── */}
         <div className="px-2">
             <NavLink to="/" className="flex items-center gap-2.5 no-underline">
-                <div className="p-1.5 bg-indigo-50 rounded-lg">
-                    <Sparkles size={20} className="text-indigo-500" />
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#315e8d] to-[#26486d] shadow-lg shadow-blue-950/10">
+                    <Sparkles size={20} className="text-white" />
                 </div>
                 <div>
-                    <h1 className="text-base font-bold text-slate-800 leading-tight">Dev<span className="text-indigo-500">Dash</span></h1>
-                    <p className="text-xs text-slate-400">Settings</p>
+                    <h1 className="text-base font-black tracking-tight text-slate-800 leading-tight">Dev<span className="text-[#315e8d]">Dash</span></h1>
+                    <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-400">Settings</p>
                 </div>
             </NavLink>
         </div>
@@ -65,19 +65,19 @@ const Sidebar = () => {
         {/* ── Back to Dashboard ── */}
         <div className="px-2">
             <NavLink to="/dashboard"
-                className="flex items-center gap-2 text-sm text-slate-500 hover:text-indigo-500 transition-colors no-underline">
+                className="flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors no-underline hover:text-indigo-500">
                 <ArrowLeft size={16} />
                 <span>Back to Dashboard</span>
             </NavLink>
         </div>
 
         {/* ── Grouped Navigation Menu ── */}
-        <nav className="flex-1 space-y-5 overflow-y-auto">
+        <nav className="flex-1 space-y-5 overflow-y-auto pr-1">
             {sidebarGroups.map((group)=>(
                 <div key={group.label} className="space-y-1">
 
                     {/* Group Label */}
-                    <p className="px-3 text-xs font-semibold text-slate-400 tracking-widest mb-2">{group.label}</p>
+                    <p className="px-3 text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 mb-2">{group.label}</p>
 
                     {/* Menu Items */}
                     {group.items.map((item)=>{
@@ -85,9 +85,9 @@ const Sidebar = () => {
                         return (
                             <NavLink key={item.path} to={item.path} end={item.end}
                                 className={({ isActive }) =>
-                                    `flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors no-underline
+                                    `flex items-center gap-2.5 rounded-2xl px-3 py-3 text-sm font-medium transition-all no-underline
                                     ${isActive
-                                        ? 'bg-indigo-50 text-indigo-600'
+                                        ? 'border border-indigo-100 bg-gradient-to-r from-indigo-50 to-sky-50 text-indigo-700 shadow-sm'
                                         : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
                                     }`
                                 }>
@@ -106,9 +106,9 @@ const Sidebar = () => {
         </nav>
 
         {/* ── Logout Button ── */}
-        <div className="px-2 pt-2 border-t border-slate-100">
+        <div className="px-2 pt-2 border-t border-slate-200/80">
             <button onClick={handleLogout} disabled={isLoggingOut}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-rose-500 hover:bg-rose-50 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl transition-colors">
+                className="flex w-full items-center gap-2.5 rounded-2xl px-3 py-3 text-sm font-medium text-rose-500 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60">
                 <LogOut size={16} />
                 <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
             </button>

@@ -10,21 +10,24 @@ const DashboardSidebar = () => {
     const {user, logout, notifications, unreadNotificationsCount, fetchNotifications, markNotificationAsRead, markNotificationsAsRead}= useContext(AppContext);
 
     const [isNotificationOpen, setIsNotificationOpen]= useState(false);
-    const notificationRef= useRef();
+    const notificationRef= useRef(null);
 
-    useEffect(()=> {
-        const handleOutsideClick= (event)=> {
-            if(!notificationRef.current.contains(event.target)){
+    useEffect(() => {
+        const handleOutsideClick = (event) => {
+            if (
+                notificationRef.current &&
+                !notificationRef.current.contains(event.target)
+            ) {
                 setIsNotificationOpen(false);
             }
         };
 
         document.addEventListener('mousedown', handleOutsideClick);
 
-        return ()=> {
+        return () => {
             document.removeEventListener('mousedown', handleOutsideClick);
         };
-    },[]);
+    }, []);
 
     const handleToggleNotifications= async ()=>{
         if(!isNotificationOpen){
@@ -49,42 +52,42 @@ const DashboardSidebar = () => {
     ];
 
   return (
-    <aside>
-        <div>
-            <NavLink to='/'>
-                <div>
+    <aside className="flex h-full w-80 flex-col border-r border-white/70 bg-white/80 px-4 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <div className="px-2">
+            <NavLink to='/' className="flex items-center gap-3 no-underline">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#315e8d] to-[#26486d] shadow-lg shadow-blue-950/10">
                     <Sparkles size={20} className="text-white" />
                 </div>  
                 <div>
-                    <h1 className="text-lg font-bold text-gray-900">Dev<span className="text-blue-600">Dash</span></h1>
-                    <p className="text-[10px] text-gray-400 font-medium -mt-0.5">Project Management</p>
+                    <h1 className="text-lg font-black tracking-tight text-slate-900">Dev<span className="text-[#315e8d]">Dash</span></h1>
+                    <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-400">Project Management</p>
                 </div>
             </NavLink>
         </div>
 
         {/* Navigation Items */}
-        <nav>
-            <p>Main Menu</p>
+        <nav className="mt-8 space-y-2">
+            <p className="px-2 text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400">Main Menu</p>
             {navItems.map((item, index)=> (
                 <NavLink
                     key={item.to}
                     to={item.to}
                     end={item.end}
                     className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
+                        `flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium transition-all group ${
                             isActive
-                                ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 shadow-sm border border-blue-100'
-                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+                                ? 'border border-indigo-100 bg-gradient-to-r from-indigo-50 to-sky-50 text-indigo-700 shadow-sm'
+                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
                         }`
                     }
                 >
                     {({ isActive }) => (
                         <>
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isActive ? `bg-gradient-to-br ${item.accent} shadow-sm` : 'bg-gray-100 group-hover:bg-gray-200'}`}>
-                                <item.icon size={16} className={isActive ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'} />
+                            <div className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${isActive ? `bg-gradient-to-br ${item.accent} shadow-lg shadow-blue-950/10` : 'bg-slate-100 group-hover:bg-slate-200'}`}>
+                                <item.icon size={16} className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-700'} />
                             </div>
                             <span className="flex-1">{item.label}</span>
-                            {isActive && <ChevronRight size={14} className="text-blue-400" />}
+                            {isActive && <ChevronRight size={14} className="text-indigo-400" />}
                         </>
                     )}
                 </NavLink>
@@ -92,24 +95,24 @@ const DashboardSidebar = () => {
         </nav>
 
         {/* Bottom Section */}
-        <div>
-            <p>Preferences</p>
+        <div className="mt-8 space-y-2 border-t border-slate-200/80 pt-6">
+            <p className="px-2 text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400">Preferences</p>
             <NavLink
                 to="/settings"
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all group"
+                className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-slate-500 transition-all group hover:bg-slate-50 hover:text-slate-800"
             >
-                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-all">
-                    <Settings size={16} className="text-gray-500" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 transition-all group-hover:bg-slate-200">
+                    <Settings size={16} className="text-slate-500" />
                 </div>
                 Settings
             </NavLink>
 
             <button
                 onClick={logout}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all cursor-pointer group"
+                className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-rose-500 transition-all cursor-pointer hover:bg-rose-50 group"
             >
-                <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-all">
-                    <LogOut size={16} className="text-red-500" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 transition-all group-hover:bg-rose-100">
+                    <LogOut size={16} className="text-rose-500" />
                 </div>
                 Logout
             </button>
@@ -117,22 +120,24 @@ const DashboardSidebar = () => {
 
         {/* User info */}
         {user && (
-            <div className="border-t border-gray-50 px-4 py-4">
-                <div className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-3 border border-gray-100">
+            <div className="mt-6 border-t border-slate-200/80 px-2 pt-6">
+                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
                     <img
                         src={user.profilePicture || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=6366f1&color=fff`}
                         alt="avatar"
-                        className="w-10 h-10 rounded-xl object-cover ring-2 ring-white shadow-sm"
+                        className="h-11 w-11 rounded-xl object-cover ring-4 ring-white shadow-sm"
                     />
                     <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{user.firstName} {user.lastName}</p>
-                        <p className="text-xs text-gray-500 truncate">@{user.username}</p>
+                        <p className="truncate text-sm font-semibold text-slate-900">{user.firstName} {user.lastName}</p>
+                        <p className="truncate text-xs text-slate-500">@{user.username}</p>
                     </div>
-                    <div>
-                        <button onClick={handleToggleNotifications}>
+                    <div ref={notificationRef}>
+                        <button onClick={handleToggleNotifications} className="relative rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800">
                             <Bell size={15} />
                             {unreadNotificationsCount > 0 && (
-                                <span>{unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}</span>
+                                <span className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-indigo-500 px-1 text-[10px] font-bold leading-4 text-white shadow-sm">
+                                    {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                                </span>
                             )}
                         </button>
 
@@ -146,7 +151,7 @@ const DashboardSidebar = () => {
                             />
                         )}
                     </div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-emerald-100 shrink-0"></div>
+                    <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-400 ring-4 ring-emerald-100"></div>
                 </div>
             </div>
         )}
