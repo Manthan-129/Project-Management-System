@@ -210,11 +210,6 @@
     animation: tilt-in 0.6s ease-out both;
   }
 
-  /* Group Hover Effects */
-  .group-hover\/scale .group-hover\:scale {
-    @apply transition-transform duration-300 group-hover:scale-110;
-  }
-
   /* Transition Presets */
   .transition-smooth {
     @apply transition-all duration-300 ease-in-out;
