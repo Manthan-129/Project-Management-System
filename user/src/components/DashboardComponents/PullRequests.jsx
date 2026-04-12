@@ -6,13 +6,11 @@ import Loading from '../LoadingPage'
 import api from '../../api/axiosInstance.js'
 
 const PullRequests = () => {
-  const {token, setToken}= useContext(AppContext)
+  const {token, setToken, authHeaders}= useContext(AppContext)
 
   const [pullRequests, setPullRequests]= useState([]);
   const [loading, setLoading]= useState(false);
   const [filterStatus, setFilterStatus]= useState('all');
-
-  const authHeaders = { Authorization: `Bearer ${token}` };
 
   const fetchPrs= async ()=>{
     setLoading(true);
@@ -47,7 +45,7 @@ const PullRequests = () => {
     }
   }, [token]);
 
-  const filtered= filterStatus === 'all' ? pullRequests : pullRequests.filter(pr => pr.status == filterStatus);
+  const filtered= filterStatus === 'all' ? pullRequests : pullRequests.filter(pr => pr.status === filterStatus);
 
   const statusIcon= (status)=>{
     if(status === 'pending') return <Clock size={14} />

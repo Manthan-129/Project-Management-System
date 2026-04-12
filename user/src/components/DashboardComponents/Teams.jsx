@@ -9,7 +9,7 @@ import api from '../../api/axiosInstance.js'
 
 const Teams = () => {
 
-    const {token,navigate, setToken, user}= useContext(AppContext)
+    const {token,navigate, setToken, user, authHeaders}= useContext(AppContext)
     const [teams, setTeams]= useState([]);
     const [loading, setLoading]= useState(true);
 
@@ -24,8 +24,6 @@ const Teams = () => {
     })
 
     const [creating, setCreating]= useState(false);
-
-    const authHeaders = { Authorization: `Bearer ${token}` };
 
     const fetchTeams= async ()=>{
         setLoading(true);

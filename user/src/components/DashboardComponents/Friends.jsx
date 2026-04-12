@@ -17,7 +17,7 @@ const EmptyState = ({ icon: Icon, text }) => (
 
 const Friends = () => {
 
-    const {token, setToken}= useContext(AppContext);
+    const {token, setToken, authHeaders}= useContext(AppContext);
 
     const [friends, setFriends]= useState([]);
     const [received, setReceived]= useState([]);
@@ -26,8 +26,6 @@ const Friends = () => {
     const [sending , setSending]= useState(false);
     const [tab, setTab]= useState("friends");
     const [username, setUsername]= useState('');
-
-    const authHeaders = { Authorization: `Bearer ${token}` };
 
     const fetchFriends = async ()=>{
         try{

@@ -7,15 +7,13 @@ import Loading from '../LoadingPage.jsx'
 
 const Invitations = () => {
 
-    const { token, setToken } = useContext(AppContext);
+    const { setToken, authHeaders } = useContext(AppContext);
     const [received, setReceived]= useState([]);
     const [sentByMe, setSentByMe]= useState([]);
     const [sentByTeam, setSentByTeam]= useState([]);
     const [tab, setTab]= useState('received');
     const [teamFilter, setTeamFilter]= useState('all');
     const [loading, setLoading]= useState(true);
-
-    const authHeaders = { Authorization: `Bearer ${token}` };
 
     const fetchInvitations = async () => {
         setLoading(true);

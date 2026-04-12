@@ -23,7 +23,7 @@ const createEmptyBoard = () => ({
 
 const TaskWorkspaceBoard = () => {
 
-    const {token, setToken }= useContext(AppContext);
+    const {token, setToken, authHeaders }= useContext(AppContext);
     const [tab, setTab]= useState('assignedTaskToMe');
     const [loading, setLoading]= useState(true);
     const [workspaceBoard, setWorkspaceBoard]= useState({
@@ -31,8 +31,6 @@ const TaskWorkspaceBoard = () => {
         assignedTaskByMeAsAdmin: createEmptyBoard(),
         assignedTaskByMeAsLeader: createEmptyBoard(),
     });
-
-    const authHeaders = { Authorization: `Bearer ${token}` };
 
     const fetchData= async ()=>{
         setLoading(true);

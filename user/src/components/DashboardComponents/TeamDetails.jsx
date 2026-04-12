@@ -65,7 +65,7 @@ const capitalizePriority = (priority) => {
 
 const TeamDetails = () => {
   const { teamId } = useParams();
-  const { token, setToken, user, navigate } = useContext(AppContext);
+  const { token, setToken, user, navigate, authHeaders } = useContext(AppContext);
 
   const [team, setTeam] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
@@ -97,8 +97,6 @@ const TeamDetails = () => {
 
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferTarget, setTransferTarget] = useState(null);
-
-  const authHeaders = { Authorization: `Bearer ${token}` };
 
   const teamLeader = team?.leader || null;
 

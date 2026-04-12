@@ -19,7 +19,7 @@ import { AppContext } from '../../context/AppContext.jsx';
 import Loading from '../LoadingPage';
 
 const DashboardOverview = () => {
-    const { token, setToken, navigate } = useContext(AppContext);
+    const { token, setToken, navigate, authHeaders } = useContext(AppContext);
 
     const [teams, setTeams] = useState([]);
     const [selectedTeam, setSelectedTeam] = useState('');
@@ -35,8 +35,6 @@ const DashboardOverview = () => {
     });
     const [loading, setLoading] = useState(true);
     const [tasksLoading, setTasksLoading] = useState(false);
-
-    const authHeaders = useMemo(() => ({ token }), [token]);
 
     const fetchTeams = async () => {
         try {
