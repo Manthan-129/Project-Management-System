@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useState } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../api/axiosInstance.js';
@@ -18,6 +18,9 @@ export const AppContextProvider = (props) => {
     const [notifications, setNotifications] = useState([]);
     const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
     const [token, setToken] = useState(localStorage.getItem('token') || '');
+    const authHeaders = useMemo(() => {
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    }, [token]);
 
     const logout = async () => {
         setUser(null);
@@ -45,9 +48,7 @@ export const AppContextProvider = (props) => {
     const updateProfile = async (profileData) => {
         try {
             const isFormData = typeof FormData !== 'undefined' && profileData instanceof FormData;
-            const headers = {
-                Authorization: `Bearer ${token}`,
-            };
+            const headers = { ...authHeaders };
 
             if (isFormData) {
                 headers['Content-Type'] = 'multipart/form-data';
@@ -78,7 +79,7 @@ export const AppContextProvider = (props) => {
 
         try {
             const { data } = await api.get('/notifications', {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: authHeaders,
             });
 
             if (data?.success) {
@@ -96,7 +97,7 @@ export const AppContextProvider = (props) => {
             const { data } = await api.put(
                 `/notifications/mark-read/${notificationId}`,
                 {},
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: authHeaders }
             );
 
             if (data?.success) {
@@ -121,7 +122,7 @@ export const AppContextProvider = (props) => {
             const { data } = await api.put(
                 '/notifications/mark-all-read',
                 {},
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: authHeaders }
             );
 
             if (data?.success) {
@@ -160,6 +161,7 @@ export const AppContextProvider = (props) => {
         setNotifications,
         unreadNotificationsCount,
         setUnreadNotificationsCount,
+        authHeaders,
         fetchNotifications,
         markNotificationAsRead,
         markNotificationsAsRead,
