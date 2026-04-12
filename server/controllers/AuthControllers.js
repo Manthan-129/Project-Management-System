@@ -37,7 +37,7 @@ const sendRegistrationOTP= async (req, res)=>{
     try{
         const {email, username}= req.body;
         
-        if(!email || !username){
+        if(!email && !username){
             return res.status(400).json({success: false, message: "Email and username are required"});
         }
         // Validate email and username
