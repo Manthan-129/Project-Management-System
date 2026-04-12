@@ -24,6 +24,8 @@ const IntegrationPage = () => {
         { key: 'linkedin', name: 'LinkedIn', icon: Linkedin, description: 'Connect LinkedIn to sync your public professional profile data.' },
         { key: 'bitbucket', name: 'Bitbucket', icon: Link, description: 'Link Bitbucket to sync your repositories.' },
     ];
+    const connectedCount = platforms.filter((platform) => connections[platform.key]?.connected).length;
+
     const getErrorMessage = (error, fallbackMessage) => {
         return error?.response?.data?.message || fallbackMessage;
     };
@@ -192,6 +194,25 @@ const IntegrationPage = () => {
       <h2 className="text-2xl font-semibold text-slate-800">Connected Accounts</h2>
       <p className="text-sm text-slate-500 -mt-4">Link external services to sync repositories and pull requests.</p>
 
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Integration Summary</span>
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            {connectedCount} / {platforms.length} connected
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={fetchIntegrationStatus}
+                        disabled={isFetching || !!activeRequest}
+                        className="px-3.5 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed rounded-lg transition-colors"
+                    >
+                        Refresh Status
+                    </button>
+                </div>
+            </div>
+
       {/* ── Platform Cards ── */}
       {platforms.map((platform)=>{
         const Icon= platform.icon;
@@ -248,6 +269,8 @@ const IntegrationPage = () => {
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-medium text-slate-500">Auto Sync PRs</span>
                             <button onClick={()=> handleToggleAutoSync(platform.key)}
+                                type="button"
+                                aria-pressed={conn.autoSync}
                                 disabled={activeRequest === `toggle-${platform.key}`}
                                 className={`relative w-10 h-5 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${conn.autoSync ? 'bg-indigo-500' : 'bg-slate-200'}`}>
                                 <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${conn.autoSync ? 'translate-x-5' : 'translate-x-0'}`} />

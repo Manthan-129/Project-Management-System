@@ -1,5 +1,5 @@
 import { Check, Monitor, Moon, PanelLeft, PanelRight, Sun } from 'lucide-react'
-import { useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-toastify'
 import api from '../../api/axiosInstance.js'
 import { AppContext } from '../../context/AppContext.jsx'
@@ -29,6 +29,15 @@ const AppearancePage = () => {
     const hasChanges =
         theme !== initialSettings.theme ||
         sidebarPosition !== initialSettings.sidebarPosition;
+
+    const resolvedThemeLabel = useMemo(() => {
+        if (theme === 'system') {
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            return `System (${prefersDark ? 'Dark' : 'Light'})`;
+        }
+
+        return theme.charAt(0).toUpperCase() + theme.slice(1);
+    }, [theme]);
 
     const getErrorMessage = (error, fallbackMessage) => {
         return error?.response?.data?.message || fallbackMessage;
@@ -115,6 +124,12 @@ const AppearancePage = () => {
         }
     }
 
+    const handleDiscardChanges = () => {
+        setTheme(initialSettings.theme);
+        setSidebarPosition(initialSettings.sidebarPosition);
+        applyThemeToDocument(initialSettings.theme);
+    }
+
     useEffect(() => {
         fetchAppearanceSettings();
     }, [fetchAppearanceSettings]);
@@ -128,6 +143,18 @@ const AppearancePage = () => {
         <h2 className="text-2xl font-semibold text-slate-800">Appearance</h2>
         <p className="text-sm text-slate-500 -mt-4">Customize how DevDash looks for you.</p>
 
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Active Preferences</span>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    Theme: {resolvedThemeLabel}
+                </span>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    Sidebar: {sidebarPosition === 'left' ? 'Left' : 'Right'}
+                </span>
+            </div>
+        </div>
+
         {/* ── Theme Selection Card ── */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
             <h3 className="text-base font-semibold text-slate-700">Theme</h3>
@@ -138,6 +165,8 @@ const AppearancePage = () => {
                     const isSelected= theme === opt.value;
                     return (
                         <button key={opt.value} onClick={() => setTheme(opt.value)}
+                            type="button"
+                            aria-pressed={isSelected}
                             disabled={isSaving}
                             className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all
                                 ${isSelected
@@ -161,6 +190,8 @@ const AppearancePage = () => {
             <div className="flex gap-3">
                 {/* Left option */}
                 <button onClick={() => setSidebarPosition('left')}
+                    type="button"
+                    aria-pressed={sidebarPosition === 'left'}
                     disabled={isSaving}
                     className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all
                         ${sidebarPosition === 'left'
@@ -173,6 +204,8 @@ const AppearancePage = () => {
 
                 {/* Right option */}
                 <button onClick={() => setSidebarPosition('right')}
+                    type="button"
+                    aria-pressed={sidebarPosition === 'right'}
                     disabled={isSaving}
                     className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all
                         ${sidebarPosition === 'right'
@@ -185,12 +218,20 @@ const AppearancePage = () => {
             </div>
         </div>
 
-        {/* ── Save Button ── */}
-        <button onClick={handleSave}
-            disabled={isSaving || !hasChanges}
-            className="w-full py-2.5 px-6 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
-            {isSaving ? 'Saving...' : 'Save Preferences'}
-        </button>
+        <div className="flex items-center gap-3">
+            <button onClick={handleDiscardChanges}
+                type="button"
+                disabled={isSaving || !hasChanges}
+                className="flex-1 py-2.5 px-6 bg-white hover:bg-slate-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-slate-700 text-sm font-medium rounded-xl transition-colors border border-slate-200">
+                Discard Changes
+            </button>
+            <button onClick={handleSave}
+                type="button"
+                disabled={isSaving || !hasChanges}
+                className="flex-1 py-2.5 px-6 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
+                {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+        </div>
     </div>
   )
 }

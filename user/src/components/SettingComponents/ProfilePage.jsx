@@ -13,17 +13,23 @@ const ProfilePage = () => {
     const [isSaving, setIsSaving]= useState(false);
     const { register, handleSubmit, formState: { errors }, reset, getValues } = useForm();
 
+    const resetToUserSnapshot = (targetUser) => {
+        if (!targetUser) return;
+
+        reset({
+            firstName: targetUser.firstName || '',
+            lastName: targetUser.lastName || '',
+            username: targetUser.username || '',
+            bio: targetUser.bio || '',
+            githubUrl: targetUser.githubUrl || '',
+            linkedinUrl: targetUser.linkedinUrl || '',
+            portfolioUrl: targetUser.portfolioUrl || '',
+        });
+    };
+
     useEffect(() => {
         if (user) {
-            reset({
-                firstName: user.firstName || '',
-                lastName: user.lastName || '',
-                username: user.username || '',
-                bio: user.bio || '',
-                githubUrl: user.githubUrl || '',
-                linkedinUrl: user.linkedinUrl || '',
-                portfolioUrl: user.portfolioUrl || '',
-            });
+            resetToUserSnapshot(user);
         }
     }, [user, reset]);
 
@@ -129,7 +135,7 @@ const ProfilePage = () => {
     };
 
     const handleCancel = () => {
-        reset();
+        resetToUserSnapshot(user);
         setPreviewImage(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
@@ -145,6 +151,18 @@ const ProfilePage = () => {
             <div>
                 <h2 className="text-2xl font-semibold text-slate-800">Profile</h2>
                 <p className="text-sm text-slate-500 mt-1">Manage your personal information and how others see you.</p>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Profile Summary</span>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        @{user?.username || 'username'}
+                    </span>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                        {user?.email || 'No email'}
+                    </span>
+                </div>
             </div>
 
             {/* ── Profile Picture Card ── */}
@@ -300,7 +318,7 @@ const ProfilePage = () => {
                     disabled={isSaving}
                     className="flex-1 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
                 >
-                    Cancel
+                    Discard Changes
                 </button>
                 {/* type="submit" triggers RHF validation → onValidated → opens popup */}
                 <button
@@ -308,7 +326,7 @@ const ProfilePage = () => {
                     disabled={isSaving}
                     className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-xl transition-colors shadow-sm"
                 >
-                    Save Changes
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                 </button>
             </div>
 

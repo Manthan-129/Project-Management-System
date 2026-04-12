@@ -210,6 +210,18 @@ const AccountPage = () => {
                 <p className="text-sm text-slate-500 mt-1">Manage your email and account status.</p>
             </div>
 
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Account Summary</span>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        {user?.email || 'No email'}
+                    </span>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                        Status: {user?.isAccountVerified ? 'Verified' : 'Pending Verification'}
+                    </span>
+                </div>
+            </div>
+
             {/* ── Change Email Card ── */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
                 <h3 className="flex items-center gap-2 text-base font-semibold text-slate-700">
@@ -242,6 +254,14 @@ const AccountPage = () => {
                                 <Send size={14} /> Send OTP
                             </button>
                         </div>
+                        <button
+                            type="button"
+                            onClick={() => setNewEmail('')}
+                            disabled={!newEmail || isSendingOtp}
+                            className="text-xs font-medium text-slate-600 hover:text-slate-700 disabled:text-slate-400 disabled:cursor-not-allowed"
+                        >
+                            Discard Changes
+                        </button>
                     </div>
                 </form>
             </div>

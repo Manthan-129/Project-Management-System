@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AppContext } from '../../context/AppContext'
 import { Check, Circle, Eye, EyeOff, Lock, ShieldCheck } from 'lucide-react'
@@ -55,7 +55,7 @@ const SecurityPage = () => {
 
     useEffect(() => {
         fetchTwoFactorStatus()
-    }, [token])
+    }, [authHeaders])
 
     const handleChangePassword = async (data) => {
         try {
@@ -161,6 +161,19 @@ const SecurityPage = () => {
         { label: 'Special character', pass: /[^A-Za-z0-9]/.test(newPassword) },
     ]
 
+    const passedChecksCount = useMemo(() => {
+        return strengthChecks.filter((check) => check.pass).length
+    }, [strengthChecks])
+
+    const resetPasswordForm = () => {
+        resetField('currentPassword')
+        resetField('newPassword')
+        resetField('confirmNewPassword')
+        setShowCurrentPassword(false)
+        setShowNewPassword(false)
+        setShowConfirmNewPassword(false)
+    }
+
     if (isFetchingStatus) return <LoadingPage />
 
   return (
@@ -169,6 +182,18 @@ const SecurityPage = () => {
         {/* Page Header */}
       <h2 className="text-2xl font-semibold text-slate-800">Security</h2>
     <p className="text-sm text-slate-500 -mt-4">Manage your password and account protection.</p>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Security Summary</span>
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${twoFAEnabled ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                        2FA: {twoFAEnabled ? 'Enabled' : 'Disabled'}
+                    </span>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        Password checks: {passedChecksCount}/4
+                    </span>
+                </div>
+            </div>
 
       {/* ── Change Password Card ── */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
@@ -255,10 +280,16 @@ const SecurityPage = () => {
                 {errors.confirmNewPassword && <p className="text-xs text-rose-500">{errors.confirmNewPassword.message}</p>}
             </div>
 
-            <button type="submit" disabled={isChangingPassword}
-                className="w-full py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm">
-                {isChangingPassword ? 'Updating...' : 'Update Password'}
-            </button>
+            <div className="flex gap-3">
+                <button type="button" onClick={resetPasswordForm} disabled={isChangingPassword}
+                    className="flex-1 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors">
+                    Discard Changes
+                </button>
+                <button type="submit" disabled={isChangingPassword}
+                    className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm">
+                    {isChangingPassword ? 'Saving...' : 'Save Changes'}
+                </button>
+            </div>
         </form>
       </div>
 
@@ -305,16 +336,6 @@ const SecurityPage = () => {
                         ? 'We have sent an OTP to your registered email. Enter it below to enable 2FA.'
                         : 'We have sent an OTP to your registered email. Enter it below to disable 2FA.'}
                 </p>
-
-                {/* <div className="space-y-1.5">
-                    <input type="text"
-                    placeholder="Enter 6-digit OTP"
-                    minLength={6}
-                    maxLength={6}
-                    {...register('twoFAOtp')}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 tracking-[0.3em] transition" />
-                    {errors.twoFAOtp && <p className="text-xs text-rose-500">{errors.twoFAOtp.message}</p>}
-                </div> */}
 
                 <OTP value={otp} onChange={setOtp} />
 

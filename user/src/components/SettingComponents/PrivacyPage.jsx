@@ -68,7 +68,7 @@ const PrivacyPage = () => {
                 };
 
                 setSettings(nextSettings);
-                setInitialSettings(nextSettings);
+                setInitialSettings({ ...nextSettings });
             }
         } catch (error) {
             if (error?.response?.status === 401) {
@@ -130,7 +130,7 @@ const PrivacyPage = () => {
 
     useEffect(() => {
         fetchPrivacySettings();
-    }, [authHeaders]);
+    }, [authHeaders, logout]);
 
     if (isFetching) return <LoadingPage />;
 
@@ -239,7 +239,7 @@ const PrivacyPage = () => {
                 type="button"
                 disabled={isSaving || !hasChanges}
                 className="flex-1 py-2.5 px-6 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
-                {isSaving ? 'Saving...' : 'Save Privacy Settings'}
+                {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
         </div>
     </div>
