@@ -1,17 +1,28 @@
 import { Line } from 'rc-progress'
+import { useMemo, useState } from 'react'
 
-const members = [
-  { name: 'Sarah Chen', role: 'Team Leader', done: 11, total: 12 },
-  { name: 'Mike Johnson', role: 'Frontend Developer', done: 7, total: 9 },
-  { name: 'Alex Kumar', role: 'Backend Developer', done: 9, total: 11 },
-  { name: 'Emma Davis', role: 'Product Designer', done: 10, total: 10 },
-]
-
-const summaryStats = [
-  { value: '43', label: 'Active Tasks' },
-  { value: '87%', label: 'Team Completion' },
-  { value: '12', label: 'Delivered This Sprint' },
-]
+const progressByRange = {
+  week: {
+    activeTasks: 43,
+    delivered: 12,
+    members: [
+      { name: 'Sarah Chen', role: 'Team Leader', done: 11, total: 12 },
+      { name: 'Mike Johnson', role: 'Frontend Developer', done: 7, total: 9 },
+      { name: 'Alex Kumar', role: 'Backend Developer', done: 9, total: 11 },
+      { name: 'Emma Davis', role: 'Product Designer', done: 10, total: 10 },
+    ],
+  },
+  month: {
+    activeTasks: 128,
+    delivered: 38,
+    members: [
+      { name: 'Sarah Chen', role: 'Team Leader', done: 34, total: 38 },
+      { name: 'Mike Johnson', role: 'Frontend Developer', done: 27, total: 33 },
+      { name: 'Alex Kumar', role: 'Backend Developer', done: 29, total: 35 },
+      { name: 'Emma Davis', role: 'Product Designer', done: 32, total: 34 },
+    ],
+  },
+}
 
 const avatarColors = [
   'bg-[#e6effa] text-[#315e8d]',
@@ -21,6 +32,26 @@ const avatarColors = [
 ]
 
 const ProgressTracking = () => {
+  const [range, setRange] = useState('week')
+  const rangeData = progressByRange[range]
+
+  const { teamDone, teamTotal, teamPct, summaryStats } = useMemo(() => {
+    const done = rangeData.members.reduce((acc, member) => acc + member.done, 0)
+    const total = rangeData.members.reduce((acc, member) => acc + member.total, 0)
+    const pct = total ? Math.round((done / total) * 100) : 0
+
+    return {
+      teamDone: done,
+      teamTotal: total,
+      teamPct: pct,
+      summaryStats: [
+        { value: String(rangeData.activeTasks), label: 'Active Tasks' },
+        { value: `${pct}%`, label: 'Team Completion' },
+        { value: String(rangeData.delivered), label: range === 'week' ? 'Delivered This Sprint' : 'Delivered This Month' },
+      ],
+    }
+  }, [range, rangeData])
+
   return (
     <section id="tracking" className="px-5 py-24 lg:px-12">
       <div className="max-w-7xl mx-auto">
@@ -52,18 +83,28 @@ const ProgressTracking = () => {
           <div className="w-full lg:w-3/5 bg-white/95 border border-[#dbe5f1] rounded-2xl p-6 space-y-5 shadow-[0_20px_60px_-35px_rgba(18,33,58,0.45)]">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-slate-800">Team Progress</h3>
-              <div className="flex gap-1.5">
-                <button className="text-xs font-semibold px-3 py-1.5 bg-[#315e8d] text-white rounded-lg transition-colors">
+              <div className="flex gap-1.5" role="group" aria-label="Progress time range">
+                <button
+                  type="button"
+                  onClick={() => setRange('week')}
+                  aria-pressed={range === 'week'}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${range === 'week' ? 'bg-[#315e8d] text-white' : 'bg-[#edf3fa] text-slate-600 hover:bg-[#e5eef9]'}`}
+                >
                   This Week
                 </button>
-                <button className="text-xs font-semibold px-3 py-1.5 bg-[#edf3fa] text-slate-600 hover:bg-[#e5eef9] rounded-lg transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setRange('month')}
+                  aria-pressed={range === 'month'}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${range === 'month' ? 'bg-[#315e8d] text-white' : 'bg-[#edf3fa] text-slate-600 hover:bg-[#e5eef9]'}`}
+                >
                   This Month
                 </button>
               </div>
             </div>
 
             <div className="space-y-4">
-              {members.map((member, i) => {
+              {rangeData.members.map((member, i) => {
                 const pct = Math.round((member.done / member.total) * 100)
                 return (
                   <div key={member.name} className="space-y-2">
@@ -96,16 +137,16 @@ const ProgressTracking = () => {
               <div className="space-y-2 pt-3 border-t border-slate-200">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-slate-700">Overall Team Progress</p>
-                  <p className="text-sm font-bold text-[#315e8d]">92%</p>
+                  <p className="text-sm font-bold text-[#315e8d]">{teamPct}%</p>
                 </div>
                 <Line
                   strokeWidth={2}
-                  percent={92}
+                  percent={teamPct}
                   strokeColor="#315e8d"
                   trailColor="#dce6f2"
                   className="rounded-full"
                 />
-                <p className="text-xs text-slate-500">37 of 42 sprint tasks completed</p>
+                <p className="text-xs text-slate-500">{teamDone} of {teamTotal} tasks completed</p>
               </div>
             </div>
           </div>

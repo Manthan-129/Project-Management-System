@@ -1,221 +1,18 @@
-// import { AlertTriangle, Mail, Send, Trash2, X } from 'lucide-react'
-// import React, { useContext, useState, useEffect } from 'react'
-// import { AppContext } from '../../context/AppContext'
-// import { useForm } from 'react-hook-form'
-// import { toast } from 'react-toastify'
-// import LoadingPage from '../LoadingPage.jsx'   
-// import { assets } from '../../assets/assets.js'
-
-// const AccountPage = () => {
-//     const { user, deleteAccount, deactivateAccount, loading, setLoading }= useContext(AppContext);
-
-//     // Email Change Form
-//     const { register: registerEmail, handleSubmit: handleEmailSubmit, formState: {errors: emailErrors}, reset: resetEmail, watch: watchEmail }= useForm();
-
-//     useEffect(()=>{
-//         if(user){
-//             resetEmail({
-//                 newEmail: '',
-//                 emailOtp: '',
-//             });
-//         }
-//     }, [user, resetEmail]);
-
-//     // Delete Account Form
-//     const { register: registerDelete, handleSubmit: handleDeleteSubmit, formState: {errors: deleteErrors}, reset: resetDelete}= useForm();
-
-//     useEffect(()=>{
-//         if(user){
-//             resetDelete({
-//                 deletePassword: ''
-//             })
-//         }
-//     }, [user, resetDelete]);
-
-//     const [emailOtpSent, setEmailOtpSent]= useState(false);
-//     const [showDeactivatePopup, setShowDeactivatePopup]= useState(false);
-//     const [showDeletePopup, setShowDeletePopup]= useState(false);   
-    
-//     const handleSendOtp= (data)=>{
-//         // API call to send OTP to new email
-//         setEmailOtpSent(true);
-//     }
-
-//     const handleVerifyEmailOtp= (data)=>{
-//         // API call to verify OTP and change email
-//         setEmailOtpSent(false);
-//         resetEmail();
-//     }
-
-//     const handleDeactivateAccount= async ()=>{
-//         setLoading(true);
-//         try {
-//             await deactivateAccount();
-//             setShowDeactivatePopup(false);
-//             } catch(err) {
-//             toast.error("Something went wrong");
-//         }
-//         setLoading(false);
-//     }
-
-//     const handleDeleteAccount= async (data)=>{
-//         setLoading(true);
-//         try {
-//             await deleteAccount(data.deletePassword);
-//             setShowDeletePopup(false);
-//             } catch(err) {
-//             toast.error("Failed to delete account");
-//         }
-//         setLoading(false);
-//     }
-
-//     if (loading) return <LoadingPage />;
-
-//   return (
-//     <div>
-//        {/* Page Header */}
-//       <h2>Account</h2>
-//       <p>Manage your email, username, and account status.</p> 
-//       {/* ── Change Email Card ── */}
-//       <div>
-//         <h3><Mail size={16} /> Change Email</h3>
-//         <p>Current email: <strong>{user?.email}</strong></p>
-
-//         <form onSubmit= {!emailOtpSent ? handleEmailSubmit(handleSendOtp) : handleEmailSubmit(handleVerifyEmailOtp)}>
-
-//             <div>
-//                 <label >New Email Address</label>
-//                 <div>
-//                     <input type="email" {...registerEmail('newEmail', {required: 'Email is required', pattern: { value: /^\S+@\S+\.\S+$/, message: 'Invalid email' }})} placeholder="newemail@example.com"
-//                     disabled={emailOtpSent} />
-
-//                     {emailErrors.newEmail && <p>{emailErrors.newEmail.message}</p>}
-
-//                     {!emailOtpSent && (
-//                         <button type="submit"><Send size= {14} /> Send OTP</button>
-//                     )}
-//                 </div>
-//             </div>
-
-//             {/* OTP Input — shown only after OTP is sent */}
-//             {emailOtpSent && (
-//                 <div>
-//                     <label>Enter OTP</label>
-//                     <div>
-//                         <input type="text" {...registerEmail('emailOtp', {required: 'OTP is required', minLength: {value: 6, message: 'OTP must be 6 digits'},
-//                         maxLength: {value: 6, message: 'OTP must be 6 digits'}
-//                         })}
-//                         placeholder="Enter 6-digit OTP"
-//                         maxLength= {6} />
-
-//                         {emailErrors.emailOtp && <p>{emailErrors.emailOtp.message}</p>}
-                        
-//                         <div>
-//                             <button type="button" onClick={() => {
-//                                 setEmailOtpSent(false)
-//                                 resetEmail()
-//                                 }}>
-//                                 Cancel
-//                             </button>
-//                             <button type="submit">Verify OTP</button>
-//                         </div>                   
-//                     </div>
-
-//                     <p>OTP sent to {watchEmail('newEmail')}. Check your inbox.</p>
-
-//                 </div>
-//             )}
-//         </form>
-//       </div>
-
-//       {/* ── Danger Zone Card ── */}
-//       <div>
-//         <h3><AlertTriangle size={16} /> Danger Zone</h3>
-
-//         {/* Deactivate */}
-//         <div>
-//             <div>
-//                 <p>Deactivate Account</p>
-//                 <p>Temporarily hide your profile. Your data stays safe, you can reactivate anytime.</p>
-//             </div>
-//             <button onClick={ () => setShowDeactivatePopup(true) }>Deactivate</button>
-//         </div>
-
-//         <hr />
-
-//         {/* Delete */}
-//         <div>
-//             <div>
-//                 <p>Delete Account</p>
-//                 <p>Permanently remove your account and all data. This cannot be undone.</p>
-//             </div>
-//             <button onClick={ () => setShowDeletePopup(true) }>
-//                 <Trash2 size={14} /> Delete
-//             </button>
-//         </div>
-//       </div>
-        
-//       {/* ── Deactivate Popup ── */}
-//         {showDeactivatePopup && (
-//             <div onClick={()=> setShowDeactivatePopup(false)}>
-//                 <div onClick={(e) => e.stopPropagation()}>
-//                     <div>
-//                         <h4>Deactivate Account?</h4>
-//                         <button onClick={() => setShowDeactivatePopup(false)}><X size={16} /></button>
-//                     </div>
-//                     <p>Your profile will be hidden from all teams and searches. Log in again to reactivate.</p>
-//                     <div>
-//                         <button onClick={()=> setShowDeactivatePopup(false)}>Cancel</button>
-//                         <button onClick={handleDeactivateAccount}>Yes, Deactivate</button>
-//                     </div>
-//                 </div>
-//             </div>
-//         )}
-
-//         {/* ── Delete Popup ── */}
-//         {showDeletePopup && (
-//             <div onClick={()=> {setShowDeletePopup(false); resetDelete()}}>
-//                 <div onClick={(e) => e.stopPropagation()}>
-//                     <div>
-//                         <h4>Delete Account</h4>
-//                         <button onClick={() => { setShowDeletePopup(false); resetDelete() }}><X size={16} /></button>
-//                     </div>
-//                     <p>This is permanent. Enter your password to confirm deletion.</p>
-
-//                     <form onSubmit={handleDeleteSubmit(handleDeleteAccount)}>
-//                         <input type="password"
-//                         {...registerDelete('deletePassword', {required: 'Password is required'})}
-//                         placeholder="Enter your password" />
-
-//                         {deleteErrors.deletePassword && <p>{deleteErrors.deletePassword.message}</p>}
-
-//                         <div>
-//                             <button type="button" onClick={()=> {setShowDeletePopup(false); resetDelete()}}>
-//                                 Cancel
-//                             </button>
-//                             <button type="submit" disabled={loading}>Delete Account</button>
-//                         </div>
-//                     </form>
-//                 </div>
-//             </div>
-//         )}
-//     </div>
-//   )
-// }
-
-// export default AccountPage
-
 import { AlertTriangle, Eye, EyeOff, Mail, Send, Trash2, X } from 'lucide-react'
 import React, { useContext, useState, useEffect } from 'react'
 import { AppContext } from '../../context/AppContext'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
-import LoadingPage from '../LoadingPage.jsx'
 import OTP from '../AuthComponents/OTP.jsx'
+import api from '../../api/axiosInstance.js'
 
 const AccountPage = () => {
-    const { user } = useContext(AppContext);
-    const [loading, setLoading]= useState(false);
+    const { user, setUser, token, logout } = useContext(AppContext);
+    const [isSendingOtp, setIsSendingOtp]= useState(false);
+    const [isResendingOtp, setIsResendingOtp]= useState(false);
+    const [isVerifyingOtp, setIsVerifyingOtp]= useState(false);
+    const [isDeactivating, setIsDeactivating]= useState(false);
+    const [isDeletingAccount, setIsDeletingAccount]= useState(false);
     const [otp, setOtp] = useState('');
     const [password, setPassword] = useState('');
     const [newEmail, setNewEmail] = useState('');
@@ -228,6 +25,11 @@ const AccountPage = () => {
     const [showEmailPass, setShowEmailPass] = useState(false);
     const [showDeactivatePass, setShowDeactivatePass] = useState(false);
     const [showDeletePass, setShowDeletePass] = useState(false);
+
+
+    const authHeaders = { Authorization: `Bearer ${token}` };
+    const trimmedNewEmail = newEmail.trim();
+    const isValidNewEmail = /^\S+@\S+\.\S+$/.test(trimmedNewEmail);
 
     // ── Delete Account Form ──
     const {
@@ -253,22 +55,106 @@ const AccountPage = () => {
         if (user) resetDelete({ deletePassword: '' });
     }, [user, resetDelete]);
 
+    const getErrorMessage = (error, fallbackMessage) => {
+        return error?.response?.data?.message || fallbackMessage;
+    };
+
+    const requestEmailOtp = async (requestType = 'send') => {
+        if (!trimmedNewEmail) {
+            toast.error('Please enter a new email address');
+            return false;
+        }
+
+        if (!isValidNewEmail) {
+            toast.error('Please enter a valid email address');
+            return false;
+        }
+
+        try {
+            if (requestType === 'send') {
+                setIsSendingOtp(true);
+            } else {
+                setIsResendingOtp(true);
+            }
+
+            const { data } = await api.post(
+                '/settings/update-email-otp-request',
+                { newEmail: trimmedNewEmail },
+                { headers: authHeaders }
+            );
+
+            if (data?.success) {
+                toast.success(data.message || 'OTP sent to your new email');
+                return true;
+            }
+        } catch (error) {
+            toast.error(getErrorMessage(error, 'Failed to send OTP'));
+        } finally {
+            if (requestType === 'send') {
+                setIsSendingOtp(false);
+            } else {
+                setIsResendingOtp(false);
+            }
+        }
+
+        return false;
+    };
+
     // Step 1: Send OTP — opens the OTP popup instead of showing inline
-    const handleSendOTP = (e) => {
+    const handleSendOTP = async (e) => {
         e.preventDefault();
-        // TODO: API call to send OTP to newEmail
-        setShowOtpPopup(true);
+        const sent = await requestEmailOtp('send');
+        if (sent) {
+            setShowOtpPopup(true);
+        }
+    };
+
+    const handleResendOTP = async () => {
+        const sent = await requestEmailOtp('resend');
+        if (sent) {
+            setOtp('');
+        }
     };
 
     // Step 2: Verify OTP + password inside popup
-    const handleVerifyEmailOTP = (e) => {
+    const handleVerifyEmailOTP = async (e) => {
         e.preventDefault();
-        // TODO: API call to verify OTP + password, then update email
-        setShowOtpPopup(false);
-        setNewEmail('');
-        setOtp('');
-        setPassword('');
-        toast.success("Email updated successfully");
+
+        if(!otp || otp.length !== 6){
+            toast.error('Please enter a valid 6-digit OTP');
+            return;
+        }
+
+        if(!password){
+            toast.error('Please enter your password');
+            return;
+        }
+
+        try{
+            setIsVerifyingOtp(true);
+            const { data } = await api.post(
+                '/settings/verify-update-email-otp',
+                {
+                    password,
+                    newEmail: trimmedNewEmail,
+                    otp,
+                },
+                { headers: authHeaders }
+            );
+
+            if(data?.success){
+                setUser((prev) => ({ ...prev, email: trimmedNewEmail }));
+                setShowOtpPopup(false);
+                setNewEmail('');
+                setOtp('');
+                setPassword('');
+                toast.success(data.message || 'Email updated successfully');
+            }
+        }catch(error){
+            toast.error(getErrorMessage(error, 'Failed to verify OTP'));
+        }finally{
+            setIsVerifyingOtp(false);
+        }
     };
 
     // Close OTP popup and reset its state
@@ -280,34 +166,43 @@ const AccountPage = () => {
     };
 
     const handleDeactivateAccount = async (data) => {
-        setLoading(true);
+        setIsDeactivating(true);
         try {
-            // TODO: await deactivateAccount(data.deactivatePassword);
+            const response = await api.post(
+                '/settings/deactivate-account',
+                { password: data.deactivatePassword },
+                { headers: authHeaders }
+            );
+
             setShowDeactivatePopup(false);
             resetDeactivate();
-            toast.success("Account deactivated");
+            toast.success(response?.data?.message || 'Account deactivated');
+            await logout();
         } catch (err) {
-            toast.error("Something went wrong");
+            toast.error(getErrorMessage(err, 'Something went wrong'));
         } finally {
-            setLoading(false);
+            setIsDeactivating(false);
         }
     };
 
     const handleDeleteAccount = async (data) => {
-        setLoading(true);
+        setIsDeletingAccount(true);
         try {
-            // TODO: await deleteAccount(data.deletePassword);
+            const response = await api.delete('/settings/delete-account', {
+                data: { password: data.deletePassword },
+                headers: authHeaders,
+            });
+
             setShowDeletePopup(false);
             resetDelete();
-            toast.success("Account deleted");
+            toast.success(response?.data?.message || 'Account deleted');
+            await logout();
         } catch (err) {
-            toast.error("Failed to delete account");
+            toast.error(getErrorMessage(err, 'Failed to delete account'));
         } finally {
-            setLoading(false);
+            setIsDeletingAccount(false);
         }
     };
-
-    if (loading) return <LoadingPage />;
 
     return (
         <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
@@ -344,7 +239,8 @@ const AccountPage = () => {
                             />
                             <button
                                 type="submit"
-                                className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-xl transition-colors shadow-sm whitespace-nowrap"
+                                disabled={isSendingOtp || !isValidNewEmail}
+                                className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm whitespace-nowrap"
                             >
                                 <Send size={14} /> Send OTP
                             </button>
@@ -431,6 +327,14 @@ const AccountPage = () => {
                                     Enter OTP
                                 </label>
                                 <OTP value={otp} onChange={(value) => setOtp(value)} />
+                                <button
+                                    type="button"
+                                    onClick={handleResendOTP}
+                                    disabled={isResendingOtp}
+                                    className="text-xs font-medium text-indigo-600 hover:text-indigo-700 disabled:text-slate-400 disabled:cursor-not-allowed"
+                                >
+                                    Resend OTP
+                                </button>
                             </div>
 
                             {/* Password Input */}
@@ -469,7 +373,7 @@ const AccountPage = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={loading}
+                                    disabled={isVerifyingOtp}
                                     className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm"
                                 >
                                     Verify & Update
@@ -539,7 +443,7 @@ const AccountPage = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={loading}
+                                    disabled={isDeactivating}
                                     className="flex-1 py-2.5 text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm"
                                 >
                                     Yes, Deactivate
@@ -609,7 +513,7 @@ const AccountPage = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={loading}
+                                    disabled={isDeletingAccount}
                                     className="flex-1 py-2.5 text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm"
                                 >
                                     Delete Account

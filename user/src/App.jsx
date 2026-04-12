@@ -21,7 +21,6 @@ import IntegrationPage from './components/SettingComponents/IntegrationPage.jsx'
 
 import DashboardPage from './pages/DashboardPage.jsx'
 import DashboardOverview from './components/DashboardComponents/DashboardOverview.jsx'
-import DashboardSidebar from './components/DashboardComponents/DashboardSidebar.jsx'
 import Friends from './components/DashboardComponents/Friends.jsx'
 import Invitations from './components/DashboardComponents/Invitations.jsx'
 import PullRequests from './components/DashboardComponents/PullRequests.jsx'
@@ -29,15 +28,13 @@ import TaskWorkspaceBoard from './components/DashboardComponents/TaskWorkspaceBo
 import TeamDetails from './components/DashboardComponents/TeamDetails.jsx'
 import Teams from './components/DashboardComponents/Teams.jsx'
 
-// const ProtectedRoute= ({ children })=>{
-//   const {token}= useContext(AppContext);
-//   if(!token){
-//     return <Navigate to="/login"/>
-//   }
-//   return children;
-// };
-
 const ProtectedRoute = ({ children })=>{
+  const { ensureAuthenticated } = useContext(AppContext);
+
+  if(!ensureAuthenticated({ showToast: false })){
+    return <Navigate to='/login' replace />
+  }
+
   return children;
 }
 

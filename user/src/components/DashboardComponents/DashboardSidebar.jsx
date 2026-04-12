@@ -1,5 +1,5 @@
 import React from 'react'
-import { Bell, ChevronRight, FolderKanban, GitPullRequest, KanbanSquare, LayoutDashboard, LogOut, Settings, Sparkles, UserPlus, Users, Bell } from 'lucide-react'
+import { Bell, ChevronRight, FolderKanban, GitPullRequest, KanbanSquare, LayoutDashboard, LogOut, Settings, Sparkles, UserPlus, Users } from 'lucide-react'
 import { useContext, useEffect, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext.jsx'
@@ -7,7 +7,7 @@ import NotificationPopup from './NotificationPopup.jsx'
 
 const DashboardSidebar = () => {
 
-    const {user, logoutUser, notifications, unreadNotificationCount, fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead}= useContext(AppContext);
+    const {user, logout, notifications, unreadNotificationsCount, fetchNotifications, markNotificationAsRead, markNotificationsAsRead}= useContext(AppContext);
 
     const [isNotificationOpen, setIsNotificationOpen]= useState(false);
     const notificationRef= useRef();
@@ -105,7 +105,7 @@ const DashboardSidebar = () => {
             </NavLink>
 
             <button
-                onClick={logoutUser}
+                onClick={logout}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all cursor-pointer group"
             >
                 <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-all">
@@ -131,17 +131,17 @@ const DashboardSidebar = () => {
                     <div>
                         <button onClick={handleToggleNotifications}>
                             <Bell size={15} />
-                            {unreadNotificationCount > 0 && (
-                                <span>{unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}</span>
+                            {unreadNotificationsCount > 0 && (
+                                <span>{unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}</span>
                             )}
                         </button>
 
                         {isNotificationOpen && (
                             <NotificationPopup 
                             notifications= {notifications}
-                            unreadCount= {unreadNotificationCount}
+                            unreadCount= {unreadNotificationsCount}
                             onItemClick= {handleNotificationItemClick}
-                            onMarkAllAsRead= {markAllNotificationsAsRead}
+                            onMarkAllAsRead= {markNotificationsAsRead}
                             onClose= {()=> setIsNotificationOpen(false)}
                             />
                         )}

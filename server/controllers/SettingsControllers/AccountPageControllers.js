@@ -7,17 +7,19 @@ const validator= require('validator');
 const { transporter }= require('../../configs/nodemailer');
 const { updateEmailTemplate }= require('../../utils/emailTemplates.js');
 
+const UPDATE_EMAIL_PURPOSE= process.env.UPDATE_EMAIL_PURPOSE || 'update-email';
+
 const updateUserEmailOTPRequest= async (req, res)=>{
     try{
         const userId= req.userId;
         const {newEmail}= req.body;
         
         if(!newEmail){
-            return res.status(404).json({success: false, message: "New email is required"});
+            return res.status(400).json({success: false, message: "New email is required"});
         }
 
         if(!validator.isEmail(newEmail)){
-            return res.status(404).json({success: false, message: "Invalid email address"});
+            return res.status(400).json({success: false, message: "Invalid email address"});
         }
 
         const user= await User.findById(userId);
@@ -29,17 +31,17 @@ const updateUserEmailOTPRequest= async (req, res)=>{
         const existingUser= await User.findOne({email: newEmail});
 
         if(existingUser){
-            return res.status(404).json({success: false, message: "Email is already in use by another account"});
+            return res.status(409).json({success: false, message: "Email is already in use by another account"});
         }
 
         const otp= Math.floor(100000 + Math.random()*900000).toString();
 
         const otpHash= await bcrypt.hash(otp, 10);
 
-        await OTP.deleteMany({email: newEmail, purpose: process.env.UPDATE_EMAIL_PURPOSE});
+        await OTP.deleteMany({email: newEmail, purpose: UPDATE_EMAIL_PURPOSE});
         await OTP.create({
             email: newEmail,
-            purpose: process.env.UPDATE_EMAIL_PURPOSE,
+            purpose: UPDATE_EMAIL_PURPOSE,
             otp: otpHash,
             expiresAt: new Date(Date.now() + 5*60*1000),
         });
@@ -67,14 +69,14 @@ const verifyUpdateUserEmailOTP= async (req, res)=>{
         const {password, newEmail, otp}= req.body;
         
         if(!password){
-            return res.status(404).json({success: false, message: "Password is required for verifying email update"});
+            return res.status(400).json({success: false, message: "Password is required for verifying email update"});
         }
         
         if(!newEmail || !otp){
-            return res.status(404).json({success: false, message: "New email and OTP are required"});
+            return res.status(400).json({success: false, message: "New email and OTP are required"});
         }
         if(!validator.isEmail(newEmail)){
-            return res.status(404).json({success: false, message: "Invalid email address"});
+            return res.status(400).json({success: false, message: "Invalid email address"});
         }
 
         const user= await User.findById(userId).select("+password");
@@ -85,24 +87,24 @@ const verifyUpdateUserEmailOTP= async (req, res)=>{
 
         const isMatch= await bcrypt.compare(password, user.password);
         if(!isMatch){
-            return res.status(404).json({success: false, message: "Incorrect password. Cannot verify email update."});
+            return res.status(401).json({success: false, message: "Incorrect password. Cannot verify email update."});
         }
         
 
-        const otpRecord= await OTP.findOne({email: newEmail, purpose: process.env.UPDATE_EMAIL_PURPOSE}).sort({createdAt: -1});
+        const otpRecord= await OTP.findOne({email: newEmail, purpose: UPDATE_EMAIL_PURPOSE}).sort({createdAt: -1});
 
         if(!otpRecord){
-            return res.status(404).json({success: false, message: "OTP expired or invalid"});
+            return res.status(400).json({success: false, message: "OTP expired or invalid"});
         }
 
         if(otpRecord.expiresAt < new Date()){
-            return res.status(404).json({success: false, message: "OTP has expired. Please request a new one."});
+            return res.status(400).json({success: false, message: "OTP has expired. Please request a new one."});
         }
 
         const isOTPValid= await bcrypt.compare(otp, otpRecord.otp);
 
         if(!isOTPValid){
-            return res.status(404).json({success: false, message: "Invalid OTP. Please try again."});
+            return res.status(400).json({success: false, message: "Invalid OTP. Please try again."});
         }
 
         user.email= newEmail;
@@ -124,7 +126,7 @@ const deactivateUserAccount= async (req, res)=>{
         const {password}= req.body;
         
         if(!password){
-            return res.status(404).json({success: false, message: "Password is required for deactivating account"});
+            return res.status(400).json({success: false, message: "Password is required for deactivating account"});
         }
 
         const user= await User.findById(userId).select("+password");
@@ -136,7 +138,7 @@ const deactivateUserAccount= async (req, res)=>{
         const isMatch= await bcrypt.compare(password, user.password);
 
         if(!isMatch){
-            return res.status(404).json({success: false, message: "Incorrect password. Cannot deactivate account."});
+            return res.status(401).json({success: false, message: "Incorrect password. Cannot deactivate account."});
         }
 
         if(!user.isActive){
@@ -165,7 +167,7 @@ const deleteUserAccount= async (req, res)=>{
         const {password}= req.body;
 
         if(!password){
-            return res.status(404).json({success: false, message: "Password is required for deleting account"});
+            return res.status(400).json({success: false, message: "Password is required for deleting account"});
         }
         const user= await User.findById(userId).select("+password");
 
@@ -175,7 +177,7 @@ const deleteUserAccount= async (req, res)=>{
 
         const isMatch = await bcrypt.compare(password, user.password);
         if(!isMatch){
-            return res.status(404).json({success: false, message: "Incorrect password. Cannot delete account."});
+            return res.status(401).json({success: false, message: "Incorrect password. Cannot delete account."});
         }
 
         await User.findByIdAndDelete(userId);

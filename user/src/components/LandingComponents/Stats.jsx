@@ -27,7 +27,7 @@ const stats = [
 
 const Stats = () => {
   return (
-    <section className="px-5 py-16 lg:px-12">
+    <section id="stats" className="px-5 py-16 lg:px-12">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
           {stats.map((stat)=>(

@@ -27,6 +27,8 @@ const {
 	toggleIntegrationAutoSync,
 }= require('../controllers/SettingsControllers/IntegrationPageControllers');
 
+const { getNotificationSettings, updateNotificationSettings }= require('../controllers/SettingsControllers/NotificationPageControllers');
+
 const {authMiddleware}= require('../middlewares/authMiddlewares');
 
 const { uploader }= require('../middlewares/multer');
@@ -62,5 +64,9 @@ settingsRouter.get('/integrations/:platform/connect', authMiddleware, initiateIn
 settingsRouter.get('/integrations/:platform/callback', handleIntegrationCallback);
 settingsRouter.post('/integrations/:platform/disconnect', authMiddleware, disconnectIntegration);
 settingsRouter.post('/integrations/:platform/toggle-sync', authMiddleware, toggleIntegrationAutoSync);
+
+// NotificationPage.jsx file
+settingsRouter.get('/get-notification-settings', authMiddleware, getNotificationSettings);
+settingsRouter.put('/update-notification-settings', authMiddleware, updateNotificationSettings);
 
 module.exports= settingsRouter;

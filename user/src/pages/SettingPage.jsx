@@ -17,11 +17,18 @@
 
 // export default SettingPage
 
-import React from 'react'
+import React, { useContext, useEffect } from 'react'
 import {Outlet} from 'react-router-dom'
 import Sidebar from '../components/SettingComponents/Sidebar'
+import { AppContext } from '../context/AppContext.jsx'
 
 const SettingPage = () => {
+  const { ensureAuthenticated } = useContext(AppContext);
+
+  useEffect(() => {
+    ensureAuthenticated({ showToast: false });
+  }, [ensureAuthenticated]);
+
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
 

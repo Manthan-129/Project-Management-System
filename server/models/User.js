@@ -57,6 +57,8 @@ function isValidLinkedInUrl(value){
     const allowedFirstSegment= new Set(["in", "company","school"]);
     if(!allowedFirstSegment.has(pathSegments[0].toLowerCase())) return false;
 
+    if(pathSegments.length < 2) return false;
+
     return /^[A-Za-z0-9-_%]+$/.test(pathSegments[1]);
 }
 
@@ -102,6 +104,14 @@ const UserSchema= new mongoose.Schema({
         showEmail: {type: Boolean, default: true},
         showOnlineStatus: {type: Boolean, default: true},
         showInSearch: {type: Boolean, default: true},
+    },
+
+    // Notification Settings
+    notificationSettings: {
+        taskAssignments: {type: Boolean, default: false},
+        taskUpdates: {type: Boolean, default: false},
+        pullRequests: {type: Boolean, default: false},
+        teamInvitations: {type: Boolean, default: false},
     },
 
     // Appearance Settings

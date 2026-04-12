@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const User = require('../../models/User');
 const bcrypt= require('bcrypt');
+const validator= require('validator');
 const {cloudinary}= require('../../configs/cloudinary');
 
 const updateUserInfo= async (req, res)=>{
@@ -10,7 +11,7 @@ const updateUserInfo= async (req, res)=>{
         const {password}= req.body;
 
         if(!password) {
-            return res.status(404).json({success: false, message: "Password is required for updating user info"});
+            return res.status(400).json({success: false, message: "Password is required for updating user info"});
         }
 
         const user= await User.findById(userId).select("+password");
@@ -21,10 +22,10 @@ const updateUserInfo= async (req, res)=>{
 
         const isMatch= await bcrypt.compare(password, user.password);
         if(!isMatch){
-            return res.status(404).json({success: false, message: "Incorrect password. Cannot update user info."});
+            return res.status(401).json({success: false, message: "Incorrect password. Cannot update user info."});
         }
 
-        const {firstName, lastName, bio, githubUrl, portfolioUrl, linkedinUrl}= req.body;
+        const {firstName, lastName, bio, githubUrl, portfolioUrl, linkedinUrl, profilePicture}= req.body;
         
         const imageFile= req.file;
         
@@ -39,6 +40,10 @@ const updateUserInfo= async (req, res)=>{
         console.log("Cloudinary Upload Result:", imageUpload.secure_url);
 
         user.profilePicture= imageUpload.secure_url;
+        }
+
+        if(profilePicture === ""){
+            user.profilePicture= "";
         }
 
         if(firstName) user.firstName= firstName;

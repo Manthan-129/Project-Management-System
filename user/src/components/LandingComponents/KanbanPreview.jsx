@@ -68,7 +68,7 @@ const highlights = [
 
 const KanbanPreview = () => {
   return (
-    <section className="px-5 py-24 lg:px-12">
+    <section id="kanban-preview" className="px-5 py-24 lg:px-12">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row items-center gap-12">
 

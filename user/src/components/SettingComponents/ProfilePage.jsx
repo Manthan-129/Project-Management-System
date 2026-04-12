@@ -1,215 +1,3 @@
-// import React from 'react'
-// import { Camera, Github, Globe, Linkedin, X, Trash2 } from 'lucide-react'
-// import { useState, useEffect, useContext, useRef } from 'react'
-// import { useForm } from 'react-hook-form'
-// import { AppContext } from '../../context/AppContext'
-// import { toast } from 'react-toastify'
-// import LoadingPage from '../LoadingPage.jsx'   
-// import { assets } from '../../assets/assets.js'
-
-// const ProfilePage = () => {
-
-//     const {navigate, user, loading, updateProfile}= useContext(AppContext);
-    
-//     const {register, handleSubmit, formState: {errors}, reset}= useForm();
-
-//     // Default Values for the form fields based on user data
-//     useEffect(() => {
-//         if(user){
-//             reset({
-//             firstName: user.firstName || '',
-//             lastName: user.lastName || '',
-//             username: user.username || '',
-//             bio: user.bio || '',
-//             githubUrl: user.githubUrl || '',
-//             linkedinUrl: user.linkedinUrl || '',
-//             portfolioUrl: user.portfolioUrl || '',
-//             });
-//         }
-//     }, [user, reset]);
-
-//     const fileInputRef= useRef(null);
-    
-//     const [previewImage, setPreviewImage]= useState(null);
-
-//     const handleImageChange= (e)=>{
-//         const file= e.target.files[0];
-//         if(!file) return;
-//         if(file.size() > 5*1024*1024){
-//             toast.error("File size should be less than 5MB");
-//             return;
-//         }
-//         setPreviewImage(URL.createObjectURL(file));
-//     }
-
-//     const handleRemoveChange= ()=>{
-//         setPreviewImage(null);
-//         if(fileInputRef.current){
-//             fileInputRef.current.value= "";
-//         }
-//         return;
-//     }
-
-//     const handleRemoveAvatar= ()=>{
-//         // api call to remove avatar from server
-//         updateProfile({ avatar: '' });
-//     }
-
-//     const onSubmit= (data)=>{
-
-//         const formData= new FormData();
-
-//         formData.append('firstName', data.firstName);
-//         formData.append('lastName', data.lastName);
-//         formData.append('bio', data.bio);
-//         formData.append('githubUrl', data.githubUrl);
-//         formData.append('linkedinUrl', data.linkedinUrl);
-//         formData.append('portfolioUrl', data.portfolioUrl);
-        
-//         if(fileInputRef.current && fileInputRef.current.files[0]){
-//             formData.append('avatar', fileInputRef.current.files[0]);
-//         }
-        
-//         updateProfile(formData);
-//     }
-
-//     const handleCancel= ()=>{
-//         reset();
-//         setPreviewImage(null);
-//         if(fileInputRef.current){
-//             fileInputRef.current.value= "";
-//         }
-//     }
-
-//     if(loading) return <LoadingPage />;
-//     if(!user) return navigate('login');
-
-//   return (
-//     <form onSubmit={handleSubmit(onSubmit)}>
-//         {/* Page Header */}
-//         <h2>Profile</h2>
-//         <p>Manage your personal information and how others see you.</p>
-
-//         {/* ── Profile Picture Card ── */}
-//         <div>
-//             <div>
-//                 <h3>Profile Picture</h3>
-//                 <div>
-//                     <p>MEMBER SINCE</p>
-//                     <p>{user.memberSince || 'N/A'}</p>
-//                 </div>
-//             </div>
-
-//             {/* Avatar with remove button */}
-//             <div>
-//                 <div>
-//                     <img src={previewImage || user?.avatar || assets.default_avatar} alt="Profile Picture" />
-//                     {previewImage && (
-//                         <button type="button" onClick={handleRemoveChange}>
-//                             <X size={12} />
-//                         </button>
-//                     )}
-//                 </div>
-//                 {/* Upload control */}
-//                 <div>
-//                     <input type="file" ref={fileInputRef} onChange={handleImageChange} hidden accept='image/*' />
-//                     <button type="button" onClick={()=> fileInputRef.current?.click()}>
-//                         <Camera size={14}></Camera>
-//                         <span>Upload Image</span>
-//                     </button>
-
-//                     {/* Show Remove button only when user has a saved avatar and no fresh preview */}
-//                     {!previewImage && user.avatar && (
-//                     <button type="button" onClick={handleRemoveAvatar}>
-//                         <Trash2 size={14} />
-//                         <span>Remove Photo</span>
-//                     </button>
-//                     )}
-//                     <p>JPG, PNG or GIF. Max size 5MB.</p>
-//                 </div>
-//             </div>
-//         </div>
-
-//         {/* ── Personal Information Card ── */}
-//         <div>
-//             <h3>Personal Information</h3>
-
-//             {/* First + Last Name (side by side) */}
-//             <div>
-//                 <div>
-//                     <label>FirstName</label>
-//                     <input type="text" {...register("firstName", { required: 'First name is required' })} placeholder="Enter your first name"  />
-
-//                     {errors.firstName && <p>{errors.firstName.message}</p>}
-//                 </div>
-
-//                 <div>
-//                     <label>LastName</label>
-//                     <input type="text" {...register("lastName", { required: 'Last name is required' })} placeholder="Enter your last name"  />
-
-//                     {errors.lastName && <p>{errors.lastName.message}</p>}
-//                 </div>
-//             </div>
-            
-//             {/* Bio */}
-//             <div>
-//                 <label>Bio</label>
-//                 <textarea {...register("bio", {maxLength: {value: 200, message: 'Bio must be 200 characters or less'}})} placeholder="Tell us about yourself..." />
-//                 {errors.bio && <p>{errors.bio.message}</p>}
-//             </div>
-//         </div>
-
-//         {/* ── Social Links Card ── */}
-//         <div>
-//             <h3>Social Links</h3>
-//             <div>
-//             <label><Github size={14} /> GitHub URL</label>
-//             <input
-//                 type="url"
-//                 {...register('githubUrl', {
-//                 pattern: { value: /^https?:\/\/[\w\-]+(\.[\w\-]+)+[/#?]?.*$/, message: 'Enter a valid URL' },
-//                 })}
-//                 placeholder="https://github.com/username"
-//             />
-//             {errors.githubUrl && <p>{errors.githubUrl.message}</p>}
-//             </div>
-
-//             <div>
-//                 <label><Linkedin size={14} /> LinkedIn URL</label>
-//                 <input
-//                     type="url"
-//                     {...register('linkedinUrl', {
-//                     pattern: { value: /^https?:\/\/[\w\-]+(\.[\w\-]+)+[/#?]?.*$/, message: 'Enter a valid URL' },
-//                     })}
-//                     placeholder="https://linkedin.com/in/username"
-//                 />
-//                 {errors.linkedinUrl && <p>{errors.linkedinUrl.message}</p>}
-//             </div>
-
-//             <div>
-//                 <label><Globe size={14} /> Portfolio Website</label>
-//                 <input
-//                     type="url"
-//                     {...register('portfolioUrl', {
-//                     pattern: { value: /^https?:\/\/[\w\-]+(\.[\w\-]+)+[/#?]?.*$/, message: 'Enter a valid URL' },
-//                     })}
-//                     placeholder="https://yoursite.com"
-//                 />
-//                 {errors.portfolioUrl && <p>{errors.portfolioUrl.message}</p>}
-//             </div>
-//         </div>
-
-//         {/* ── Action Buttons ── */}
-//       <div>
-//         <button type="button" onClick={handleCancel}>Cancel</button>
-//         <button type="submit">Save Changes</button>
-//       </div>
-//     </form>
-//   )
-// }
-
-// export default ProfilePage
-
 import React from 'react'
 import { Camera, Eye, EyeOff, Github, Globe, Linkedin, X, Trash2 } from 'lucide-react'
 import { useState, useEffect, useContext, useRef } from 'react'
@@ -221,9 +9,9 @@ import { assets } from '../../assets/assets.js'
 
 const ProfilePage = () => {
 
-    const { navigate, user, updateProfile } = useContext(AppContext);
-    const [loading, setLoading]= useState(false);
-    const { register, handleSubmit, formState: { errors }, reset } = useForm();
+    const { user, updateProfile } = useContext(AppContext);
+    const [isSaving, setIsSaving]= useState(false);
+    const { register, handleSubmit, formState: { errors }, reset, getValues } = useForm();
 
     useEffect(() => {
         if (user) {
@@ -265,7 +53,17 @@ const ProfilePage = () => {
     };
 
     const handleRemoveProfilePicture = () => {
-        updateProfile({ profilePicture: '' });
+        const values = getValues();
+        setPendingFormData({
+            firstName: values.firstName || '',
+            lastName: values.lastName || '',
+            bio: values.bio || '',
+            githubUrl: values.githubUrl || '',
+            linkedinUrl: values.linkedinUrl || '',
+            portfolioUrl: values.portfolioUrl || '',
+            removeProfilePicture: true,
+        });
+        setShowPasswordPopup(true);
     };
 
     // STEP 1: RHF validates all fields first, then opens the password popup
@@ -276,9 +74,14 @@ const ProfilePage = () => {
     };
 
     // STEP 2: Called when user clicks "Confirm" in popup — password is now available
-    const onConfirm = () => {
+    const onConfirm = async () => {
         if (!password) {
             toast.error("Please enter your password");
+            return;
+        }
+
+        if (!pendingFormData) {
+            toast.error("No pending profile changes found");
             return;
         }
 
@@ -293,14 +96,30 @@ const ProfilePage = () => {
 
         if (fileInputRef.current && fileInputRef.current.files[0]) {
             formData.append('profilePicture', fileInputRef.current.files[0]);
+        } else if (pendingFormData.removeProfilePicture) {
+            formData.append('profilePicture', '');
         }
 
-        updateProfile(formData);
+        try {
+            setIsSaving(true);
+            const data = await updateProfile(formData);
 
-        // Clean up popup state
-        setShowPasswordPopup(false);
-        setPassword('');
-        setPendingFormData(null);
+            toast.success(data?.message || 'Profile updated successfully');
+
+            if (pendingFormData.removeProfilePicture) {
+                setPreviewImage(null);
+            }
+
+            // Clean up popup state
+            setShowPasswordPopup(false);
+            setPassword('');
+            setPendingFormData(null);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        } catch (error) {
+            toast.error(error?.response?.data?.message || 'Failed to update profile');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleClosePopup = () => {
@@ -315,8 +134,8 @@ const ProfilePage = () => {
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    if (loading) return <LoadingPage />;
-    if (!user) return navigate('/login');
+    if (isSaving) return <LoadingPage />;
+    if (!user) return <LoadingPage />;
 
     return (
         // STEP 1 is triggered here — RHF validates, then calls onValidated
@@ -361,6 +180,7 @@ const ProfilePage = () => {
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
+                            disabled={isSaving}
                             className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-colors"
                         >
                             <Camera size={14} />
@@ -371,6 +191,7 @@ const ProfilePage = () => {
                             <button
                                 type="button"
                                 onClick={handleRemoveProfilePicture}
+                                disabled={isSaving}
                                 className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors"
                             >
                                 <Trash2 size={14} />
@@ -476,6 +297,7 @@ const ProfilePage = () => {
                 <button
                     type="button"
                     onClick={handleCancel}
+                    disabled={isSaving}
                     className="flex-1 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
                 >
                     Cancel
@@ -483,6 +305,7 @@ const ProfilePage = () => {
                 {/* type="submit" triggers RHF validation → onValidated → opens popup */}
                 <button
                     type="submit"
+                    disabled={isSaving}
                     className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-xl transition-colors shadow-sm"
                 >
                     Save Changes
@@ -538,6 +361,7 @@ const ProfilePage = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
+                                    disabled={isSaving}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
                                 >
                                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -550,6 +374,7 @@ const ProfilePage = () => {
                             <button
                                 type="button"
                                 onClick={handleClosePopup}
+                                disabled={isSaving}
                                 className="flex-1 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
                             >
                                 Cancel
@@ -557,10 +382,10 @@ const ProfilePage = () => {
                             <button
                                 type="button"
                                 onClick={onConfirm}
-                                disabled={!password}
+                                disabled={!password || isSaving}
                                 className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm"
                             >
-                                Confirm & Save
+                                {isSaving ? 'Saving...' : 'Confirm & Save'}
                             </button>
                         </div>
                     </div>

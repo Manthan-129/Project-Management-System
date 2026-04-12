@@ -7,7 +7,7 @@ const iconByType= {
     'task-removed' : Trash2,
     'task-assigned-to-me' : UserCheck,
     'team-invitation' : Users,
-    'firend-request-received' : UserPlus,
+    'friend-request-received' : UserPlus,
 };
 
 const iconColorByType = {
@@ -31,7 +31,7 @@ const formatTimeAgo= (dateString) => {
 }
 
 
-const NotificationPopup = ({notifications, unreadCount, onItemClick, onMarkAllRead, onClose}) => {
+const NotificationPopup = ({notifications, unreadCount, onItemClick, onMarkAllAsRead, onClose}) => {
   
     const hasUnread= useMemo(()=> unreadCount > 0, [unreadCount]);
 
@@ -42,9 +42,6 @@ const NotificationPopup = ({notifications, unreadCount, onItemClick, onMarkAllRe
                 <p>Notifications</p>
                 <p>All app activity updates</p>
             </div>
-            <button onClick={onMarkAllRead}>
-                <CheckCheck size={14} /> Mark all read
-            </button>
         </div>
 
         <div>
@@ -89,6 +86,9 @@ const NotificationPopup = ({notifications, unreadCount, onItemClick, onMarkAllRe
         </div>
 
         <div>
+            <button onClick={onMarkAllAsRead} disabled={!hasUnread}>
+                Mark all as read
+            </button>
             <button onClick={onClose}>Close</button>
         </div>
     </div>

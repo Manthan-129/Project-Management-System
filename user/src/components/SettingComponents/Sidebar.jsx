@@ -1,105 +1,7 @@
-// import { ArrowLeft, Bell, Eye, Link, Lock, LogOut, Palette, ShieldCheck, Sparkles, User, UserCog } from 'lucide-react'
-// import React from 'react'
-// import { NavLink } from 'react-router-dom'
-
-// const sidebarGroups = [
-//     {
-//         label: 'ACCOUNT',
-//         items: [
-//             {name: 'Profile', path: '/settings', icon: User, end: true},
-//             {name: 'Account', path: '/settings/account', icon: UserCog},
-//             {name: 'Privacy', path: '/settings/privacy', icon: Eye},
-//         ],
-//     },
-//     {
-//         label: 'PREFERENCES',
-//         items: [
-//             {name: 'Appearance', path: '/settings/appearance', icon: Palette},
-//             {name: 'Notifications', path: '/settings/notification', icon: Bell},
-//         ],
-//     },
-//     {
-//         label: 'SECURITY',
-//         items: [
-//             {name: 'Security', path: '/settings/security',
-//                 icon: ShieldCheck},
-//         ],
-//     },
-//     {
-//         label: 'INTEGRATIONS',
-//         items: [
-//             {name: 'Integrations', path: '/settings/integration', icon: Link},
-//         ],
-//     },
-// ]
-
-// const Sidebar = () => {
-//   return (
-//     <aside>
-//         {/* ── Logo / Header ── */}
-//         <div>
-//             <NavLink to="/landing">
-//                 <Sparkles size={20} />
-//                 <div>
-//                     <h1>Dev<span>Dash</span></h1>
-//                     <p>Settings</p>
-//                 </div>
-//             </NavLink>
-//         </div>
-
-//         {/* ── Back to Dashboard ── */}
-//         <div>
-//             <NavLink to="/dashboard">
-//                 <ArrowLeft size={16} />
-//                 <span>Back to Dashboard</span>
-//             </NavLink>
-//         </div>
-
-//         {/* ── Grouped Navigation Menu ── */}
-//         <nav>
-//             {sidebarGroups.map((group)=>(
-//                 <div key={group.label}>
-
-//                     {/* Group Label (ACCOUNT, PREFERENCES, etc.) */}
-//                     <p>{group.label}</p>
-
-//                     {/* Menu Items inside each group */}
-//                     {group.items.map((item)=>{
-//                         const Icon= item.icon;
-//                         return (
-//                             <NavLink key={item.path} to={item.path} end={item.end}>
-//                                 {({ isActive }) => (
-//                                     <>
-//                                         <Icon size={16}></Icon>
-//                                         <span>{item.name}</span>
-//                                         {isActive && <Lock size={14} />}
-//                                     </>
-//                                 )}
-//                             </NavLink>
-//                         )
-//                     })}
-//                 </div>
-//             ))}
-//         </nav>
-
-//         {/* ── Logout Button ── */}
-
-//         <div>
-//         <button>
-//           <LogOut size={16} />
-//           <span>Logout</span>
-//         </button>
-//       </div>
-
-//     </aside>
-//   )
-// }
-
-// export default Sidebar
-
 import { ArrowLeft, Bell, Eye, Link, Lock, LogOut, Palette, ShieldCheck, Sparkles, User, UserCog } from 'lucide-react'
-import React from 'react'
+import React, { useContext, useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import { AppContext } from '../../context/AppContext.jsx'
 
 const sidebarGroups = [
     {
@@ -132,6 +34,18 @@ const sidebarGroups = [
 ]
 
 const Sidebar = () => {
+    const { logout } = useContext(AppContext)
+    const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+    const handleLogout = async () => {
+        try {
+            setIsLoggingOut(true)
+            await logout()
+        } finally {
+            setIsLoggingOut(false)
+        }
+    }
+
   return (
     <aside className="flex flex-col h-full w-64 bg-white border-r border-slate-200 px-4 py-6 space-y-6">
 
@@ -193,9 +107,10 @@ const Sidebar = () => {
 
         {/* ── Logout Button ── */}
         <div className="px-2 pt-2 border-t border-slate-100">
-            <button className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
+            <button onClick={handleLogout} disabled={isLoggingOut}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-rose-500 hover:bg-rose-50 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl transition-colors">
                 <LogOut size={16} />
-                <span>Logout</span>
+                <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
             </button>
         </div>
 

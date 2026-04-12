@@ -1,138 +1,100 @@
-// import React, { useEffect, useState } from 'react'
-// import { Bell, ClipboardList, GitPullRequest, Info, RefreshCw, UserPlus } from 'lucide-react'
-// import { AppContext } from '../../context/AppContext'
-// import { useContext } from 'react'
-// import LoadingPage from '../LoadingPage'
-
-// const NotificationPage = () => {
-
-//     const { loading, setLoading } = useContext(AppContext);
-
-//     const [preferences, setPreferences]= useState({
-//         taskAssignments: false,
-//         taskUpdates: false,
-//         pullRequests: false,
-//         teamInvitations: false,
-//     })
-
-//     const handleToggle= (key)=>{
-//         setPreferences((prev)=> ({...prev, [key]: !prev[key]}));
-//     }
-
-//     const fetchPreferences= async()=>{
-//       // API: GET /api/auth/notification-preferences
-//       // setPreferences(response.data.preferences)
-//     }
-
-//     useEffect(()=>{
-//       fetchPreferences();
-//     },[])
-
-//     const handleSave= async()=>{
-//       // API: PUT /api/auth/notification-preferences { preferences }
-//       console.log('Notifications saved:', preferences)
-//     }
-
-//     // ── Data ──
-//     const notificationItems = [
-//       { key: 'taskAssignments', title: 'Task Assignments', description: 'Get notified when you are assigned a new task.', icon: ClipboardList },
-//       { key: 'taskUpdates', title: 'Task Updates', description: 'Get notified about status changes on your tasks.', icon: RefreshCw },
-//       { key: 'pullRequests', title: 'Pull Requests', description: 'Get notified when a PR needs review, is merged, or commented on.', icon: GitPullRequest },
-//       { key: 'teamInvitations', title: 'Team Invitations', description: 'Get notified when someone invites you to a team.', icon: UserPlus },
-//     ]
-
-//     if (loading) return <LoadingPage />;
-
-//   return (
-//     <div>
-//       {/* Page Header */}
-//       <h2>Notifications</h2>
-//       <p>Manage your email notification preferences.</p>
-
-//       {/* ── Email Notifications Card ── */}
-//       <div>
-//         {/* Card Header */}
-//         <div>
-//           <Bell size={18} />
-//           <div>
-//             <h3>Email Notifications</h3>
-//             <p>Choose what events trigger email notifications.</p>
-//           </div>
-//         </div>
-
-//         {notificationItems.map((item)=>{
-//           const Icon= item.icon;
-//           return (
-//             <div key={item.key}>
-//               <div>
-//                 <Icon size={18}></Icon>
-//                 <div>
-//                   <p>{item.title}</p>
-//                   <p>{item.description}</p>
-//                 </div>
-//               </div>
-//               {/* Toggle switch */}
-//               <button onClick={() => handleToggle(item.key)}>
-//                 <span />  
-//               </button>
-//             </div>
-//           )
-//         })}
-
-//         {/* Save Button */}
-//         <div>
-//           <button onClick={handleSave}>Save Preferences</button>
-//         </div>
-//       </div>
-
-//       {/* ── Info Card ── */}
-//       <div>
-//         <Info size={18} />
-//         <div>
-//           <p>About Notifications</p>
-//           <p>Email notifications are sent to your registered email address. You can change these preferences at any time.</p>
-//         </div>
-//       </div>
-//     </div>
-//   )
-// }
-
-// export default NotificationPage
-
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useMemo, useState } from 'react'
 import { Bell, ClipboardList, GitPullRequest, Info, RefreshCw, UserPlus } from 'lucide-react'
 import { AppContext } from '../../context/AppContext'
-import { useContext } from 'react'
 import LoadingPage from '../LoadingPage'
+import api from '../../api/axiosInstance.js'
+import { toast } from 'react-toastify'
 
 const NotificationPage = () => {
+    const { token, logout } = useContext(AppContext);
 
-    const [loading, setLoading]= useState(false);
+    const [isFetching, setIsFetching]= useState(false);
+    const [isSaving, setIsSaving]= useState(false);
 
     const [preferences, setPreferences]= useState({
         taskAssignments: false,
         taskUpdates: false,
         pullRequests: false,
         teamInvitations: false,
-    })
+    });
+
+    const [initialPreferences, setInitialPreferences]= useState({
+      taskAssignments: false,
+      taskUpdates: false,
+      pullRequests: false,
+      teamInvitations: false,
+    });
+
+    const hasChanges = useMemo(() => {
+      return Object.keys(preferences).some((key) => preferences[key] !== initialPreferences[key]);
+    }, [preferences, initialPreferences]);
+
+    const getErrorMessage = (error, fallbackMessage) => {
+      return error?.response?.data?.message || fallbackMessage;
+    };
 
     const handleToggle= (key)=>{
         setPreferences((prev)=> ({...prev, [key]: !prev[key]}));
-    }
+    };
 
     const fetchPreferences= async()=>{
-      // API: GET /api/auth/notification-preferences
-      // setPreferences(response.data.preferences)
-    }
+      try {
+        setIsFetching(true);
+        const { data } = await api.get('/settings/get-notification-settings', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (data?.success && data?.notificationSettings) {
+          const nextPreferences = {
+            taskAssignments: Boolean(data.notificationSettings.taskAssignments),
+            taskUpdates: Boolean(data.notificationSettings.taskUpdates),
+            pullRequests: Boolean(data.notificationSettings.pullRequests),
+            teamInvitations: Boolean(data.notificationSettings.teamInvitations),
+          };
+
+          setPreferences(nextPreferences);
+          setInitialPreferences(nextPreferences);
+        }
+      } catch (error) {
+        if (error?.response?.status === 401) {
+          await logout();
+          return;
+        }
+        toast.error(getErrorMessage(error, 'Failed to fetch notification settings'));
+      } finally {
+        setIsFetching(false);
+      }
+    };
 
     useEffect(()=>{
       fetchPreferences();
-    },[])
+    },[token])
 
     const handleSave= async()=>{
-      // API: PUT /api/auth/notification-preferences { preferences }
-      console.log('Notifications saved:', preferences)
-    }
+      try {
+        setIsSaving(true);
+        const { data } = await api.put(
+          '/settings/update-notification-settings',
+          preferences,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (data?.success) {
+          setInitialPreferences(preferences);
+          toast.success(data.message || 'Notification settings updated successfully');
+        }
+      } catch (error) {
+        if (error?.response?.status === 401) {
+          await logout();
+          return;
+        }
+        toast.error(getErrorMessage(error, 'Failed to update notification settings'));
+      } finally {
+        setIsSaving(false);
+      }
+    };
 
     // ── Data ──
     const notificationItems = [
@@ -142,7 +104,7 @@ const NotificationPage = () => {
       { key: 'teamInvitations', title: 'Team Invitations', description: 'Get notified when someone invites you to a team.', icon: UserPlus },
     ]
 
-    if (loading) return <LoadingPage />;
+    if (isFetching) return <LoadingPage />;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
@@ -180,6 +142,7 @@ const NotificationPage = () => {
               </div>
               {/* Toggle switch */}
               <button onClick={() => handleToggle(item.key)}
+                disabled={isSaving}
                 className={`relative shrink-0 w-10 h-5 rounded-full transition-colors ${preferences[item.key] ? 'bg-indigo-500' : 'bg-slate-200'}`}>
                 <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${preferences[item.key] ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
@@ -190,8 +153,9 @@ const NotificationPage = () => {
         {/* Save Button */}
         <div className="pt-2 border-t border-slate-100">
           <button onClick={handleSave}
-            className="w-full py-2.5 px-6 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
-            Save Preferences
+            disabled={isSaving || !hasChanges}
+            className="w-full py-2.5 px-6 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
+            {isSaving ? 'Saving...' : 'Save Preferences'}
           </button>
         </div>
       </div>

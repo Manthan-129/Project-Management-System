@@ -1,5 +1,6 @@
 import React from 'react'
 import { Check, ClipboardList, Mail, UserPlus, Users } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const members = [
   { name: 'Sarah Chen', role: 'Team Leader', badge: 'Leader' },
@@ -119,10 +120,10 @@ const TeamCollaboration = () => {
               ))}
             </div>
 
-            <button className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-[#2e5a8a] bg-[#edf3fa] hover:bg-[#e3edf8] border border-[#dbe5f1] rounded-xl transition-colors">
+            <Link to="/signup" className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-[#2e5a8a] bg-[#edf3fa] hover:bg-[#e3edf8] border border-[#dbe5f1] rounded-xl transition-colors no-underline">
               <UserPlus size={14} />
               Invite Teammate
-            </button>
+            </Link>
           </div>
 
           <div className="bg-white/90 border border-[#dbe5f1] rounded-2xl p-5 space-y-4">

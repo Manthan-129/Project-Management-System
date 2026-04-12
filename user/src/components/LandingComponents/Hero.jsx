@@ -1,5 +1,6 @@
 import React from 'react'
 import { ArrowRight, Check, Github, Star } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const miniStats = [
   { value: '43', label: 'Active Tasks' },
@@ -35,13 +36,13 @@ const Hero = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button className="inline-flex items-center gap-2 px-6 py-3 bg-[#315e8d] hover:bg-[#26486d] text-white text-sm font-semibold rounded-xl shadow-sm transition-colors">
+            <Link to="/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-[#315e8d] hover:bg-[#26486d] text-white text-sm font-semibold rounded-xl shadow-sm transition-colors no-underline">
               Start for Free
               <ArrowRight size={16} />
-            </button>
-            <button className="inline-flex items-center gap-2 px-6 py-3 border border-slate-300 bg-white/90 hover:bg-white text-slate-700 text-sm font-semibold rounded-xl transition-colors">
+            </Link>
+            <a href="#features" className="inline-flex items-center gap-2 px-6 py-3 border border-slate-300 bg-white/90 hover:bg-white text-slate-700 text-sm font-semibold rounded-xl transition-colors no-underline">
               See Live Demo
-            </button>
+            </a>
           </div>
 
           <ul className="flex flex-wrap items-center gap-4 list-none p-0 m-0">
