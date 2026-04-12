@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react'
 import { Eye, EyeOff, Search, Shield, Wifi } from 'lucide-react'
-import LoadingPage from '../LoadingPage'
-import {AppContext} from '../../context/AppContext.jsx'
-import api from '../../api/axiosInstance.js'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-toastify'
+import api from '../../api/axiosInstance.js'
+import { AppContext } from '../../context/AppContext.jsx'
+import LoadingPage from '../LoadingPage'
 
 const PrivacyPage = () => {
     const { authHeaders, logout } = useContext(AppContext);
@@ -30,6 +30,14 @@ const PrivacyPage = () => {
         settings.showEmail !== initialSettings.showEmail ||
         settings.showOnlineStatus !== initialSettings.showOnlineStatus ||
         settings.showInSearch !== initialSettings.showInSearch;
+
+    const enabledControlsCount = useMemo(() => {
+        let count = 0;
+        if (settings.showEmail) count += 1;
+        if (settings.showOnlineStatus) count += 1;
+        if (settings.showInSearch) count += 1;
+        return count;
+    }, [settings]);
 
     const getErrorMessage = (error, fallbackMessage) => {
         return error?.response?.data?.message || fallbackMessage;
@@ -83,7 +91,7 @@ const PrivacyPage = () => {
             );
 
             if (data?.success) {
-                setInitialSettings(settings);
+                setInitialSettings({ ...settings });
                 toast.success(data.message || 'Privacy settings updated successfully');
             }
         } catch (error) {
@@ -111,6 +119,15 @@ const PrivacyPage = () => {
         { key: 'showInSearch', title: 'Appear in Search', desc: 'Let others find you when searching for users', icon: Search },
     ]
 
+    const visibilityLabel =
+        settings.profileVisibility === 'team-only'
+            ? 'Team Only'
+            : settings.profileVisibility.charAt(0).toUpperCase() + settings.profileVisibility.slice(1)
+
+    const handleDiscardChanges = () => {
+        setSettings({ ...initialSettings });
+    }
+
     useEffect(() => {
         fetchPrivacySettings();
     }, [authHeaders]);
@@ -124,6 +141,19 @@ const PrivacyPage = () => {
         <h2 className="text-2xl font-semibold text-slate-800">Privacy</h2>
         <p className="text-sm text-slate-500 -mt-4">Control who can see your information and how you appear to others.</p>
 
+        {/* ── Current Privacy Summary ── */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Current Visibility</span>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    {visibilityLabel}
+                </span>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    {enabledControlsCount} / 3 controls enabled
+                </span>
+            </div>
+        </div>
+
         {/* ── Profile Visibility Card ── */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
             <h3 className="flex items-center gap-2 text-base font-semibold text-slate-700">
@@ -135,6 +165,8 @@ const PrivacyPage = () => {
             <div className="space-y-2.5">
                 {visibilityOptions.map((option)=>(
                     <button key={option.value} onClick={()=> handleVisibilityChange(option.value)}
+                        type="button"
+                        aria-pressed={settings.profileVisibility === option.value}
                         disabled={isSaving}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-left transition-all
                             ${settings.profileVisibility === option.value
@@ -184,6 +216,8 @@ const PrivacyPage = () => {
 
                         {/* Toggle switch */}
                         <button onClick={()=> handleToggleChange(item.key)}
+                            type="button"
+                            aria-pressed={settings[item.key]}
                             disabled={isSaving}
                             className={`relative shrink-0 w-10 h-5 rounded-full transition-colors ${settings[item.key] ? 'bg-indigo-500' : 'bg-slate-200'}`}>
                             <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${settings[item.key] ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -193,12 +227,21 @@ const PrivacyPage = () => {
             })}
         </div>
 
-        {/* ── Save Button ── */}
-        <button onClick={handleSave}
-            disabled={isSaving || !hasChanges}
-            className="w-full py-2.5 px-6 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
-            {isSaving ? 'Saving...' : 'Save Privacy Settings'}
-        </button>
+        {/* ── Save / Discard Actions ── */}
+        <div className="flex items-center gap-3">
+            <button onClick={handleDiscardChanges}
+                type="button"
+                disabled={isSaving || !hasChanges}
+                className="flex-1 py-2.5 px-6 bg-white hover:bg-slate-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-slate-700 text-sm font-medium rounded-xl transition-colors border border-slate-200">
+                Discard Changes
+            </button>
+            <button onClick={handleSave}
+                type="button"
+                disabled={isSaving || !hasChanges}
+                className="flex-1 py-2.5 px-6 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
+                {isSaving ? 'Saving...' : 'Save Privacy Settings'}
+            </button>
+        </div>
     </div>
   )
 }
