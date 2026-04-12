@@ -7,7 +7,7 @@ import Loading from '../LoadingPage.jsx'
 
 const Invitations = () => {
 
-    const { setToken, authHeaders } = useContext(AppContext);
+    const { token, setToken, authHeaders } = useContext(AppContext);
     const [received, setReceived]= useState([]);
     const [sentByMe, setSentByMe]= useState([]);
     const [sentByTeam, setSentByTeam]= useState([]);
@@ -62,7 +62,7 @@ const Invitations = () => {
         } else {
             setLoading(false);
         }
-    }, [token]);
+    }, [token, authHeaders]);
 
     const respondInvitation= async (inviteId, status) => {
         try{

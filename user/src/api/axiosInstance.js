@@ -1,14 +1,23 @@
 import axios from 'axios'
 import {BASE_URL} from './apiPaths.js'
 
+const normalizeBaseUrl = (value) => {
+    if (!value || typeof value !== 'string') {
+        return 'http://localhost:5000';
+    }
+
+    return value.trim().replace(/^['"]|['"]$/g, '').replace(/\/+$/, '') || 'http://localhost:5000';
+};
+
+const backendBaseUrl = normalizeBaseUrl(BASE_URL);
+
 const axiosInstance = axios.create({
-    baseURL: BASE_URL + '/api',
+    baseURL: `${backendBaseUrl}/api`,
     timeout: 80000,
     headers: {
         'Content-Type' : 'application/json',
         Accept: 'application/json'
     },
-    withCredentials: true,
 })
 
 // Request Interceptor
