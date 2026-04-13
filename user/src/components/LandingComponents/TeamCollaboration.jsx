@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { Check, ClipboardList, Mail, UserPlus, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { AppContext } from '../../context/AppContext.jsx'
 
 const members = [
   { name: 'Sarah Chen', role: 'Team Leader', badge: 'Leader' },
@@ -74,6 +75,9 @@ const avatarColors = [
 ]
 
 const TeamCollaboration = () => {
+  const { token } = useContext(AppContext)
+  const inviteCtaPath = token ? '/dashboard/teams' : '/signup'
+
   return (
     <section id="collaboration" className="px-5 py-24 lg:px-12">
       <div className="max-w-7xl mx-auto space-y-12">
@@ -120,9 +124,9 @@ const TeamCollaboration = () => {
               ))}
             </div>
 
-            <Link to="/signup" className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-[#2e5a8a] bg-[#edf3fa] hover:bg-[#e3edf8] border border-[#dbe5f1] rounded-xl transition-colors no-underline">
+            <Link to={inviteCtaPath} className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-[#2e5a8a] bg-[#edf3fa] hover:bg-[#e3edf8] border border-[#dbe5f1] rounded-xl transition-colors no-underline">
               <UserPlus size={14} />
-              Invite Teammate
+              {token ? 'Go to Teams' : 'Invite Teammate'}
             </Link>
           </div>
 

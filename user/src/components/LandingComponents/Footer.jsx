@@ -1,6 +1,5 @@
 import { Github, Linkedin, Mail, Sparkles, Twitter } from 'lucide-react'
 import { useContext } from 'react'
-import { Link } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext.jsx'
 
 const socialLinks = [
@@ -91,20 +90,29 @@ const Footer = () => {
             </div>
           </div>
 
-          {footerLinks.map((col) => (
+          {footerLinks.map((col) => {
+            const links = col.heading === 'Company' ? companyLinks : col.links
+
+            return (
             <div key={col.heading} className="space-y-4">
               <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">{col.heading}</h3>
               <ul className="space-y-2.5">
-                {col.links.map((link) => (
+                {links.map((link) => (
                   <li key={link.label}>
-                    <a href={link.href} className="text-sm text-slate-300 hover:text-white transition-colors no-underline">
-                      {link.label}
-                    </a>
+                    {link.action ? (
+                      <button onClick={link.action} className="text-sm text-slate-300 hover:text-white transition-colors">
+                        {link.label}
+                      </button>
+                    ) : (
+                      <a href={link.href} className="text-sm text-slate-300 hover:text-white transition-colors no-underline">
+                        {link.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>
             </div>
-          ))}
+          )})}
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-[#2b4567]">

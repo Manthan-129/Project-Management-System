@@ -50,11 +50,13 @@ const AppearancePage = () => {
             const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             root.classList.toggle('dark', prefersDark);
             root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            window.dispatchEvent(new CustomEvent('app:theme-change'));
             return;
         }
 
         root.classList.toggle('dark', nextTheme === 'dark');
         root.setAttribute('data-theme', nextTheme);
+        window.dispatchEvent(new CustomEvent('app:theme-change'));
     }, []);
 
     const fetchAppearanceSettings = useCallback(async () => {

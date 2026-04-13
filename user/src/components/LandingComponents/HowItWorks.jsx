@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { LayoutDashboard, TrendingUp, UserPlus } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { AppContext } from '../../context/AppContext.jsx'
 
 const iconColors = [
   'text-[#315e8d] bg-[#e9f0f8]',
@@ -30,6 +31,9 @@ const steps = [
 ]
 
 const HowItWorks = () => {
+  const { token } = useContext(AppContext)
+  const primaryCtaPath = token ? '/dashboard' : '/signup'
+
   return (
     <section id="how-it-works" className="px-5 py-24 lg:px-12">
       <div className="max-w-7xl mx-auto space-y-12">
@@ -62,8 +66,8 @@ const HowItWorks = () => {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Link to="/signup" className="px-5 py-2.5 text-sm font-semibold text-white bg-[#315e8d] hover:bg-[#26486d] rounded-xl transition-colors no-underline">
-            Start in Minutes
+          <Link to={primaryCtaPath} className="px-5 py-2.5 text-sm font-semibold text-white bg-[#315e8d] hover:bg-[#26486d] rounded-xl transition-colors no-underline">
+            {token ? 'Open Workspace' : 'Start in Minutes'}
           </Link>
           <a href="#collaboration" className="px-5 py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 bg-white hover:bg-slate-50 rounded-xl transition-colors no-underline">
             View Collaboration Tools

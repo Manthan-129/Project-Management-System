@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { ArrowRight, Check, Github, Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { AppContext } from '../../context/AppContext.jsx'
 
 const miniStats = [
   { value: '43', label: 'Active Tasks' },
@@ -16,6 +17,9 @@ const kanbanCols = [
 ]
 
 const Hero = () => {
+  const { token } = useContext(AppContext)
+  const primaryCtaPath = token ? '/dashboard' : '/signup'
+
   return (
     <section className="relative min-h-screen flex items-center px-5 py-20 pt-28 lg:px-12">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_80%_0%,rgba(49,94,141,0.14),transparent_42%),radial-gradient(circle_at_8%_18%,rgba(126,161,199,0.12),transparent_35%)]" />
@@ -36,8 +40,8 @@ const Hero = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Link to="/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-[#315e8d] hover:bg-[#26486d] text-white text-sm font-semibold rounded-xl shadow-sm transition-colors no-underline">
-              Start for Free
+            <Link to={primaryCtaPath} className="inline-flex items-center gap-2 px-6 py-3 bg-[#315e8d] hover:bg-[#26486d] text-white text-sm font-semibold rounded-xl shadow-sm transition-colors no-underline">
+              {token ? 'Go to Dashboard' : 'Start for Free'}
               <ArrowRight size={16} />
             </Link>
             <a href="#features" className="inline-flex items-center gap-2 px-6 py-3 border border-slate-300 bg-white/90 hover:bg-white text-slate-700 text-sm font-semibold rounded-xl transition-colors no-underline">

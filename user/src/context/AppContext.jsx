@@ -16,6 +16,47 @@ export const AppContextProvider = (props) => {
     }, [token]);
 
     useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const root = document.documentElement;
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+        const applyTheme = () => {
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            const resolvedTheme = savedTheme === 'system'
+                ? (mediaQuery.matches ? 'dark' : 'light')
+                : savedTheme;
+
+            root.classList.toggle('dark', resolvedTheme === 'dark');
+            root.setAttribute('data-theme', resolvedTheme);
+        };
+
+        const handleStorageChange = (event) => {
+            if (!event.key || event.key === 'theme') {
+                applyTheme();
+            }
+        };
+
+        applyTheme();
+        window.addEventListener('storage', handleStorageChange);
+
+        if (mediaQuery.addEventListener) {
+            mediaQuery.addEventListener('change', applyTheme);
+        } else {
+            mediaQuery.addListener(applyTheme);
+        }
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            if (mediaQuery.removeEventListener) {
+                mediaQuery.removeEventListener('change', applyTheme);
+            } else {
+                mediaQuery.removeListener(applyTheme);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
         if (token) {
             localStorage.setItem('token', token);
             return;
