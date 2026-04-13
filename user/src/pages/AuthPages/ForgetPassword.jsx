@@ -1,10 +1,10 @@
-import { CheckCircle2, Eye, EyeOff, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
-import api from '../../api/axiosInstance'
-import OTP from '../../components/AuthComponents/OTP'
+import { CheckCircle2, Eye, EyeOff, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { AppContext } from '../../context/AppContext'
+import OTP from '../../components/AuthComponents/OTP'
+import api from '../../api/axiosInstance'
 
 const ForgetPassword = () => {
     const { navigate, setToken } = useContext(AppContext)
