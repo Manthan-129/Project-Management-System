@@ -115,28 +115,27 @@ const NotificationPage = () => {
     if (isFetching) return <LoadingPage />;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+    <div className="relative max-w-3xl mx-auto px-4 py-8 space-y-6 overflow-hidden">
 
-      {/* Page Header */}
-      <h2 className="text-2xl font-semibold text-slate-800">Notifications</h2>
-      <p className="text-sm text-slate-500 -mt-4">Manage your email notification preferences.</p>
+      <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+      <div className="bg-white/90 border border-blue-100 rounded-3xl p-5 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] backdrop-blur-sm">
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Notification Summary</span>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
             {enabledCount} / 4 categories enabled
           </span>
         </div>
       </div>
 
       {/* ── Email Notifications Card ── */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+      <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-5 backdrop-blur-sm">
 
         {/* Card Header */}
         <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
           <div className="p-2 bg-indigo-50 rounded-lg">
-            <Bell size={18} className="text-indigo-400" />
+            <Bell size={18} className="text-blue-500" />
           </div>
           <div>
             <h3 className="text-base font-semibold text-slate-700">Email Notifications</h3>
@@ -162,7 +161,7 @@ const NotificationPage = () => {
                 type="button"
                 aria-pressed={preferences[item.key]}
                 disabled={isSaving}
-                className={`relative shrink-0 w-10 h-5 rounded-full transition-colors ${preferences[item.key] ? 'bg-indigo-500' : 'bg-slate-200'}`}>
+                className={`relative shrink-0 w-10 h-5 rounded-full transition-colors ${preferences[item.key] ? 'bg-blue-600' : 'bg-slate-200'}`}>
                 <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${preferences[item.key] ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
             </div>
@@ -179,7 +178,7 @@ const NotificationPage = () => {
           <button onClick={handleSave}
             type="button"
             disabled={isSaving || !hasChanges}
-            className="flex-1 py-2.5 px-6 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
+            className="flex-1 py-2.5 px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all shadow-sm">
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>

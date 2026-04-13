@@ -1,11 +1,10 @@
-import React from 'react'
-import { Camera, Eye, EyeOff, Github, Globe, Linkedin, X, Trash2 } from 'lucide-react'
-import { useState, useEffect, useContext, useRef } from 'react'
+import { Camera, Eye, EyeOff, Github, Globe, Linkedin, Trash2, X } from 'lucide-react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { AppContext } from '../../context/AppContext'
 import { toast } from 'react-toastify'
-import LoadingPage from '../LoadingPage.jsx'
 import { assets } from '../../assets/assets.js'
+import { AppContext } from '../../context/AppContext'
+import LoadingPage from '../LoadingPage.jsx'
 
 const ProfilePage = () => {
 
@@ -145,28 +144,28 @@ const ProfilePage = () => {
 
     return (
         // STEP 1 is triggered here — RHF validates, then calls onValidated
-        <form onSubmit={handleSubmit(onValidated)} className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+        <form onSubmit={handleSubmit(onValidated)} className="relative max-w-3xl mx-auto px-4 py-8 space-y-6 overflow-hidden">
 
-            {/* ── Page Header ── */}
-            <div>
-                <h2 className="text-2xl font-semibold text-slate-800">Profile</h2>
-                <p className="text-sm text-slate-500 mt-1">Manage your personal information and how others see you.</p>
-            </div>
+            <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
+            <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div className="bg-white/90 border border-blue-100 rounded-3xl p-5 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] backdrop-blur-sm">
                 <div className="flex flex-wrap items-center gap-3">
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Profile Summary</span>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                         @{user?.username || 'username'}
                     </span>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                         {user?.email || 'No email'}
+                    </span>
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                        Since: {user?.memberSince || 'N/A'}
                     </span>
                 </div>
             </div>
 
             {/* ── Profile Picture Card ── */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+            <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(20,184,166,0.45)] space-y-5 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                     <h3 className="text-base font-semibold text-slate-700">Profile Picture</h3>
                     <div className="text-right">
@@ -180,7 +179,7 @@ const ProfilePage = () => {
                         <img
                             src={previewImage || user?.profilePicture || assets.default_profile_picture}
                             alt="Profile Picture"
-                            className="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200"
+                            className="w-24 h-24 rounded-2xl object-cover border-2 border-blue-100 shadow-md"
                         />
                         {previewImage && (
                             <button
@@ -199,7 +198,7 @@ const ProfilePage = () => {
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
                             disabled={isSaving}
-                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-colors"
+                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors"
                         >
                             <Camera size={14} />
                             <span>Upload Image</span>
@@ -222,7 +221,7 @@ const ProfilePage = () => {
             </div>
 
             {/* ── Personal Information Card ── */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-4 backdrop-blur-sm">
                 <h3 className="text-base font-semibold text-slate-700">Personal Information</h3>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -232,7 +231,7 @@ const ProfilePage = () => {
                             type="text"
                             {...register("firstName", { required: 'First name is required' })}
                             placeholder="Enter your first name"
-                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition"
+                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
                         />
                         {errors.firstName && <p className="text-xs text-rose-500">{errors.firstName.message}</p>}
                     </div>
@@ -243,7 +242,7 @@ const ProfilePage = () => {
                             type="text"
                             {...register("lastName", { required: 'Last name is required' })}
                             placeholder="Enter your last name"
-                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition"
+                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
                         />
                         {errors.lastName && <p className="text-xs text-rose-500">{errors.lastName.message}</p>}
                     </div>
@@ -254,14 +253,14 @@ const ProfilePage = () => {
                     <textarea
                         {...register("bio", { maxLength: { value: 200, message: 'Bio must be 200 characters or less' } })}
                         placeholder="Tell us about yourself..."
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition resize-none h-24"
+                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition resize-none h-24"
                     />
                     {errors.bio && <p className="text-xs text-rose-500">{errors.bio.message}</p>}
                 </div>
             </div>
 
             {/* ── Social Links Card ── */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-4 backdrop-blur-sm">
                 <h3 className="text-base font-semibold text-slate-700">Social Links</h3>
 
                 <div className="space-y-1.5">
@@ -274,7 +273,7 @@ const ProfilePage = () => {
                             pattern: { value: /^https?:\/\/[\w\-]+(\.[\w\-]+)+[/#?]?.*$/, message: 'Enter a valid URL' },
                         })}
                         placeholder="https://github.com/username"
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition"
+                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
                     />
                     {errors.githubUrl && <p className="text-xs text-rose-500">{errors.githubUrl.message}</p>}
                 </div>
@@ -289,7 +288,7 @@ const ProfilePage = () => {
                             pattern: { value: /^https?:\/\/[\w\-]+(\.[\w\-]+)+[/#?]?.*$/, message: 'Enter a valid URL' },
                         })}
                         placeholder="https://linkedin.com/in/username"
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition"
+                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
                     />
                     {errors.linkedinUrl && <p className="text-xs text-rose-500">{errors.linkedinUrl.message}</p>}
                 </div>
@@ -304,7 +303,7 @@ const ProfilePage = () => {
                             pattern: { value: /^https?:\/\/[\w\-]+(\.[\w\-]+)+[/#?]?.*$/, message: 'Enter a valid URL' },
                         })}
                         placeholder="https://yoursite.com"
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition"
+                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
                     />
                     {errors.portfolioUrl && <p className="text-xs text-rose-500">{errors.portfolioUrl.message}</p>}
                 </div>
@@ -316,7 +315,7 @@ const ProfilePage = () => {
                     type="button"
                     onClick={handleCancel}
                     disabled={isSaving}
-                    className="flex-1 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                    className="flex-1 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
                 >
                     Discard Changes
                 </button>
@@ -324,7 +323,7 @@ const ProfilePage = () => {
                 <button
                     type="submit"
                     disabled={isSaving}
-                    className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-xl transition-colors shadow-sm"
+                    className="flex-1 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 rounded-xl transition-all shadow-lg shadow-blue-900/20"
                 >
                     {isSaving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -337,7 +336,7 @@ const ProfilePage = () => {
                     onClick={handleClosePopup}
                 >
                     <div
-                        className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 space-y-5"
+                        className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-5 border border-blue-100"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Popup Header */}
@@ -373,7 +372,7 @@ const ProfilePage = () => {
                                     onChange={(e) => setPassword(e.target.value)}
                                     // Allow pressing Enter to confirm
                                     onKeyDown={(e) => e.key === 'Enter' && onConfirm()}
-                                    className="w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition"
+                                    className="w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
                                     autoFocus
                                 />
                                 <button
@@ -401,7 +400,7 @@ const ProfilePage = () => {
                                 type="button"
                                 onClick={onConfirm}
                                 disabled={!password || isSaving}
-                                className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm"
+                                className="flex-1 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-lg shadow-blue-900/20"
                             >
                                 {isSaving ? 'Saving...' : 'Confirm & Save'}
                             </button>

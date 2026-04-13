@@ -177,31 +177,30 @@ const SecurityPage = () => {
     if (isFetchingStatus) return <LoadingPage />
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+        <div className="relative max-w-3xl mx-auto px-4 py-8 space-y-6 overflow-hidden">
 
-        {/* Page Header */}
-      <h2 className="text-2xl font-semibold text-slate-800">Security</h2>
-    <p className="text-sm text-slate-500 -mt-4">Manage your password and account protection.</p>
+            <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
+            <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div className="bg-white/90 border border-blue-100 rounded-3xl p-5 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] backdrop-blur-sm">
                 <div className="flex flex-wrap items-center gap-3">
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Security Summary</span>
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${twoFAEnabled ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-100 text-slate-700 border-slate-200'}`}>
                         2FA: {twoFAEnabled ? 'Enabled' : 'Disabled'}
                     </span>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                         Password checks: {passedChecksCount}/4
                     </span>
                 </div>
             </div>
 
       {/* ── Change Password Card ── */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+    <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-5 backdrop-blur-sm">
 
         {/* Card Header */}
         <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
-            <div className="p-2 bg-indigo-50 rounded-lg">
-                <Lock size={18} className="text-indigo-400" />
+            <div className="p-2 bg-blue-50 rounded-lg">
+                <Lock size={18} className="text-blue-500" />
             </div>
             <div>
                 <h3 className="text-base font-semibold text-slate-700">Change Password</h3>
@@ -217,7 +216,7 @@ const SecurityPage = () => {
                 <div className="relative">
                     <input type={showCurrentPassword ? 'text' : 'password'} placeholder="Enter current password"
                     {...register('currentPassword', {required: 'Current Password is required'})}
-                    className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition" />
+                    className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition" />
                     <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                         disabled={isChangingPassword}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
@@ -238,7 +237,7 @@ const SecurityPage = () => {
                   required: 'New password is required',
                   minLength: { value: 8, message: 'Password must be at least 8 characters' },
                 })}
-                className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition"
+                                className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
               />
               <button type="button" onClick={() => setShowNewPassword(!showNewPassword)}
                 disabled={isChangingPassword}
@@ -270,7 +269,7 @@ const SecurityPage = () => {
                     <input type={showConfirmNewPassword ? 'text' : 'password'}
                     placeholder="Confirm New Password"
                     {...register('confirmNewPassword', {required: 'Please confirm your password', validate: (value)=> value === newPassword || 'password do not match'})}
-                    className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition" />
+                    className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition" />
                     <button type="button" onClick={()=> setShowConfirmNewPassword(!showConfirmNewPassword)}
                         disabled={isChangingPassword}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
@@ -286,7 +285,7 @@ const SecurityPage = () => {
                     Discard Changes
                 </button>
                 <button type="submit" disabled={isChangingPassword}
-                    className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm">
+                    className="flex-1 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-sm">
                     {isChangingPassword ? 'Saving...' : 'Save Changes'}
                 </button>
             </div>
@@ -294,11 +293,11 @@ const SecurityPage = () => {
       </div>
 
       {/* ── Two-Factor Authentication Card ── */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+    <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(20,184,166,0.4)] space-y-4 backdrop-blur-sm">
         <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-50 rounded-lg">
-                    <ShieldCheck size={18} className="text-indigo-400" />
+                <div className="p-2 bg-blue-50 rounded-lg">
+                    <ShieldCheck size={18} className="text-blue-500" />
                 </div>
                 <div>
                     <h3 className="text-base font-semibold text-slate-700">Two-Factor Authentication</h3>
@@ -314,7 +313,7 @@ const SecurityPage = () => {
             className={`w-full py-2.5 text-sm font-medium rounded-xl transition-colors shadow-sm
                 ${twoFAEnabled
                     ? 'text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200'
-                    : 'text-white bg-indigo-500 hover:bg-indigo-600'
+                    : 'text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600'
                 }`}>
             {isRequestingTwoFAOtp
                 ? (twoFAEnabled ? 'Sending disable OTP...' : 'Sending enable OTP...')
@@ -347,7 +346,7 @@ const SecurityPage = () => {
                     </button>
                     <button type="button" onClick={handleVerify2FA}
                         disabled={isVerifyingTwoFA}
-                        className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-xl transition-colors shadow-sm">
+                        className="flex-1 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 rounded-xl transition-all shadow-sm">
                         {isVerifyingTwoFA
                             ? 'Verifying...'
                             : (twoFAMode === 'enable' ? 'Verify & Enable' : 'Verify & Disable')}

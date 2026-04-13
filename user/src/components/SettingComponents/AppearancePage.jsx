@@ -139,16 +139,15 @@ const AppearancePage = () => {
     if(isFetching) return <LoadingPage />;
   
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+    <div className="relative max-w-3xl mx-auto px-4 py-8 space-y-6 overflow-hidden">
 
-        {/* Page Header */}
-        <h2 className="text-2xl font-semibold text-slate-800">Appearance</h2>
-        <p className="text-sm text-slate-500 -mt-4">Customize how DevDash looks for you.</p>
+        <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div className="bg-white/90 border border-blue-100 rounded-3xl p-5 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] backdrop-blur-sm">
             <div className="flex flex-wrap items-center gap-3">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Active Preferences</span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                     Theme: {resolvedThemeLabel}
                 </span>
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
@@ -158,7 +157,7 @@ const AppearancePage = () => {
         </div>
 
         {/* ── Theme Selection Card ── */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-4 backdrop-blur-sm">
             <h3 className="text-base font-semibold text-slate-700">Theme</h3>
             <p className="text-sm text-slate-500">Select your preferred color scheme.</p>
             <div className="flex gap-3">
@@ -172,12 +171,12 @@ const AppearancePage = () => {
                             disabled={isSaving}
                             className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all
                                 ${isSelected
-                                    ? 'border-indigo-400 bg-indigo-50 text-indigo-600'
+                                    ? 'border-blue-400 bg-blue-50 text-blue-700'
                                     : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-slate-100'
                                 }`}>
                             <Icon size={28} />
                             <span className="text-sm font-medium">{opt.label}</span>
-                            {isSelected && <Check size={14} className="text-indigo-500" />}
+                            {isSelected && <Check size={14} className="text-blue-600" />}
                         </button>
                     )
                 })}
@@ -185,7 +184,7 @@ const AppearancePage = () => {
         </div>
 
         {/* ── Sidebar Position Card ── */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(20,184,166,0.4)] space-y-4 backdrop-blur-sm">
             <h3 className="text-base font-semibold text-slate-700">Sidebar Position</h3>
             <p className="text-sm text-slate-500">Choose where the dashboard sidebar appears.</p>
             
@@ -197,7 +196,7 @@ const AppearancePage = () => {
                     disabled={isSaving}
                     className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all
                         ${sidebarPosition === 'left'
-                            ? 'border-indigo-400 bg-indigo-50 text-indigo-600'
+                            ? 'border-blue-400 bg-blue-50 text-blue-700'
                             : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-slate-100'
                         }`}>
                     <PanelLeft size={24} />
@@ -211,7 +210,7 @@ const AppearancePage = () => {
                     disabled={isSaving}
                     className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all
                         ${sidebarPosition === 'right'
-                            ? 'border-indigo-400 bg-indigo-50 text-indigo-600'
+                            ? 'border-blue-400 bg-blue-50 text-blue-700'
                             : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-slate-100'
                         }`}>
                     <PanelRight size={24} />
@@ -230,7 +229,7 @@ const AppearancePage = () => {
             <button onClick={handleSave}
                 type="button"
                 disabled={isSaving || !hasChanges}
-                className="flex-1 py-2.5 px-6 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
+                className="flex-1 py-2.5 px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all shadow-sm">
                 {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
         </div>

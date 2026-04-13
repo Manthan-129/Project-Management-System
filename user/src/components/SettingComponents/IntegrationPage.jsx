@@ -188,17 +188,16 @@ const IntegrationPage = () => {
         if (isFetching) return <LoadingPage />;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+        <div className="relative max-w-3xl mx-auto px-4 py-8 space-y-6 overflow-hidden">
 
-        {/* Page Header */}
-      <h2 className="text-2xl font-semibold text-slate-800">Connected Accounts</h2>
-      <p className="text-sm text-slate-500 -mt-4">Link external services to sync repositories and pull requests.</p>
+            <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
+            <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div className="bg-white/90 border border-blue-100 rounded-3xl p-5 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] backdrop-blur-sm">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-3">
                         <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Integration Summary</span>
-                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                             {connectedCount} / {platforms.length} connected
                         </span>
                     </div>
@@ -218,7 +217,7 @@ const IntegrationPage = () => {
         const Icon= platform.icon;
         const conn= connections[platform.key];
         return (
-            <div key={platform.key} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div key={platform.key} className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-4 backdrop-blur-sm">
 
                  {/* Top: Platform Info + Button */}
                 <div className="flex items-center justify-between gap-4">
@@ -248,7 +247,7 @@ const IntegrationPage = () => {
                     ) : (
                         <button onClick={() => handleConnect(platform.key)}
                             disabled={activeRequest === `connect-${platform.key}`}
-                            className="shrink-0 flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed border border-indigo-200 rounded-xl transition-colors whitespace-nowrap">
+                            className="shrink-0 flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed border border-blue-200 rounded-xl transition-colors whitespace-nowrap">
                             <Link size={14} />
                             {activeRequest === `connect-${platform.key}` ? 'Connecting...' : 'Connect'}
                         </button>
@@ -272,7 +271,7 @@ const IntegrationPage = () => {
                                 type="button"
                                 aria-pressed={conn.autoSync}
                                 disabled={activeRequest === `toggle-${platform.key}`}
-                                className={`relative w-10 h-5 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${conn.autoSync ? 'bg-indigo-500' : 'bg-slate-200'}`}>
+                                className={`relative w-10 h-5 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${conn.autoSync ? 'bg-blue-600' : 'bg-slate-200'}`}>
                                 <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${conn.autoSync ? 'translate-x-5' : 'translate-x-0'}`} />
                             </button>
                         </div>

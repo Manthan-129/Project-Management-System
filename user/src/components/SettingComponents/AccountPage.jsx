@@ -202,18 +202,15 @@ const AccountPage = () => {
     };
 
     return (
-        <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+        <div className="relative max-w-3xl mx-auto px-4 py-8 space-y-6 overflow-hidden">
 
-            {/* ── Page Header ── */}
-            <div>
-                <h2 className="text-2xl font-semibold text-slate-800">Account</h2>
-                <p className="text-sm text-slate-500 mt-1">Manage your email and account status.</p>
-            </div>
+            <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
+            <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div className="bg-white/90 border border-blue-100 rounded-3xl p-5 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] backdrop-blur-sm">
                 <div className="flex flex-wrap items-center gap-3">
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Account Summary</span>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                         {user?.email || 'No email'}
                     </span>
                     <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
@@ -223,9 +220,9 @@ const AccountPage = () => {
             </div>
 
             {/* ── Change Email Card ── */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-4 backdrop-blur-sm">
                 <h3 className="flex items-center gap-2 text-base font-semibold text-slate-700">
-                    <Mail size={16} className="text-indigo-400" /> Change Email
+                    <Mail size={16} className="text-blue-500" /> Change Email
                 </h3>
                 <p className="text-sm text-slate-500">
                     Current email: <strong className="text-slate-700">{user?.email}</strong>
@@ -244,12 +241,12 @@ const AccountPage = () => {
                                 value={newEmail}
                                 onChange={(e) => setNewEmail(e.target.value)}
                                 required
-                                className="flex-1 px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition"
+                                className="flex-1 px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
                             />
                             <button
                                 type="submit"
                                 disabled={isSendingOtp || !isValidNewEmail}
-                                className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm whitespace-nowrap"
+                                className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-xl transition-all shadow-sm whitespace-nowrap"
                             >
                                 <Send size={14} /> Send OTP
                             </button>
@@ -348,7 +345,7 @@ const AccountPage = () => {
                                     type="button"
                                     onClick={handleResendOTP}
                                     disabled={isResendingOtp}
-                                    className="text-xs font-medium text-indigo-600 hover:text-indigo-700 disabled:text-slate-400 disabled:cursor-not-allowed"
+                                    className="text-xs font-medium text-blue-600 hover:text-blue-700 disabled:text-slate-400 disabled:cursor-not-allowed"
                                 >
                                     Resend OTP
                                 </button>
@@ -367,7 +364,7 @@ const AccountPage = () => {
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
                                         autoFocus
-                                        className="w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition"
+                                        className="w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
                                     />
                                     <button
                                         type="button"
@@ -391,7 +388,7 @@ const AccountPage = () => {
                                 <button
                                     type="submit"
                                     disabled={isVerifyingOtp}
-                                    className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm"
+                                    className="flex-1 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-sm"
                                 >
                                     Verify & Update
                                 </button>
