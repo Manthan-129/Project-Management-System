@@ -1,4 +1,3 @@
-import React from 'react'
 
 import { BadgeCheck, GitPullRequest, ShieldCheck, Users } from 'lucide-react'
 

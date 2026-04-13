@@ -1,5 +1,5 @@
-import React, { useContext } from 'react'
 import { ArrowRight, Check, Github, Star } from 'lucide-react'
+import { useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext.jsx'
 

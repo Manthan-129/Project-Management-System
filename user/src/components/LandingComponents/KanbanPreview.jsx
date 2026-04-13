@@ -1,4 +1,3 @@
-import React from 'react'
 
 const colColors = {
   'To-do': 'bg-slate-400',

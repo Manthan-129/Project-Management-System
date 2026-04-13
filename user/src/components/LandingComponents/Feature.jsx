@@ -1,5 +1,3 @@
-import React, { useContext } from 'react'
-import { Link } from 'react-router-dom'
 import {
   Bell,
   ChartColumnIncreasing,
@@ -8,6 +6,8 @@ import {
   LayoutDashboard,
   Users,
 } from 'lucide-react'
+import { useContext } from 'react'
+import { Link } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext.jsx'
 
 const iconColors = [
