@@ -67,22 +67,24 @@ const highlights = [
 
 const KanbanPreview = () => {
   return (
-    <section id="kanban-preview" className="px-5 py-24 lg:px-12">
+    <section id="kanban-preview" className="relative px-5 py-24 lg:px-12 overflow-hidden">
+      <div className="absolute -top-24 -right-20 w-72 h-72 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-24 -left-20 w-80 h-80 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row items-center gap-12">
 
-          <div className="w-full lg:w-3/5 bg-white/95 border border-[#d8e3f0] rounded-2xl shadow-[0_20px_60px_-35px_rgba(18,33,58,0.45)] overflow-hidden">
+          <div className="w-full lg:w-3/5 bg-white/90 border border-blue-100 rounded-2xl backdrop-blur-sm shadow-[0_20px_60px_-35px_rgba(18,33,58,0.45)] overflow-hidden">
             <div className="p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-800">Sprint Board</h3>
-                <span className="text-xs font-medium text-slate-500 bg-[#edf3fa] px-2.5 py-1 rounded-full">
+                <span className="text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full">
                   14 Tasks
                 </span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {columns.map((col) => (
-                  <div key={col.label} className="bg-[#f7f9fc] border border-slate-200 rounded-xl p-2.5 space-y-2">
+                  <div key={col.label} className="bg-gradient-to-br from-slate-50 to-blue-50 border border-slate-200 rounded-xl p-2.5 space-y-2">
                     <div className="flex items-center gap-1.5">
                       <div className={`w-2 h-2 rounded-full shrink-0 ${colColors[col.label]}`}></div>
                       <span className="text-xs font-semibold text-slate-600 flex-1 truncate">{col.label}</span>
@@ -91,7 +93,7 @@ const KanbanPreview = () => {
 
                     <div className="space-y-1.5">
                       {col.tasks.map((task) => (
-                        <div key={task.title} className="bg-white border border-slate-200 rounded-lg p-2 space-y-1.5">
+                        <div key={task.title} className="bg-white border border-slate-200 rounded-lg p-2 space-y-1.5 hover:shadow-sm transition-shadow">
                           {task.done ? (
                             <p className="text-xs text-slate-400 line-through">{task.title}</p>
                           ) : (
@@ -114,7 +116,7 @@ const KanbanPreview = () => {
 
           <div className="w-full lg:w-2/5 space-y-6">
             <div className="space-y-3">
-              <p className="text-xs font-semibold text-[#315e8d] uppercase tracking-[0.2em]">Visual Workflow</p>
+              <p className="text-xs font-semibold text-blue-700 uppercase tracking-[0.2em]">Visual Workflow</p>
               <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight">
                 Boards That Help Teams
                 <br />
@@ -128,7 +130,7 @@ const KanbanPreview = () => {
             <div className="space-y-4">
               {highlights.map((item) => (
                 <div key={item.title} className="flex items-start gap-3">
-                  <div className="mt-1 w-2 h-2 rounded-full bg-[#315e8d] shrink-0"></div>
+                  <div className="mt-1 w-2 h-2 rounded-full bg-blue-600 shrink-0"></div>
                   <div>
                     <h4 className="text-sm font-semibold text-slate-800">{item.title}</h4>
                     <p className="text-sm text-slate-600 mt-0.5">{item.desc}</p>

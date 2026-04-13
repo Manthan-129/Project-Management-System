@@ -79,13 +79,15 @@ const TeamCollaboration = () => {
   const inviteCtaPath = token ? '/dashboard/teams' : '/signup'
 
   return (
-    <section id="collaboration" className="px-5 py-24 lg:px-12">
+    <section id="collaboration" className="relative px-5 py-24 lg:px-12 overflow-hidden">
+      <div className="absolute -top-24 -left-20 w-72 h-72 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
       <div className="max-w-7xl mx-auto space-y-12">
         <div className="max-w-2xl space-y-3">
-          <p className="text-xs font-semibold text-[#315e8d] uppercase tracking-[0.2em]">Collaboration</p>
+          <p className="text-xs font-semibold text-blue-700 uppercase tracking-[0.2em]">Collaboration</p>
           <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight">
             Structured Teamwork Without
-            <span className="text-[#315e8d]"> Micromanagement</span>
+            <span className="text-blue-600"> Micromanagement</span>
           </h2>
           <p className="text-base text-slate-600 leading-relaxed">
             Create ownership clarity, delegate with confidence, and keep every contributor aligned on what matters now.
@@ -96,20 +98,20 @@ const TeamCollaboration = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-white/90 border border-[#dbe5f1] rounded-2xl p-5 space-y-4">
+          <div className="bg-white/85 border border-blue-100 rounded-2xl p-5 space-y-4 backdrop-blur-sm">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-[#e9f0f8] rounded-lg">
                 <Users size={16} className="text-[#315e8d]" />
               </div>
               <h3 className="text-sm font-semibold text-slate-800 flex-1">Team Roster</h3>
-              <span className="text-xs font-medium text-slate-500 bg-[#edf3fa] px-2 py-0.5 rounded-full">
+              <span className="text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
                 {members.length} members
               </span>
             </div>
 
             <div className="space-y-2.5">
               {members.map((member, i) => (
-                <div key={member.name} className="flex items-center gap-3 bg-[#f9fbfe] border border-slate-200 rounded-xl px-3 py-2.5">
+                <div key={member.name} className="flex items-center gap-3 bg-gradient-to-br from-slate-50 to-blue-50 border border-slate-200 rounded-xl px-3 py-2.5 hover:shadow-sm transition-shadow">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${avatarColors[i % avatarColors.length]}`}>
                     {member.name.charAt(0)}
                   </div>
@@ -124,13 +126,13 @@ const TeamCollaboration = () => {
               ))}
             </div>
 
-            <Link to={inviteCtaPath} className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-[#2e5a8a] bg-[#edf3fa] hover:bg-[#e3edf8] border border-[#dbe5f1] rounded-xl transition-colors no-underline">
+            <Link to={inviteCtaPath} className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-xl transition-colors no-underline">
               <UserPlus size={14} />
               {token ? 'Go to Teams' : 'Invite Teammate'}
             </Link>
           </div>
 
-          <div className="bg-white/90 border border-[#dbe5f1] rounded-2xl p-5 space-y-4">
+          <div className="bg-white/85 border border-blue-100 rounded-2xl p-5 space-y-4 backdrop-blur-sm">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-emerald-50 rounded-lg">
                 <ClipboardList size={16} className="text-emerald-600" />
@@ -140,7 +142,7 @@ const TeamCollaboration = () => {
 
             <div className="space-y-2.5">
               {assignments.map((item) => (
-                <div key={item.task} className="bg-[#f9fbfe] border border-slate-200 rounded-xl px-3 py-2.5 space-y-1.5">
+                <div key={item.task} className="bg-gradient-to-br from-slate-50 to-emerald-50 border border-slate-200 rounded-xl px-3 py-2.5 space-y-1.5 hover:shadow-sm transition-shadow">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-medium text-slate-700 truncate flex-1">{item.task}</p>
                     <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 capitalize ${priorityColors[item.priority]}`}>{item.priority}</span>
@@ -154,7 +156,7 @@ const TeamCollaboration = () => {
             </div>
           </div>
 
-          <div className="bg-white/90 border border-[#dbe5f1] rounded-2xl p-5 space-y-5">
+          <div className="bg-white/85 border border-blue-100 rounded-2xl p-5 space-y-5 backdrop-blur-sm">
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-sky-50 rounded-lg">
@@ -165,7 +167,7 @@ const TeamCollaboration = () => {
 
               <div className="space-y-2">
                 {invites.map((invite, i) => (
-                  <div key={invite.name} className="flex items-center gap-3 bg-[#f9fbfe] border border-slate-200 rounded-xl px-3 py-2.5">
+                  <div key={invite.name} className="flex items-center gap-3 bg-gradient-to-br from-slate-50 to-sky-50 border border-slate-200 rounded-xl px-3 py-2.5 hover:shadow-sm transition-shadow">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${avatarColors[(i + 2) % avatarColors.length]}`}>
                       {invite.name.charAt(0)}
                     </div>

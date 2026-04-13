@@ -53,13 +53,15 @@ const ProgressTracking = () => {
   }, [range, rangeData])
 
   return (
-    <section id="tracking" className="px-5 py-24 lg:px-12">
+    <section id="tracking" className="relative px-5 py-24 lg:px-12 overflow-hidden">
+      <div className="absolute -top-24 -left-20 w-72 h-72 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-24 -right-20 w-80 h-80 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row items-start gap-12">
 
           <div className="w-full lg:w-2/5 space-y-8">
             <div className="space-y-3">
-              <p className="text-xs font-semibold text-[#315e8d] uppercase tracking-[0.2em]">Progress Tracking</p>
+              <p className="text-xs font-semibold text-blue-700 uppercase tracking-[0.2em]">Progress Tracking</p>
               <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight">
                 Delivery Visibility for
                 <br />
@@ -72,15 +74,15 @@ const ProgressTracking = () => {
 
             <div className="grid grid-cols-3 gap-4">
               {summaryStats.map((stat) => (
-                <div key={stat.label} className="bg-white/90 border border-[#dbe5f1] rounded-2xl px-4 py-4 text-center">
-                  <p className="text-2xl font-bold text-[#315e8d]">{stat.value}</p>
+                <div key={stat.label} className="bg-white/85 border border-blue-100 rounded-2xl px-4 py-4 text-center backdrop-blur-sm">
+                  <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">{stat.value}</p>
                   <p className="text-xs text-slate-600 mt-1">{stat.label}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="w-full lg:w-3/5 bg-white/95 border border-[#dbe5f1] rounded-2xl p-6 space-y-5 shadow-[0_20px_60px_-35px_rgba(18,33,58,0.45)]">
+          <div className="w-full lg:w-3/5 bg-white/90 border border-blue-100 rounded-2xl p-6 space-y-5 backdrop-blur-sm shadow-[0_20px_60px_-35px_rgba(18,33,58,0.45)]">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-slate-800">Team Progress</h3>
               <div className="flex gap-1.5" role="group" aria-label="Progress time range">
@@ -88,7 +90,7 @@ const ProgressTracking = () => {
                   type="button"
                   onClick={() => setRange('week')}
                   aria-pressed={range === 'week'}
-                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${range === 'week' ? 'bg-[#315e8d] text-white' : 'bg-[#edf3fa] text-slate-600 hover:bg-[#e5eef9]'}`}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${range === 'week' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-slate-600 hover:bg-blue-100'}`}
                 >
                   This Week
                 </button>
@@ -96,7 +98,7 @@ const ProgressTracking = () => {
                   type="button"
                   onClick={() => setRange('month')}
                   aria-pressed={range === 'month'}
-                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${range === 'month' ? 'bg-[#315e8d] text-white' : 'bg-[#edf3fa] text-slate-600 hover:bg-[#e5eef9]'}`}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${range === 'month' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-slate-600 hover:bg-blue-100'}`}
                 >
                   This Month
                 </button>
@@ -137,7 +139,7 @@ const ProgressTracking = () => {
               <div className="space-y-2 pt-3 border-t border-slate-200">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-slate-700">Overall Team Progress</p>
-                  <p className="text-sm font-bold text-[#315e8d]">{teamPct}%</p>
+                  <p className="text-sm font-bold text-blue-700">{teamPct}%</p>
                 </div>
                 <Line
                   strokeWidth={2}

@@ -57,16 +57,16 @@ const Footer = () => {
       ]
 
   return (
-    <footer id="site-footer" className="bg-[#0f1f34] px-5 py-16 lg:px-12">
+    <footer id="site-footer" className="bg-gradient-to-br from-[#0f1f34] via-[#122741] to-[#0b1a2e] px-5 py-16 lg:px-12">
       <div className="max-w-7xl mx-auto space-y-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="space-y-5">
             <div className="flex items-center gap-2.5">
-              <div className="p-1.5 bg-[#1c3555] rounded-lg border border-[#2c4b71]">
-                <Sparkles size={18} className="text-[#8fb2d9]" />
+              <div className="p-1.5 bg-blue-500/20 rounded-lg border border-blue-300/30">
+                <Sparkles size={18} className="text-blue-200" />
               </div>
               <h2 className="text-lg font-bold text-white">
-                Dev<span className="text-[#8fb2d9]">Dash</span>
+                Dev<span className="text-teal-300">Dash</span>
               </h2>
             </div>
 
@@ -82,7 +82,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.label}
-                  className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-white bg-[#1b314d] hover:bg-[#315e8d] rounded-lg transition-colors"
+                  className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-white bg-[#1b314d] hover:bg-blue-600 rounded-lg transition-colors"
                 >
                   {social.icon}
                 </a>
@@ -115,7 +115,7 @@ const Footer = () => {
           )})}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-[#2b4567]">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-blue-900/50">
           <p className="text-xs text-slate-300">Copyright 2026 DevDash. All rights reserved.</p>
           <div className="flex gap-5">
             <a href="/settings/privacy" className="text-xs text-slate-300 hover:text-white transition-colors no-underline">
