@@ -21,7 +21,7 @@ const Hero = () => {
   const primaryCtaPath = token ? '/dashboard' : '/signup'
 
   return (
-    <section className="relative min-h-screen flex items-center px-5 py-20 pt-28 lg:px-12">
+    <section className="relative min-h-[86vh] lg:min-h-[90vh] flex items-center px-5 pt-28 pb-8 lg:pb-10 lg:px-12">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_80%_0%,rgba(37,99,235,0.18),transparent_42%),radial-gradient(circle_at_8%_18%,rgba(20,184,166,0.16),transparent_35%)]" />
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-12 items-center">
 
