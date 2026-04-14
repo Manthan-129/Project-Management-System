@@ -65,4 +65,55 @@ const updateUserInfo= async (req, res)=>{
     }
 }
 
-module.exports= { updateUserInfo };
+const getUserProfile = async (req, res) => {
+    try {
+        const { username } = req.params;
+        const currentUserId = req.userId; // Optional, might be available if logged in
+
+        const targetUser = await User.findOne({ username }).lean();
+        if (!targetUser) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const privacy = targetUser.privacySettings || {};
+        const isSelf = currentUserId === targetUser._id.toString();
+
+        let isFriend = false;
+        if (currentUserId && targetUser.friends) {
+            isFriend = targetUser.friends.some(fId => fId.toString() === currentUserId);
+        }
+
+        let isTeamMember = false;
+        // Verify team-only logic if requested (just an approximation, public or team-only should allow viewing basic profile)
+        if (privacy.profileVisibility === 'private' && !isSelf) {
+            return res.status(403).json({ success: false, message: "This profile is private." });
+        }
+
+        const profileData = {
+            _id: targetUser._id,
+            username: targetUser.username,
+            firstName: targetUser.firstName,
+            lastName: targetUser.lastName,
+            profilePicture: targetUser.profilePicture,
+            bio: targetUser.bio,
+            githubUrl: targetUser.githubUrl,
+            linkedinUrl: targetUser.linkedinUrl,
+            portfolioUrl: targetUser.portfolioUrl,
+            friendCount: (targetUser.friends || []).length,
+            isFriend,
+            privacySettings: privacy,
+        };
+
+        if (privacy.showEmail || isSelf) {
+            profileData.email = targetUser.email;
+        }
+
+        return res.status(200).json({ success: true, profile: profileData });
+
+    } catch (error) {
+        console.error("Error in getUserProfile:", error.message);
+        return res.status(500).json({ success: false, message: "Server error while fetching user profile" });
+    }
+};
+
+module.exports= { updateUserInfo, getUserProfile };

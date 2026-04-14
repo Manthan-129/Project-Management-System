@@ -1,11 +1,10 @@
-import React from 'react'
 import { ChevronRight, Crown, Plus, Shield, Sparkles, Users, X } from 'lucide-react'
 import { useContext, useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
+import api from '../../api/axiosInstance.js'
 import { AppContext } from '../../context/AppContext.jsx'
 import Loading from '../LoadingPage'
-import { useForm }  from 'react-hook-form'
-import api from '../../api/axiosInstance.js'
 
 const Teams = () => {
 
@@ -108,55 +107,57 @@ const Teams = () => {
 
     if(loading) return <Loading />;
   return (
-    <div>
-        <div>
-            <div>
+    <div className="space-y-6">
+            <div className="dd-section-card dd-fade-up">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
+                <div className="dd-page-kicker w-fit">
                     <Users size={18} />
                     <span>Team Management</span>
                 </div>
-                <h1>My Teams</h1>
-                <p>Manage your teams and collaborate on projects</p>
+                <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900">My Teams</h1>
+                <p className="mt-1 text-sm text-slate-600">Manage your teams and collaborate on projects.</p>
             </div>
-            <button onClick={()=> setShowCreate(true)}><Plus size ={16} /> New Team</button>
+            <button className="dd-primary-button w-fit" onClick={()=> setShowCreate(true)}><Plus size ={16} /> New Team</button>
+            </div>
         </div>
 
         {/* Create Team Modal */}
         {showCreate && (
-            <div>
-                <div>
-                    <div>
+                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/35 px-4 dd-fade-in">
+                    <div className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_30px_80px_rgba(15,23,42,0.2)] dd-fade-up">
+                    <div className="mb-4 flex items-center justify-between gap-3">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
                             <Sparkles size={18} className="text-blue-600" />
                         </div>
-                        <h2>Create New Team</h2>
-                        <button onClick={()=> {setShowCreate(false); reset();}}><X size={16}/></button>
+                        <h2 className="flex-1 text-lg font-bold text-slate-900">Create New Team</h2>
+                        <button className="rounded-xl border border-slate-200 p-2 text-slate-600" onClick={()=> {setShowCreate(false); reset();}}><X size={16}/></button>
                     </div>
 
-                   <form onSubmit={handleSubmit(createTeam)}>
+                   <form onSubmit={handleSubmit(createTeam)} className="space-y-4">
                     {/* Team Name */}
-                    <div>
-                        <label>Team Name *</label>
-                        <input type="text" {...register('name', { required: true })} placeholder="e.g. DevDash Core"/>
-                        {errors.name && <p>{errors.name.message}</p>}
+                    <div className="space-y-1">
+                        <label className="text-sm font-semibold text-slate-700">Team Name *</label>
+                        <input className="dd-input" type="text" {...register('name', { required: true })} placeholder="e.g. DevDash Core"/>
+                        {errors.name && <p className="text-xs text-rose-600">{errors.name.message}</p>}
                     </div>
 
                     {/* Team Title */}
-                    <div>
-                        <label>Team Title *</label>
-                        <input type="text" {...register('title', { required: true })} placeholder="e.g. DevDash Developers"/>
-                        {errors.title && <p>{errors.title.message}</p>}
+                    <div className="space-y-1">
+                        <label className="text-sm font-semibold text-slate-700">Team Title *</label>
+                        <input className="dd-input" type="text" {...register('title', { required: true })} placeholder="e.g. DevDash Developers"/>
+                        {errors.title && <p className="text-xs text-rose-600">{errors.title.message}</p>}
                     </div>
 
                     {/* Team Description */}
-                    <div>
-                        <label>Team Description</label>
-                        <textarea {...register('description')} placeholder="Describe your team's purpose and goals..."/>
+                    <div className="space-y-1">
+                        <label className="text-sm font-semibold text-slate-700">Team Description</label>
+                        <textarea className="dd-input min-h-[90px]" {...register('description')} placeholder="Describe your team's purpose and goals..."/>
                     </div>
 
-                    <div>
-                        <button type="button" onClick={()=>{setShowCreate(false); reset();}}>Cancel</button>
-                        <button type="submit" disabled={creating}>
+                    <div className="flex justify-end gap-2">
+                        <button className="dd-ghost-button" type="button" onClick={()=>{setShowCreate(false); reset();}}>Cancel</button>
+                        <button className="dd-primary-button" type="submit" disabled={creating}>
                             {creating ? 'Creating...' : 'Create Team'}
                         </button>
                     </div>
@@ -176,41 +177,41 @@ const Teams = () => {
                 </div>
         )}
 
-        <div>
+        <div className="grid gap-3 md:grid-cols-2">
             {teams.map(team=>{
                 const role= getUserRole(team);
                 return (
-                    <div key={team._id} onClick={()=> navigate(`/dashboard/teams/${team._id}`)}>
-                        <div>
-                            <div>
+                    <div key={team._id} onClick={()=> navigate(`/dashboard/teams/${team._id}`)} className="dd-section-card cursor-pointer border-slate-200 transition hover:-translate-y-0.5 hover:shadow-lg">
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-lg font-bold text-[#315e8d]">
                                 {team.name.charAt(0).toUpperCase()}
                             </div>
-                            <div>
-                                <div>
-                                    <h3>{team.name}</h3>
-                                    <span>{roleIcon(role)} {role}</span>
+                            <div className="flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <h3 className="text-lg font-bold text-slate-900">{team.name}</h3>
+                                    <span className={`dd-badge ${roleBadgeColor(role)}`}>{roleIcon(role)} {role}</span>
                                 </div>
-                                {team.title && <p>{team.title}</p>}
-                                <p>{team.memberCount ?? team.members?.length ?? 0} members</p>
+                                {team.title && <p className="text-sm text-slate-500">{team.title}</p>}
+                                <p className="mt-1 text-xs font-medium text-slate-500">{team.memberCount ?? team.members?.length ?? 0} members</p>
                             </div>
 
-                            <div>
-                                <p>Team Leader Username: {team.leader?.username}</p>
+                            <div className="text-right">
+                                <p className="text-xs text-slate-500">Team Leader Username: {team.leader?.username}</p>
                             </div>
                         </div>
 
-                        <div>
-                            <div>
+                        <div className="mt-4 flex items-center justify-between">
+                            <div className="flex -space-x-2">
                                 {team.members?.slice(0,4).map((m, i)=>(
-                                    <img key={i} src={m.user?.profilePicture || `https://ui-avatars.com/api/?name=${m.user?.firstName}+${m.user?.lastName}&background=6366f1&color=fff&size=28`} alt="" />
+                                    <img key={i} className="h-8 w-8 rounded-full border-2 border-white object-cover" src={m.user?.profilePicture || `https://ui-avatars.com/api/?name=${m.user?.firstName}+${m.user?.lastName}&background=6366f1&color=fff&size=28`} alt="" />
                                 ))}
 
                                 {(team.members?.length || 0) > 4 && (
-                                    <div>+{team.members.length - 4}</div>
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-slate-200 text-xs font-semibold text-slate-700">+{team.members.length - 4}</div>
                                 )}
                             </div>
 
-                            <ChevronRight size={16} />
+                            <ChevronRight size={16} className="text-slate-400" />
                         </div>
                     </div>
                 )

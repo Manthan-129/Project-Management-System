@@ -1,13 +1,12 @@
-import React from 'react'
+import { Link, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { useContext, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
-import { AppContext } from '../../context/AppContext'
-import { assets } from '../../assets/assets'
-import Loading from '../../components/LoadingPage'
-import OTP from '../../components/AuthComponents/OTP'
 import api from '../../api/axiosInstance'
-import { X } from 'lucide-react'
+import { assets } from '../../assets/assets'
+import OTP from '../../components/AuthComponents/OTP'
+import Loading from '../../components/LoadingPage'
+import { AppContext } from '../../context/AppContext'
 
 const LoginPage = () => {
 
@@ -109,19 +108,33 @@ const LoginPage = () => {
     }
     
   return (
-    <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
-            {/* Welcome Div */}
-            <div className="mb-8 text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-100/80 text-indigo-700 text-xs font-bold rounded-full border border-indigo-200/50 mb-3 uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
-                    Welcome Back
+    <div className="dd-app-shell flex min-h-screen items-center justify-center px-4 py-10">
+        <div className="grid w-full max-w-5xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="dd-shell-frame overflow-hidden p-6 md:p-8">
+                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                    <span className="dd-page-kicker"><Sparkles size={13} /> DevDash</span>
+                    <span className="hidden sm:inline">Secure workspace access</span>
                 </div>
-                <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Login to DevDash</h2>
-                <p className="text-gray-500 text-sm">{loginDescription}</p>
+                <div className="mt-6 space-y-4">
+                    <h2 className="text-4xl font-black tracking-tight text-slate-900">Welcome back.</h2>
+                    <p className="max-w-md text-sm leading-6 text-slate-600">{loginDescription}</p>
+                </div>
+
+                <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+                        <ShieldCheck size={18} className="text-[#315e8d]" />
+                        <p className="mt-3 text-sm font-semibold text-slate-800">Protected sessions</p>
+                        <p className="mt-1 text-xs text-slate-500">Two-factor verification is fully supported.</p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+                        <Link size={18} className="text-[#315e8d]" />
+                        <p className="mt-3 text-sm font-semibold text-slate-800">Fast handoff</p>
+                        <p className="mt-1 text-xs text-slate-500">Jump straight from auth into dashboard and settings.</p>
+                    </div>
+                </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-8">
+            <div className="dd-shell-frame p-6 md:p-8">
             <form onSubmit= {handleSubmit(onSubmit)} className="space-y-4">
                 <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Username Or Email</label>

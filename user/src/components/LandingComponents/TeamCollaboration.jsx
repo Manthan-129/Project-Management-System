@@ -1,6 +1,7 @@
-import React from 'react'
 import { Check, ClipboardList, Mail, UserPlus, Users } from 'lucide-react'
+import { useContext } from 'react'
 import { Link } from 'react-router-dom'
+import { AppContext } from '../../context/AppContext'
 
 const members = [
   { name: 'Sarah Chen', role: 'Team Leader', badge: 'Leader' },
@@ -74,6 +75,7 @@ const avatarColors = [
 ]
 
 const TeamCollaboration = () => {
+  const { token } = useContext(AppContext);
   return (
     <section id="collaboration" className="px-5 py-24 lg:px-12">
       <div className="max-w-7xl mx-auto space-y-12">
@@ -120,10 +122,17 @@ const TeamCollaboration = () => {
               ))}
             </div>
 
-            <Link to="/signup" className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-[#2e5a8a] bg-[#edf3fa] hover:bg-[#e3edf8] border border-[#dbe5f1] rounded-xl transition-colors no-underline">
-              <UserPlus size={14} />
-              Invite Teammate
-            </Link>
+            {token ? (
+              <Link to="/dashboard/teams" className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-[#2e5a8a] bg-[#edf3fa] hover:bg-[#e3edf8] border border-[#dbe5f1] rounded-xl transition-colors no-underline">
+                <UserPlus size={14} />
+                Invite Teammate
+              </Link>
+            ) : (
+              <Link to="/signup" className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-[#2e5a8a] bg-[#edf3fa] hover:bg-[#e3edf8] border border-[#dbe5f1] rounded-xl transition-colors no-underline">
+                <UserPlus size={14} />
+                Invite Teammate
+              </Link>
+            )}
           </div>
 
           <div className="bg-white/90 border border-[#dbe5f1] rounded-2xl p-5 space-y-4">

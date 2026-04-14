@@ -1,12 +1,11 @@
-import React from 'react'
+import { Link, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { useContext, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
-import { AppContext } from '../../context/AppContext'
-import Loading from '../../components/LoadingPage'
-import OTP from '../../components/AuthComponents/OTP'
-import { X } from 'lucide-react'
 import api from '../../api/axiosInstance'
+import OTP from '../../components/AuthComponents/OTP'
+import Loading from '../../components/LoadingPage'
+import { AppContext } from '../../context/AppContext'
 
 const SignupPage = () => {
     const { navigate, setToken } = useContext(AppContext);
@@ -104,20 +103,33 @@ const SignupPage = () => {
     }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
-
-            {/* Welcome Div */}
-            <div className="mb-6 text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded-full border border-blue-100 mb-3 uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                    Join DevDash
+    <div className="dd-app-shell flex min-h-screen items-center justify-center px-4 py-10">
+        <div className="grid w-full max-w-5xl gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+            <div className="dd-shell-frame overflow-hidden p-6 md:p-8 lg:order-2">
+                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                    <span className="dd-page-kicker"><Sparkles size={13} /> DevDash</span>
+                    <span className="hidden sm:inline">Create your workspace identity</span>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">Create Account</h2>
-                <p className="text-gray-400 text-sm">Sign up to start managing your projects</p>
+                <div className="mt-6 space-y-4">
+                    <h2 className="text-4xl font-black tracking-tight text-slate-900">Build your account.</h2>
+                    <p className="max-w-md text-sm leading-6 text-slate-600">Sign up once and move into dashboard, collaboration, and settings without the UI feeling stitched together.</p>
+                </div>
+
+                <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+                        <ShieldCheck size={18} className="text-[#315e8d]" />
+                        <p className="mt-3 text-sm font-semibold text-slate-800">Secure onboarding</p>
+                        <p className="mt-1 text-xs text-slate-500">OTP verification protects account creation.</p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+                        <Link size={18} className="text-[#315e8d]" />
+                        <p className="mt-3 text-sm font-semibold text-slate-800">Seamless handoff</p>
+                        <p className="mt-1 text-xs text-slate-500">Your profile, settings, and dashboard all share one visual system.</p>
+                    </div>
+                </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-8">
+            <div className="dd-shell-frame p-6 md:p-8 lg:order-1">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">

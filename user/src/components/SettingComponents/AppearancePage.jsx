@@ -7,7 +7,7 @@ import LoadingPage from '../LoadingPage.jsx'
 
 const AppearancePage = () => {
 
-    const { authHeaders, logout } = useContext(AppContext);
+    const { authHeaders, logout, fetchCurrentUser } = useContext(AppContext);
 
     const [isFetching, setIsFetching]= useState(false);
     const [isSaving, setIsSaving]= useState(false);
@@ -110,6 +110,7 @@ const AppearancePage = () => {
                 localStorage.setItem('theme', theme);
                 localStorage.setItem('sidebarPosition', sidebarPosition);
                 applyThemeToDocument(theme);
+                await fetchCurrentUser();
                 setInitialSettings({ theme, sidebarPosition });
                 toast.success(data.message || 'Appearance settings updated successfully');
             }

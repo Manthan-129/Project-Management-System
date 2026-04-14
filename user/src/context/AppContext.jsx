@@ -168,16 +168,16 @@ export const AppContextProvider = (props) => {
         }
     };
 
-    useEffect(() => {
-        if (!token) return;
+    // useEffect(() => {
+    //     if (!token) return;
 
-        fetchNotifications();
-        const intervalId = setInterval(() => {
-            fetchNotifications();
-        }, 30000);
+    //     fetchNotifications();
+    //     const intervalId = setInterval(() => {
+    //         fetchNotifications();
+    //     }, 30000);
 
-        return () => clearInterval(intervalId);
-    }, [token]);
+    //     return () => clearInterval(intervalId);
+    // }, [token]);
 
     const value = {
         navigate,

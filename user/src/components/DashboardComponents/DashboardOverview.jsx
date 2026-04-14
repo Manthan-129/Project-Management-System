@@ -214,13 +214,15 @@ const DashboardOverview = () => {
 
     if (teams.length === 0) {
         return (
-            <div>
-                <div>
-                    <FolderKanban size={36} />
+            <div className="dd-section-card text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-[#315e8d]">
+                    <FolderKanban size={30} />
                 </div>
-                <h2>No team workspace yet.</h2>
-                <p>Create a team first to unlock your new mission control dashboard.</p>
-                <button onClick={() => navigate('/dashboard/teams')}>Create a Team</button>
+                <h2 className="text-2xl font-bold text-slate-900">No team workspace yet.</h2>
+                <p className="mx-auto mt-2 max-w-xl text-sm text-slate-600">Create a team first to unlock your mission control dashboard.</p>
+                <button onClick={() => navigate('/dashboard/teams')} className="dd-primary-button mt-5">
+                    Create a Team
+                </button>
             </div>
         );
     }
@@ -265,20 +267,25 @@ const DashboardOverview = () => {
     ];
 
     return (
-        <div>
-            <section>
-                <div>
-                    <div>
-                        <div>
-                            <Sparkles size={16} />
+        <div className="space-y-6">
+            <section className="dd-section-card">
+                <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                    <div className="space-y-3">
+                        <div className="dd-page-kicker w-fit">
+                            <Sparkles size={14} />
                             <span>Mission Control</span>
                         </div>
-                        <h1>Action-First Team Command Center</h1>
-                        <p>Different view: focus, risks, workload, and deadlines in one place.</p>
+                        <h1 className="text-3xl font-black tracking-tight text-slate-900">Action-First Team Command Center</h1>
+                        <p className="text-sm text-slate-600">Focus, risks, workload, and deadlines in one place.</p>
                     </div>
-                    <div>
-                        <p>Current Team</p>
-                        <select value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)}>
+                    <div className="min-w-[240px] rounded-[1.35rem] border border-slate-200/80 bg-slate-50/80 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Current Team</p>
+                            <span className="rounded-full border border-blue-100 bg-blue-50 px-2 py-1 text-[10px] font-semibold text-[#315e8d]">
+                                Workspace
+                            </span>
+                        </div>
+                        <select className="dd-select !border-blue-200 !bg-white !px-4 !py-3 !text-[15px] !font-semibold !text-slate-800 !shadow-[0_12px_30px_rgba(49,94,141,0.08)]" value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)}>
                             {teams.map((item) => (
                                 <option key={item._id} value={item._id}>
                                     {item.name}
@@ -289,9 +296,9 @@ const DashboardOverview = () => {
                 </div>
             </section>
 
-            {tasksLoading && <p>Loading team tasks...</p>}
+            {tasksLoading && <p className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700">Loading team tasks...</p>}
 
-            <section>
+            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {metricCards.map((card) => (
                     <MetricCard
                         key={card.label}
@@ -303,30 +310,32 @@ const DashboardOverview = () => {
                 ))}
             </section>
 
-            <section>
-                <article>
-                    <div>
+            <section className="grid gap-4 xl:grid-cols-2">
+                <article className="dd-section-card">
+                    <div className="dd-section-head">
+                        <div className="flex items-center gap-2">
                         <Target size={18} />
                         <h2>Today Focus</h2>
+                        </div>
                     </div>
 
-                    <div>
-                        {todayFocus.length === 0 && <p>No active focus items right now.</p>}
+                    <div className="space-y-3">
+                        {todayFocus.length === 0 && <p className="text-sm text-slate-500">No active focus items right now.</p>}
 
                         {todayFocus.map((task) => (
-                            <div key={task._id}>
-                                <div>
-                                    <h3>{task.title}</h3>
-                                    <span>{task.priority}</span>
+                            <div key={task._id} className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+                                <div className="flex items-start justify-between gap-2">
+                                    <h3 className="font-semibold text-slate-900">{task.title}</h3>
+                                    <span className="dd-badge border-slate-200 bg-white text-slate-700">{task.priority}</span>
                                 </div>
 
-                                <div>
-                                    <span>
+                                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                                    <span className="inline-flex items-center gap-1">
                                         <Users size={12} /> {task.assignedTo?.firstName || 'Member'}
                                     </span>
 
                                     {task.dueDate && (
-                                        <span>
+                                        <span className="inline-flex items-center gap-1">
                                             <CalendarClock size={12} />
                                             {new Date(task.dueDate).toLocaleDateString('en-US', {
                                                 month: 'short',
@@ -340,35 +349,35 @@ const DashboardOverview = () => {
                     </div>
                 </article>
 
-                <article>
-                    <div>
-                        <div>
+                <article className="dd-section-card">
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2">
                             <AlertCircle size={18} />
                             <h2>Risk Radar</h2>
                         </div>
-                        <ul>
-                            <RiskItem label="Overdue Tasks" count={riskRadar.overDue.length} tone="red" />
-                            <RiskItem label="In Review Queue" count={riskRadar.longReview.length} tone="amber" />
-                            <RiskItem label="Deleted Tasks" count={riskRadar.deleted.length} tone="blue" />
+                        <ul className="space-y-2">
+                            <RiskItem label="Overdue Tasks" count={riskRadar.overDue.length} />
+                            <RiskItem label="In Review Queue" count={riskRadar.longReview.length} />
+                            <RiskItem label="Deleted Tasks" count={riskRadar.deleted.length} />
                         </ul>
                     </div>
                 </article>
             </section>
 
-            <section>
-                <article>
-                    <div>
-                        <div>
+            <section className="grid gap-4 xl:grid-cols-2">
+                <article className="dd-section-card">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2">
                             <TrendingUp size={18} />
                             <h3>Team Workload Snapshot</h3>
                         </div>
-                        <div>
-                            {memberLoad.length === 0 && <p>No workload data available.</p>}
+                        <div className="space-y-3">
+                            {memberLoad.length === 0 && <p className="text-sm text-slate-500">No workload data available.</p>}
                             {memberLoad.map((member) => (
-                                <div key={member.id}>
-                                    <div>
-                                        <span>{member.name}</span>
-                                        <span>
+                                <div key={member.id} className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <span className="font-semibold text-slate-900">{member.name}</span>
+                                        <span className="text-xs font-medium text-slate-600">
                                             {member.completed} done / {member.active} active
                                         </span>
                                     </div>
@@ -398,40 +407,96 @@ const DashboardOverview = () => {
                     </div>
                 </article>
 
-                <article>
-                    <div>
-                        <CalendarClock size={18} />
-                        <h2>Deadlines and Recent Updates</h2>
-                    </div>
-
-                    <div>
-                        <p>Upcoming Deadlines</p>
+                <article className="dd-section-card">
+                    <div className="flex items-start justify-between gap-3 border-b border-slate-200/80 pb-4">
                         <div>
-                            {upcomingDeadlines.length === 0 && <p>No upcoming deadlines.</p>}
-                            {upcomingDeadlines.map((task) => (
-                                <div key={task._id}>
-                                    <span>{task.title}</span>
-                                    <span>
-                                        {new Date(task.dueDate).toLocaleDateString('en-US', {
-                                            month: 'short',
-                                            day: 'numeric',
-                                        })}
-                                    </span>
-                                </div>
-                            ))}
+                            <div className="flex items-center gap-2 text-sm font-semibold text-[#315e8d]">
+                                <CalendarClock size={18} />
+                                <span>Deadlines and Recent Updates</span>
+                            </div>
+                            <p className="mt-1 text-sm text-slate-500">Keep an eye on what is due soon and what changed most recently.</p>
                         </div>
+                        <span className="dd-badge border-blue-200 bg-blue-50 text-[#315e8d]">{upcomingDeadlines.length + recentUpdates.length} items</span>
                     </div>
 
-                    <div>
-                        <p>Recent Updates</p>
-                        <div>
-                            {recentUpdates.length === 0 && <p>No recent updates.</p>}
-                            {recentUpdates.map((task) => (
-                                <div key={task._id}>
-                                    <span>{task.title}</span>
-                                    <span>{task.status}</span>
+                    <div className="mt-5 grid gap-4 xl:grid-cols-2">
+                        <div className="rounded-[1.25rem] border border-blue-100 bg-blue-50/60 p-4">
+                            <div className="flex items-center justify-between gap-2">
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-500">Upcoming Deadlines</p>
+                                    <h3 className="mt-1 text-base font-bold text-slate-900">Tasks due soon</h3>
                                 </div>
-                            ))}
+                                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#315e8d] shadow-sm">
+                                    {upcomingDeadlines.length}
+                                </span>
+                            </div>
+
+                            <div className="mt-4 space-y-2">
+                                {upcomingDeadlines.length === 0 && (
+                                    <div className="rounded-xl border border-dashed border-blue-200 bg-white px-3 py-4 text-sm text-slate-500">
+                                        No upcoming deadlines.
+                                    </div>
+                                )}
+
+                                {upcomingDeadlines.map((task) => {
+                                    const dueDate = new Date(task.dueDate);
+                                    const today = new Date();
+                                    today.setHours(0, 0, 0, 0);
+                                    dueDate.setHours(0, 0, 0, 0);
+                                    const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+
+                                    return (
+                                        <div key={task._id} className="rounded-xl border border-white bg-white px-3 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(49,94,141,0.08)]">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <p className="truncate font-semibold text-slate-900">{task.title}</p>
+                                                    <p className="mt-1 text-xs text-slate-500">Due on {dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                                                </div>
+                                                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${daysLeft <= 1 ? 'bg-rose-50 text-rose-600' : daysLeft <= 3 ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-[#315e8d]'}`}>
+                                                    {daysLeft < 0 ? `${Math.abs(daysLeft)}d late` : daysLeft === 0 ? 'Today' : `${daysLeft}d left`}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="rounded-[1.25rem] border border-slate-200 bg-slate-50/80 p-4">
+                            <div className="flex items-center justify-between gap-2">
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Recent Updates</p>
+                                    <h3 className="mt-1 text-base font-bold text-slate-900">Latest activity</h3>
+                                </div>
+                                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+                                    {recentUpdates.length}
+                                </span>
+                            </div>
+
+                            <div className="mt-4 space-y-2">
+                                {recentUpdates.length === 0 && (
+                                    <div className="rounded-xl border border-dashed border-slate-300 bg-white px-3 py-4 text-sm text-slate-500">
+                                        No recent updates.
+                                    </div>
+                                )}
+
+                                {recentUpdates.map((task) => (
+                                    <div key={task._id} className="rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <p className="truncate font-semibold text-slate-900">{task.title}</p>
+                                                <p className="mt-1 text-xs text-slate-500">
+                                                    Updated {new Date(task.updatedAt || task.createdAt).toLocaleDateString('en-US', {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                    })}
+                                                </p>
+                                            </div>
+                                            <span className="dd-badge border-blue-200 bg-blue-50 text-[#315e8d]">{task.status}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </article>
@@ -442,25 +507,18 @@ const DashboardOverview = () => {
 
 const MetricCard = ({ icon, label, value }) => {
     return (
-        <article>
-            <div>
+        <article className="dd-section-card p-4">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                 {icon} {label}
             </div>
-            <p>{value}</p>
+            <p className="mt-3 text-3xl font-black text-slate-900">{value}</p>
         </article>
     );
 };
 
-const RiskItem = ({ label, count, tone }) => {
-    const toneClass =
-        tone === 'red'
-            ? 'bg-red-50 border-red-200 text-red-700'
-            : tone === 'amber'
-              ? 'bg-amber-50 border-amber-200 text-amber-700'
-              : 'bg-blue-50 border-blue-200 text-blue-700';
-
+const RiskItem = ({ label, count }) => {
     return (
-        <li className={`rounded-xl border px-3 py-2 flex items-center justify-between ${toneClass}`}>
+        <li className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-2 text-blue-700">
             <span>{label}</span>
             <span>{count}</span>
         </li>

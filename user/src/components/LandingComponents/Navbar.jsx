@@ -1,6 +1,7 @@
 import { Menu, Sparkles, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AppContext } from '../../context/AppContext'
 
 const navLinks= [
     {label: 'Features', href: '#features'},
@@ -10,7 +11,7 @@ const navLinks= [
 ]
 
 const Navbar = () => {
-
+    const { token, logout } = useContext(AppContext);
     const [scrolled, setScrolled]= useState(false);
     const [mobileOpen, setMobileOpen]= useState(false);
 
@@ -19,6 +20,11 @@ const Navbar = () => {
         window.addEventListener('scroll', handleScroll)
         return ()=> window.removeEventListener('scroll', handleScroll)
     },[]);
+
+    const handleLogout = async () => {
+        setMobileOpen(false)
+        await logout()
+    }
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#f5f8fc]/95 backdrop-blur-xl border-b border-slate-200/80' : 'bg-transparent'}`}>
@@ -45,12 +51,25 @@ const Navbar = () => {
                 </div>
 
                 <div className="hidden md:flex items-center gap-2">
-                    <Link to="/login" className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-white rounded-xl transition-colors border border-transparent hover:border-slate-200 no-underline">
-                        Sign In
-                    </Link>
-                    <Link to="/signup" className="px-4 py-2 text-sm font-semibold text-white bg-[#315e8d] hover:bg-[#26486d] rounded-xl shadow-sm transition-colors no-underline">
-                        Sign Up
-                    </Link>
+                    {token ? (
+                        <>
+                            <Link to="/dashboard" className="px-4 py-2 text-sm font-semibold text-white bg-[#315e8d] hover:bg-[#26486d] rounded-xl shadow-sm transition-colors no-underline">
+                                Dashboard
+                            </Link>
+                            <button onClick={handleLogout} className="px-4 py-2 text-sm font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl border border-rose-200 transition-colors">
+                                Logout
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/login" className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-white rounded-xl transition-colors border border-transparent hover:border-slate-200 no-underline">
+                                Sign In
+                            </Link>
+                            <Link to="/signup" className="px-4 py-2 text-sm font-semibold text-white bg-[#315e8d] hover:bg-[#26486d] rounded-xl shadow-sm transition-colors no-underline">
+                                Sign Up
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 <button onClick={()=> setMobileOpen(!mobileOpen)}
@@ -74,12 +93,25 @@ const Navbar = () => {
                         </a>
                     ))}
                     <div className="flex flex-col gap-2 pt-3 px-4 border-t border-slate-100 mt-2">
-                        <Link to="/login" onClick={() => setMobileOpen(false)} className="w-full py-2.5 text-center text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors no-underline">
-                            Sign In
-                        </Link>
-                        <Link to="/signup" onClick={() => setMobileOpen(false)} className="w-full py-2.5 text-center text-sm font-semibold text-white bg-[#315e8d] hover:bg-[#26486d] rounded-xl shadow-sm transition-colors no-underline">
-                            Sign Up
-                        </Link>
+                        {token ? (
+                            <>
+                                <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="w-full py-2.5 text-center text-sm font-semibold text-white bg-[#315e8d] hover:bg-[#26486d] rounded-xl shadow-sm transition-colors no-underline">
+                                    Dashboard
+                                </Link>
+                                <button onClick={handleLogout} className="w-full py-2.5 text-center text-sm font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded-xl transition-colors">
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link to="/login" onClick={() => setMobileOpen(false)} className="w-full py-2.5 text-center text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors no-underline">
+                                    Sign In
+                                </Link>
+                                <Link to="/signup" onClick={() => setMobileOpen(false)} className="w-full py-2.5 text-center text-sm font-semibold text-white bg-[#315e8d] hover:bg-[#26486d] rounded-xl shadow-sm transition-colors no-underline">
+                                    Sign Up
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

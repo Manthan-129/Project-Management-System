@@ -1,5 +1,4 @@
-import React from 'react'
-import { Bell, CheckCheck, FolderPlus, Trash2, UserCheck, UserPlus, Users } from 'lucide-react';
+import { Bell, FolderPlus, Trash2, UserCheck, UserPlus, Users } from 'lucide-react';
 import { useMemo } from 'react';
 
 const iconByType= {
@@ -36,22 +35,27 @@ const NotificationPopup = ({notifications, unreadCount, onItemClick, onMarkAllAs
     const hasUnread= useMemo(()=> unreadCount > 0, [unreadCount]);
 
     return (
-    <div>
-        <div>
-            <div>
-                <p>Notifications</p>
-                <p>All app activity updates</p>
+    <div className="w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.14)]">
+        <div className="border-b border-slate-200/80 bg-[linear-gradient(135deg,rgba(49,94,141,0.08),rgba(255,255,255,0.94))] px-4 py-3">
+            <div className="flex items-center justify-between gap-2">
+                <div>
+                    <p className="text-sm font-bold text-slate-900">Notifications</p>
+                    <p className="text-xs text-slate-500">All app activity updates</p>
+                </div>
+                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-600">
+                    {notifications.length}
+                </span>
             </div>
         </div>
 
-        <div>
+        <div className="max-h-[360px] overflow-y-auto">
             {notifications.length === 0 ? (
-                <div>
-                    <div>
+                <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
                         <Bell size={18} />
                     </div>
-                    <p className="text-sm font-medium text-gray-700">No notifications yet</p>
-                        <p className="text-xs text-gray-500 mt-1">New team and task updates will appear here</p>
+                    <p className="text-sm font-semibold text-slate-700">No notifications yet</p>
+                    <p className="mt-1 text-xs text-slate-500">New team and task updates will appear here</p>
                     </div>
             )
             :
@@ -63,20 +67,20 @@ const NotificationPopup = ({notifications, unreadCount, onItemClick, onMarkAllAs
                     return (
                         <button key={item._id}
                         onClick={() => onItemClick(item)}
-                        className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${item.isRead ? 'opacity-75' : ''}`}>
+                        className={`w-full cursor-pointer border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50 ${item.isRead ? 'opacity-75' : ''}`}>
                             
-                            <div>
+                            <div className="flex items-start gap-3">
                                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${iconColorClass}`}>
                                     <Icon size={16} />
                                 </div>
 
-                                <div>
-                                    <div>
-                                        <p>{item.title}</p>
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-2">
+                                        <p className="truncate text-sm font-semibold text-slate-800">{item.title}</p>
                                         {!item.isRead && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>}
                                     </div>
-                                    <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{item.message}</p>
-                                    <p className="text-[11px] text-gray-400 mt-1">{formatTimeAgo(item.createdAt)}</p>
+                                    <p className="mt-0.5 line-clamp-2 text-xs text-slate-600">{item.message}</p>
+                                    <p className="mt-1 text-[11px] text-slate-400">{formatTimeAgo(item.createdAt)}</p>
                                 </div>
                             </div>
                         </button>
@@ -85,11 +89,15 @@ const NotificationPopup = ({notifications, unreadCount, onItemClick, onMarkAllAs
             )}
         </div>
 
-        <div>
-            <button onClick={onMarkAllAsRead} disabled={!hasUnread}>
+        <div className="flex items-center justify-end gap-2 border-t border-slate-200/80 bg-slate-50/70 px-4 py-3">
+            <button
+                className="dd-ghost-button !px-3 !py-2 text-xs"
+                onClick={onMarkAllAsRead}
+                disabled={!hasUnread}
+            >
                 Mark all as read
             </button>
-            <button onClick={onClose}>Close</button>
+            <button className="dd-primary-button !px-3 !py-2 text-xs" onClick={onClose}>Close</button>
         </div>
     </div>
   )

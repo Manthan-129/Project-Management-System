@@ -1,25 +1,25 @@
 import {
-    AlertCircle,
-    ArrowLeft,
-    ArrowRightLeft,
-    BarChart3,
-    CalendarDays,
-    CheckCircle2,
-    ClipboardList,
-    Clock,
-    Crown,
-    ExternalLink,
-    Filter,
-    FolderKanban,
-    GitPullRequest,
-    Plus,
-    Shield,
-    Sparkles,
-    Target,
-    UserMinus,
-    UserPlus,
-    Users,
-    X,
+  AlertCircle,
+  ArrowLeft,
+  ArrowRightLeft,
+  BarChart3,
+  CalendarDays,
+  CheckCircle2,
+  ClipboardList,
+  Clock,
+  Crown,
+  ExternalLink,
+  Filter,
+  FolderKanban,
+  GitPullRequest,
+  Plus,
+  Shield,
+  Sparkles,
+  Target,
+  UserMinus,
+  UserPlus,
+  Users,
+  X,
 } from 'lucide-react';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -97,6 +97,13 @@ const TeamDetails = () => {
 
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferTarget, setTransferTarget] = useState(null);
+  const [confirmPopup, setConfirmPopup] = useState({
+    open: false,
+    title: '',
+    message: '',
+    intent: 'neutral',
+    onConfirm: null,
+  });
 
   const teamLeader = team?.leader || null;
 
@@ -291,20 +298,26 @@ const TeamDetails = () => {
   };
 
   const deleteTask = async (taskId) => {
-    if (!window.confirm('Delete this task?')) return;
+    setConfirmPopup({
+      open: true,
+      title: 'Delete Task',
+      message: 'Delete this task?',
+      intent: 'danger',
+      onConfirm: async () => {
+        try {
+          const { data } = await api.put(`/tasks/${taskId}`, {}, { headers: authHeaders });
+          if (!data?.success) {
+            toast.error(data?.message || 'Failed to delete task');
+            return;
+          }
 
-    try {
-      const { data } = await api.put(`/tasks/${taskId}`, {}, { headers: authHeaders });
-      if (!data?.success) {
-        toast.error(data?.message || 'Failed to delete task');
-        return;
-      }
-
-      toast.success(data?.message || 'Task deleted');
-      await refreshTaskData();
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Unable to delete task');
-    }
+          toast.success(data?.message || 'Task deleted');
+          await refreshTaskData();
+        } catch (error) {
+          toast.error(error?.response?.data?.message || 'Unable to delete task');
+        }
+      },
+    });
   };
 
   const restoreTask = async (taskId) => {
@@ -508,60 +521,78 @@ const TeamDetails = () => {
   };
 
   const removeMember = async (memberId) => {
-    if (!window.confirm('Remove this member from the team?')) return;
+    setConfirmPopup({
+      open: true,
+      title: 'Remove Member',
+      message: 'Remove this member from the team?',
+      intent: 'danger',
+      onConfirm: async () => {
+        try {
+          const { data } = await api.delete(`/teams/remove-member/${teamId}/${memberId}`, {
+            headers: authHeaders,
+          });
 
-    try {
-      const { data } = await api.delete(`/teams/remove-member/${teamId}/${memberId}`, {
-        headers: authHeaders,
-      });
+          if (!data?.success) {
+            toast.error(data?.message || 'Failed to remove member');
+            return;
+          }
 
-      if (!data?.success) {
-        toast.error(data?.message || 'Failed to remove member');
-        return;
-      }
-
-      toast.success(data?.message || 'Member removed');
-      await fetchMembers();
-      await refreshTaskData();
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Unable to remove member');
-    }
+          toast.success(data?.message || 'Member removed');
+          await fetchMembers();
+          await refreshTaskData();
+        } catch (error) {
+          toast.error(error?.response?.data?.message || 'Unable to remove member');
+        }
+      },
+    });
   };
 
   const leaveTeam = async () => {
-    if (!window.confirm('Leave this team?')) return;
+    setConfirmPopup({
+      open: true,
+      title: 'Leave Team',
+      message: 'Leave this team?',
+      intent: 'warning',
+      onConfirm: async () => {
+        try {
+          const { data } = await api.delete(`/teams/leave/${teamId}`, { headers: authHeaders });
 
-    try {
-      const { data } = await api.delete(`/teams/leave/${teamId}`, { headers: authHeaders });
+          if (!data?.success) {
+            toast.error(data?.message || 'Failed to leave team');
+            return;
+          }
 
-      if (!data?.success) {
-        toast.error(data?.message || 'Failed to leave team');
-        return;
-      }
-
-      toast.success(data?.message || 'Left team successfully');
-      navigate('/dashboard/teams');
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Unable to leave team');
-    }
+          toast.success(data?.message || 'Left team successfully');
+          navigate('/dashboard/teams');
+        } catch (error) {
+          toast.error(error?.response?.data?.message || 'Unable to leave team');
+        }
+      },
+    });
   };
 
   const deleteTeam = async () => {
-    if (!window.confirm('Delete this team permanently?')) return;
+    setConfirmPopup({
+      open: true,
+      title: 'Delete Team Permanently',
+      message: 'Delete this team permanently? This action cannot be undone.',
+      intent: 'danger',
+      onConfirm: async () => {
+        try {
+          const { data } = await api.delete(`/teams/delete/${teamId}`, { headers: authHeaders });
 
-    try {
-      const { data } = await api.delete(`/teams/delete/${teamId}`, { headers: authHeaders });
+          if (!data?.success) {
+            toast.error(data?.message || 'Failed to delete team');
+            return;
+          }
 
-      if (!data?.success) {
-        toast.error(data?.message || 'Failed to delete team');
-        return;
-      }
-
-      toast.success(data?.message || 'Team deleted successfully');
-      navigate('/dashboard/teams');
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Unable to delete team');
-    }
+          toast.success(data?.message || 'Team deleted successfully');
+          navigate('/dashboard/teams');
+        } catch (error) {
+          toast.error(error?.response?.data?.message || 'Unable to delete team');
+        }
+      },
+    });
   };
 
   if (loading) return <Loading />;
@@ -649,7 +680,7 @@ const TeamDetails = () => {
           <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-gray-200 bg-white p-4">
             <div>
               <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-gray-700"><Filter size={14} /> Member</div>
-              <select value={filterMember} onChange={(e) => setFilterMember(e.target.value)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm">
+              <select value={filterMember} onChange={(e) => setFilterMember(e.target.value)} className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 outline-none transition-all hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 min-w-[180px]">
                 <option value="all">All Members</option>
                 {visibleMembers.map((member) => (
                   <option key={member?.user?._id} value={member?.user?._id}>{member?.user?.firstName} {member?.user?.lastName}</option>
@@ -850,7 +881,7 @@ const TeamDetails = () => {
               <p className="text-sm text-gray-500">Review and track pull requests submitted for this team</p>
             </div>
 
-            <select value={prFilter} onChange={(e) => setPrFilter(e.target.value)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm">
+            <select value={prFilter} onChange={(e) => setPrFilter(e.target.value)} className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 outline-none transition-all hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 min-w-[180px]">
               <option value="all">All</option>
               <option value="pending">Pending</option>
               <option value="accepted">Accepted</option>
@@ -939,7 +970,7 @@ const TeamDetails = () => {
             </Field>
             <div className="grid gap-3 md:grid-cols-2">
               <Field label="Priority">
-                <select value={taskForm.priority} onChange={(e) => setTaskForm((prev) => ({ ...prev, priority: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-3 py-2">
+                <select value={taskForm.priority} onChange={(e) => setTaskForm((prev) => ({ ...prev, priority: e.target.value }))} className="dd-select w-full">
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
@@ -950,7 +981,7 @@ const TeamDetails = () => {
               </Field>
             </div>
             <Field label="Assigned To">
-              <select value={taskForm.assignedTo} onChange={(e) => setTaskForm((prev) => ({ ...prev, assignedTo: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-3 py-2" required>
+              <select value={taskForm.assignedTo} onChange={(e) => setTaskForm((prev) => ({ ...prev, assignedTo: e.target.value }))} className="dd-select w-full" required>
                 <option value="">Select member</option>
                 {visibleMembers.map((member) => (
                   <option key={member?.user?._id} value={member?.user?._id}>{member?.user?.firstName} {member?.user?.lastName}</option>
@@ -980,7 +1011,7 @@ const TeamDetails = () => {
             </Field>
             <div className="grid gap-3 md:grid-cols-2">
               <Field label="Priority">
-                <select value={editingTaskForm.priority} onChange={(e) => setEditingTaskForm((prev) => ({ ...prev, priority: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-3 py-2">
+                <select value={editingTaskForm.priority} onChange={(e) => setEditingTaskForm((prev) => ({ ...prev, priority: e.target.value }))} className="dd-select w-full">
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
@@ -991,7 +1022,7 @@ const TeamDetails = () => {
               </Field>
             </div>
             <Field label="Assigned To">
-              <select value={editingTaskForm.assignedTo} onChange={(e) => setEditingTaskForm((prev) => ({ ...prev, assignedTo: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-3 py-2">
+              <select value={editingTaskForm.assignedTo} onChange={(e) => setEditingTaskForm((prev) => ({ ...prev, assignedTo: e.target.value }))} className="dd-select w-full">
                 <option value="">Keep current</option>
                 {visibleMembers.map((member) => (
                   <option key={member?.user?._id} value={member?.user?._id}>{member?.user?.firstName} {member?.user?.lastName}</option>
@@ -1049,6 +1080,40 @@ const TeamDetails = () => {
               </button>
             </div>
           </form>
+        </Modal>
+      )}
+
+      {confirmPopup.open && (
+        <Modal
+          title={confirmPopup.title}
+          icon={<AlertCircle size={18} />}
+          onClose={() => setConfirmPopup({ open: false, title: '', message: '', intent: 'neutral', onConfirm: null })}
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">{confirmPopup.message}</p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmPopup({ open: false, title: '', message: '', intent: 'neutral', onConfirm: null })}
+                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const action = confirmPopup.onConfirm;
+                  setConfirmPopup({ open: false, title: '', message: '', intent: 'neutral', onConfirm: null });
+                  if (typeof action === 'function') {
+                    await action();
+                  }
+                }}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold text-white ${confirmPopup.intent === 'danger' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-amber-500 hover:bg-amber-600'}`}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
 
@@ -1113,44 +1178,94 @@ const Field = ({ label, children }) => (
 );
 
 const MemberRow = ({ member, isLeader, isAdmin, onChangeRole, onRemove, onTransfer }) => {
+  const { user: currentUser, authHeaders, navigate } = useContext(AppContext);
   const user = member?.user;
+  
+  const [friendRequested, setFriendRequested] = useState(false);
+  const [requestingFriend, setRequestingFriend] = useState(false);
+
   if (!user) return null;
 
+  const visibility = user.privacySettings?.profileVisibility || 'public';
+  const showGreenBadge = visibility === 'public' || visibility === 'team-only';
+  const isSelf = currentUser?._id === user._id;
+  const isFriend = currentUser?.friends?.includes(user._id);
+
+  const handleAddFriend = async () => {
+    if(!user.username) return;
+    try {
+      setRequestingFriend(true);
+      const { data } = await api.post('/invites/invitations/send-request', { username: user.username }, { headers: authHeaders });
+      if (data?.success) {
+        toast.success(data.message || 'Friend request sent!');
+        setFriendRequested(true);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to send friend request');
+    } finally {
+      setRequestingFriend(false);
+    }
+  };
+
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 p-4">
-      <div className="flex items-center gap-3">
-        <img
-          src={user.profilePicture || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=6366f1&color=fff`}
-          alt=""
-          className="h-11 w-11 rounded-xl object-cover"
-        />
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/50 p-4 transition-all hover:bg-white hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <img
+            src={user.profilePicture || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=6366f1&color=fff`}
+            alt=""
+            className="h-12 w-12 rounded-xl object-cover shadow-sm ring-2 ring-slate-100"
+          />
+          {showGreenBadge && (
+            <span className="absolute -bottom-1 -right-1 flex h-4 w-4">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex h-4 w-4 rounded-full border-2 border-white bg-emerald-500"></span>
+            </span>
+          )}
+        </div>
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-semibold text-gray-900">{user.firstName} {user.lastName}</p>
-            <span className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500">{member.role}</span>
+            <p className="font-bold text-slate-800">{user.firstName} {user.lastName}</p>
+            <span className="rounded-lg border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600 shadow-sm">{member.role}</span>
           </div>
-          <p className="text-sm text-gray-500">@{user.username}</p>
+          <p className="text-sm font-medium text-slate-500">@{user.username}</p>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
+        {!isSelf && (
+           <button type="button" onClick={() => navigate(`/dashboard/user/${user.username}`)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-indigo-600 transition-colors">
+              View Profile
+           </button>
+        )}
+
+        {!isSelf && !isFriend && (
+          <button 
+             type="button" 
+             disabled={friendRequested || requestingFriend}
+             onClick={handleAddFriend} 
+             className={`rounded-xl px-3 py-2 text-sm font-semibold shadow-sm transition-colors ${friendRequested ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-100'}`}>
+            <UserPlus size={14} className="inline-block mr-1" /> {friendRequested ? 'Request Sent' : 'Add Friend'}
+          </button>
+        )}
+
         {isLeader && member.role !== 'leader' && (
           <>
-            <select value={member.role} onChange={(e) => onChangeRole(user._id, e.target.value)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm">
+            <select value={member.role} onChange={(e) => onChangeRole(user._id, e.target.value)} className="appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none hover:border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 min-w-[100px]">
               <option value="member">Member</option>
               <option value="admin">Admin</option>
             </select>
-            <button type="button" onClick={() => onTransfer(user)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600">
+            <button type="button" onClick={() => onTransfer(user)} className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
               <ArrowRightLeft size={14} className="inline-block" /> Transfer
             </button>
-            <button type="button" onClick={() => onRemove(user._id)} className="rounded-xl border border-red-200 px-3 py-2 text-sm font-semibold text-red-600">
+            <button type="button" onClick={() => onRemove(user._id)} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition-colors">
               <UserMinus size={14} className="inline-block" /> Remove
             </button>
           </>
         )}
 
-        {isAdmin && !isLeader && member.role !== 'leader' && (
-          <button type="button" onClick={() => onRemove(user._id)} className="rounded-xl border border-red-200 px-3 py-2 text-sm font-semibold text-red-600">
+        {isAdmin && !isLeader && member.role !== 'leader' && !isSelf && (
+          <button type="button" onClick={() => onRemove(user._id)} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition-colors">
             <UserMinus size={14} className="inline-block" /> Remove
           </button>
         )}
