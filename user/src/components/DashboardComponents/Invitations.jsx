@@ -1,5 +1,5 @@
 import { Check, Clock, Mail, Send, X } from 'lucide-react'
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-toastify'
 import api from '../../api/axiosInstance.js'
 import { AppContext } from '../../context/AppContext.jsx'
@@ -8,336 +8,285 @@ import Loading from '../LoadingPage.jsx'
 const Invitations = () => {
 
     const { token, setToken, authHeaders } = useContext(AppContext);
-    const [received, setReceived] = useState([]);
-    const [sentByMe, setSentByMe] = useState([]);
-    const [sentByTeam, setSentByTeam] = useState([]);
-    const [tab, setTab] = useState('received');
-    const [teamFilter, setTeamFilter] = useState('all');
-    const [loading, setLoading] = useState(true);
+    const [received, setReceived]= useState([]);
+    const [sentByMe, setSentByMe]= useState([]);
+    const [sentByTeam, setSentByTeam]= useState([]);
+    const [tab, setTab]= useState('received');
+    const [teamFilter, setTeamFilter]= useState('all');
+    const [loading, setLoading]= useState(true);
+    const [isResponding, setIsResponding]= useState(false);
 
     const fetchInvitations = async () => {
         setLoading(true);
-        try {
+        try{
             const [receivedRes, sentByMeRes, sentByTeamRes] = await Promise.all([
                 api.get('/teams/invitations/received', { headers: authHeaders }),
                 api.get('/teams/invitations/sent-by-me', { headers: authHeaders }),
                 api.get('/teams/invitations/sent-by-team', { headers: authHeaders }),
             ]);
 
-            if (!receivedRes?.data?.success) {
+            if(!receivedRes?.data?.success){
                 toast.error(receivedRes?.data?.message || 'Failed to fetch received invitations');
-                setReceived([]); return;
-            } else {
+                setReceived([]);
+                return;
+            }else{
                 setReceived(receivedRes?.data?.receivedInvitations || []);
             }
 
-            if (!sentByMeRes?.data?.success || !sentByTeamRes?.data?.success) {
-                toast.error(sentByMeRes?.data?.message || sentByTeamRes?.data?.message || 'Failed to fetch sent invitations');
-                setSentByMe([]); setSentByTeam([]); return;
-            } else {
-                setSentByMe(sentByMeRes?.data?.groupedSentInvitations || []);
-                setSentByTeam(sentByTeamRes?.data?.groupedSentInvitations || []);
+            if(!sentByMeRes?.data?.success || !sentByTeamRes?.data?.success){
+                const sentErrorMessage =
+                    sentByMeRes?.data?.message || sentByTeamRes?.data?.message || 'Failed to fetch sent invitations';
+                toast.error(sentErrorMessage);
+                setSentByMe([]);
+                setSentByTeam([]);
+                return;
+            }else{
+                const groupedByMe = sentByMeRes?.data?.groupedSentInvitations || [];
+                const groupedByTeam = sentByTeamRes?.data?.groupedSentInvitations || [];
+                setSentByMe(groupedByMe);
+                setSentByTeam(groupedByTeam);
             }
-        } catch (error) {
-            if (error?.response?.status === 401) { setToken(null); localStorage.removeItem('token'); }
+        }catch(error){
+            if(error?.response?.status === 401) {
+                setToken(null);
+                localStorage.removeItem('token');
+            }
             toast.error(error?.response?.data?.message || 'Unable to fetch invitations');
-        } finally {
+        }finally{
             setLoading(false);
         }
     }
 
-    useEffect(() => {
-        if (token) fetchInvitations();
-        else setLoading(false);
+    useEffect(()=> {
+        if (token) {
+            fetchInvitations();
+        } else {
+            setLoading(false);
+        }
     }, [token, authHeaders]);
 
-    const respondInvitation = async (inviteId, status) => {
-        try {
-            const { data } = await api.put(`/teams/invitations/respond/${inviteId}`, { status }, { headers: authHeaders });
-            if (!data?.success) { toast.error(data?.message || 'Failed to respond to invitation'); return; }
-            toast.success(data?.message || 'Invitation response sent');
+    const respondInvitation= async (inviteId, status) => {
+        setIsResponding(true);
+        try{
+            const { data }= await api.put(`/teams/invitations/respond/${inviteId}`, { status }, { headers: authHeaders });
+
+            if(!data?.success){
+                toast.error(data?.message || 'Failed to respond to invitation');
+                return;
+            }
+
             setReceived((prev) => prev.filter(inv => inv._id !== inviteId));
-        } catch (error) {
+        } catch(error){
             toast.error(error?.response?.data?.message || 'Unable to respond to invitation');
+        } finally {
+            setIsResponding(false);
         }
     };
-
-    if (loading) return <Loading />;
 
     const sentByMeCount = sentByMe.reduce((count, group) => count + (group?.invitations?.length || 0), 0);
     const sentByTeamCount = sentByTeam.reduce((count, group) => count + (group?.invitations?.length || 0), 0);
 
-    const teamOptions = sentByTeam
-        .map((group) => ({ id: group?.team?._id, name: group?.team?.name }))
-        .filter((team) => Boolean(team.id));
+    const teamOptions = useMemo(() => {
+        return sentByTeam
+            .map((group) => ({
+                id: group?.team?._id,
+                name: group?.team?.name,
+                count: group?.invitations?.length || 0,
+            }))
+            .filter((team) => Boolean(team.id));
+    }, [sentByTeam]);
 
-    const filteredSentByTeam = teamFilter === 'all'
-        ? sentByTeam
-        : sentByTeam.filter((group) => group?.team?._id === teamFilter);
+    const filteredSentByTeam = useMemo(() => {
+        return teamFilter === 'all'
+            ? sentByTeam
+            : sentByTeam.filter((group) => group?.team?._id === teamFilter);
+    }, [sentByTeam, teamFilter]);
 
-    const tabs = [
-        { key: 'received',   label: 'Received',     count: received.length },
-        { key: 'sentByMe',   label: 'Sent By Me',   count: sentByMeCount   },
-        { key: 'sentByTeam', label: 'Sent By Team', count: sentByTeamCount },
+    const teamFilterChips = [
+        { id: 'all', name: 'All Teams', count: sentByTeamCount },
+        ...teamOptions,
     ];
 
-    return (
-        <div className="min-h-screen bg-[#f0f4f8] px-4 py-6 lg:px-8">
+    const tabs= [
+        {
+            key: "received", label: 'Received', count: received.length
+        },
+        {
+            key: 'sentByMe', label: 'Sent By Me', count: sentByMeCount
+        },
+        {
+            key: 'sentByTeam', label: 'Sent By Team', count: sentByTeamCount
+        },
+    ]
 
-            {/* ── Page Header ── */}
-            <div className="mb-6 [animation:fadeUp_.4s_ease_both]">
-                <div className="flex items-center gap-2 mb-1.5">
-                    <div className="w-7 h-7 rounded-lg bg-[#e9f0f8] flex items-center justify-center">
-                        <Mail size={14} className="text-[#315e8d]" />
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-[.18em] text-[#315e8d]">
-                        Invitations
-                    </span>
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Team Invitations</h1>
-                <p className="text-sm text-slate-500 mt-1">Manage your team invitations</p>
-            </div>
+    if(loading) return <Loading />;
 
-            {/* ── Tabs ── */}
-            <div className="flex items-center gap-2 mb-5 flex-wrap [animation:fadeUp_.4s_ease_.05s_both]">
-                {tabs.map(t => {
-                    const isActive = tab === t.key;
-                    return (
-                        <button
-                            key={t.key}
-                            onClick={() => setTab(t.key)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95 ${
-                                isActive
-                                    ? 'bg-[#315e8d] text-white shadow-sm'
-                                    : 'bg-white text-slate-500 border border-[#dbe5f1] hover:border-[#315e8d] hover:text-[#315e8d]'
-                            }`}
-                        >
-                            {t.label}
-                            {t.count > 0 && (
-                                <span className={`text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none ${
-                                    isActive
-                                        ? 'bg-white/20 text-white'
-                                        : 'bg-[#e9f0f8] text-[#315e8d]'
-                                }`}>
-                                    {t.count}
-                                </span>
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
-
-            {/* ── Received Invitations ── */}
-            {tab === 'received' && (
-                <div className="space-y-2.5 [animation:fadeUp_.35s_ease_both]">
-                    {received.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-100 to-slate-100 flex items-center justify-center mb-4 shadow-sm">
-                                <Mail size={28} className="text-gray-300" />
-                            </div>
-                            <p className="text-sm text-gray-500 max-w-xs">No pending invitations.</p>
-                        </div>
-                    ) : (
-                        received.map(inv => (
-                            <div
-                                key={inv._id}
-                                className="flex items-center justify-between gap-3 bg-white border border-[#dbe5f1] rounded-2xl px-4 py-3.5 transition-all duration-200 hover:border-[#c8d9ee] hover:-translate-y-0.5"
-                            >
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                                        {inv.sender?.firstName?.charAt(0)?.toUpperCase() || 'U'}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-semibold text-slate-800 truncate">
-                                            {inv.sender?.firstName} {inv.sender?.lastName}{' '}
-                                            <span className="font-normal text-slate-400">(@{inv.sender?.username})</span>
-                                        </p>
-                                        <p className="text-xs text-slate-400 truncate">
-                                            {inv.team?.name || 'Team invitation'}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2 shrink-0">
-                                    <button
-                                        onClick={() => respondInvitation(inv._id, 'accepted')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
-                                    >
-                                        <Check size={13} /> Accept
-                                    </button>
-                                    <button
-                                        onClick={() => respondInvitation(inv._id, 'rejected')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-500 bg-red-50 hover:bg-red-100 border border-red-100 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
-                                    >
-                                        <X size={13} /> Reject
-                                    </button>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
-
-            {/* ── Sent By Me ── */}
-            {tab === 'sentByMe' && (
-                <div className="space-y-4 [animation:fadeUp_.35s_ease_both]">
-                    {sentByMeCount === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-100 to-slate-100 flex items-center justify-center mb-4 shadow-sm">
-                                <Send size={28} className="text-gray-300" />
-                            </div>
-                            <p className="text-sm text-gray-500 max-w-xs">No invitations sent by you.</p>
-                        </div>
-                    ) : (
-                        sentByMe.map(group => (
-                            <div
-                                key={group?.team?._id || group?.team?.name}
-                                className="bg-white border border-[#dbe5f1] rounded-2xl overflow-hidden transition-all duration-200 hover:border-[#c8d9ee]"
-                            >
-                                {/* Group header */}
-                                <div className="px-4 py-3 border-b border-[#f0f4f8] bg-[#f8fafc]">
-                                    <h3 className="text-sm font-bold text-slate-800">
-                                        {group?.team?.name || 'Unknown Team'}
-                                    </h3>
-                                    <p className="text-xs text-slate-400 mt-0.5">
-                                        {group?.team?.title || 'Team invitations sent by you'}
-                                    </p>
-                                </div>
-
-                                {/* Invitation rows */}
-                                <div className="divide-y divide-[#f0f4f8]">
-                                    {(group?.invitations || []).map(inv => (
-                                        <div
-                                            key={inv._id}
-                                            className="flex items-center justify-between gap-3 px-4 py-3 transition-colors duration-150 hover:bg-slate-50"
-                                        >
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <img
-                                                    src={inv.receiver?.profilePicture || `https://ui-avatars.com/api/?name=${inv.receiver?.firstName}+${inv.receiver?.lastName}&background=3b82f6&color=fff`}
-                                                    alt=""
-                                                    className="w-9 h-9 rounded-xl object-cover ring-2 ring-gray-100 shrink-0"
-                                                />
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-semibold text-slate-800 truncate">
-                                                        {inv.receiver?.firstName} {inv.receiver?.lastName}{' '}
-                                                        <span className="font-normal text-slate-400">(@{inv.receiver?.username})</span>
-                                                    </p>
-                                                    <p className="text-xs text-slate-400 truncate">
-                                                        {group?.team?.name || 'Team invitation'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="shrink-0">
-                                                <span className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-100 rounded-lg">
-                                                    <Clock size={11} /> Pending
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
-
-            {/* ── Sent By Team ── */}
-            {tab === 'sentByTeam' && (
-                <div className="space-y-4 [animation:fadeUp_.35s_ease_both]">
-
-                    {/* Filter row */}
-                    <div className="flex items-center gap-3">
-                        <label
-                            htmlFor="team-filter"
-                            className="text-xs font-bold text-slate-500 uppercase tracking-wide shrink-0"
-                        >
-                            Filter by Team
-                        </label>
-                        <select
-                            id="team-filter"
-                            value={teamFilter}
-                            onChange={(e) => setTeamFilter(e.target.value)}
-                            className="text-sm font-semibold text-[#315e8d] bg-[#edf3fa] border border-[#dbe5f1] rounded-xl px-3 py-1.5 appearance-none cursor-pointer outline-none transition-all duration-200 focus:ring-2 focus:ring-[#315e8d]/25"
-                        >
-                            <option value="all">All Teams</option>
-                            {teamOptions.map((team) => (
-                                <option key={team.id} value={team.id}>{team.name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {filteredSentByTeam.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-100 to-slate-100 flex items-center justify-center mb-4 shadow-sm">
-                                <Send size={28} className="text-gray-300" />
-                            </div>
-                            <p className="text-sm text-gray-500 max-w-xs">
-                                No team invitation packets for this filter.
-                            </p>
-                        </div>
-                    ) : (
-                        filteredSentByTeam.map((group) => (
-                            <div
-                                key={group?.team?._id || group?.team?.name}
-                                className="bg-white border border-[#dbe5f1] rounded-2xl overflow-hidden transition-all duration-200 hover:border-[#c8d9ee]"
-                            >
-                                {/* Group header */}
-                                <div className="px-4 py-3 border-b border-[#f0f4f8] bg-[#f8fafc] flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                        <h3 className="text-sm font-bold text-slate-800 truncate">
-                                            {group?.team?.name || 'Unknown Team'}
-                                        </h3>
-                                        <p className="text-xs text-slate-400 mt-0.5 truncate">
-                                            {group?.team?.title || 'Grouped team invitations'}
-                                        </p>
-                                    </div>
-                                    <span className="shrink-0 text-[11px] font-bold text-[#315e8d] bg-[#e9f0f8] border border-[#dbe5f1] rounded-lg px-2.5 py-1">
-                                        {(group?.invitations || []).length} invitations
-                                    </span>
-                                </div>
-
-                                {/* Invitation rows */}
-                                <div className="divide-y divide-[#f0f4f8]">
-                                    {(group?.invitations || []).map((inv) => (
-                                        <div
-                                            key={inv._id}
-                                            className="flex items-center justify-between gap-3 px-4 py-3 transition-colors duration-150 hover:bg-slate-50"
-                                        >
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <img
-                                                    src={inv.sender?.profilePicture || `https://ui-avatars.com/api/?name=${inv.sender?.firstName}+${inv.sender?.lastName}&background=3b82f6&color=fff`}
-                                                    alt=""
-                                                    className="w-9 h-9 rounded-xl object-cover ring-2 ring-gray-100 shrink-0"
-                                                />
-                                                <div className="min-w-0">
-                                                    <p className="text-xs text-slate-500 truncate">
-                                                        <span className="font-semibold text-slate-700">From:</span>{' '}
-                                                        {inv.sender?.firstName} {inv.sender?.lastName}{' '}
-                                                        <span className="text-slate-400">(@{inv.sender?.username})</span>
-                                                    </p>
-                                                    <p className="text-xs text-slate-500 truncate mt-0.5">
-                                                        <span className="font-semibold text-slate-700">To:</span>{' '}
-                                                        {inv.receiver?.firstName} {inv.receiver?.lastName}{' '}
-                                                        <span className="text-slate-400">(@{inv.receiver?.username})</span>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="shrink-0">
-                                                <span className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-100 rounded-lg">
-                                                    <Clock size={11} /> Pending
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
-
+  return (
+    <div className="space-y-6 dd-fade-up">
+        <div className="dd-section-card dd-fade-up">
+            <h1 className="text-3xl font-black tracking-tight text-slate-900">Team Invitations</h1>
+            <p className="mt-1 text-sm text-slate-600">Manage your team invitations.</p>
         </div>
-    );
+
+        {/* Tabs */}
+        <div className="dd-section-card p-3">
+            {tabs.map(t=> (
+                <button key= {t.key} onClick={()=> setTab(t.key)} className={`mr-2 inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${tab === t.key ? 'bg-[#315e8d] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                    {t.label}
+                    {t.count > 0 && <span className={`rounded-full px-2 py-0.5 text-xs ${tab === t.key ? 'bg-white/20 text-white' : 'bg-white text-slate-600'}`}>{t.count}</span>}
+                </button>
+            ))}
+        </div>
+
+        {/* Received Invitations */}
+        {tab === 'received' && (
+            <div className="space-y-3">
+                {received.length === 0 ? (
+                    <div className="dd-section-card py-14 text-center">
+                        <Mail size= {40} className="mx-auto text-slate-300"></Mail>
+                        <p className="mt-3 text-sm text-slate-600">No Pending Invitations.</p>
+                    </div>
+                )
+            :
+            (
+                received.map(inv=> (
+                    <div key= {inv._id} className="dd-section-card p-4">
+                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 font-bold text-[#315e8d]">{inv.sender?.firstName?.charAt(0)?.toUpperCase() || 'U'}</div>
+                            <div>
+                                <p className="font-semibold text-slate-900">{inv.sender?.firstName} {inv.sender?.lastName} (@{inv.sender?.username})</p>
+                                <p className="text-sm text-slate-500">{inv.team?.name || 'Team invitation'}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button disabled={isResponding} className="dd-primary-button !px-3 !py-2 disabled:opacity-50" onClick={()=> respondInvitation(inv._id, 'accepted')}>
+                                {isResponding ? 'Accepting...' : <><Check size= {16} />Accept</>}
+                            </button>
+                            <button disabled={isResponding} className="dd-ghost-button !px-3 !py-2 border-rose-200 text-rose-600 hover:bg-rose-50 disabled:opacity-50" onClick={()=> respondInvitation(inv._id, 'rejected')}>
+                                {isResponding ? 'Rejecting...' : <><X size= {16} />Reject</>}
+                            </button>
+                        </div>
+                        </div>
+                    </div>
+                ))
+            )}
+            </div>
+        )}
+
+
+        {/* Sent By Me */}
+            {tab === 'sentByMe' && (
+                <div className="space-y-3">
+                {sentByMeCount === 0 ? (
+                    <div className="dd-section-card py-14 text-center">
+                        <Send size={36} className="mx-auto text-slate-300"></Send>
+                        <p className="mt-3 text-sm text-slate-600">No invitations sent by you</p>
+                    </div>
+                )
+            :
+            (
+                sentByMe.map(group => (
+                    <div key={group?.team?._id || group?.team?.name} className="dd-section-card p-4 space-y-3">
+                        <h3 className="text-lg font-bold text-slate-900">{group?.team?.name || 'Unknown Team'}</h3>
+                        <p className="text-sm text-slate-500">{group?.team?.title || 'Team invitations sent by you'}</p>
+
+                        {(group?.invitations || []).map(inv => (
+                            <div key= {inv._id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                                <div className="flex items-center gap-3">
+                                    <img src={inv.receiver?.profilePicture || `https://ui-avatars.com/api/?name=${inv.receiver?.firstName}+${inv.receiver?.lastName}&background=3b82f6&color=fff`} alt="" className="w-10 h-10 rounded-full object-cover" />
+                                    <div>
+                                        <p className="font-medium text-slate-800">{inv.receiver?.firstName} {inv.receiver?.lastName} (@{inv.receiver?.username})</p>
+                                        <p className="text-xs text-slate-500">{group?.team?.name || 'Team invitation'}</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span className="dd-badge border-amber-200 bg-amber-50 text-amber-700"><Clock size= {12}></Clock> Pending</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ))
+            )}
+            </div>
+            )}
+
+        {/* Sent By Team (Grouped Packets) */}
+        {tab === 'sentByTeam' && (
+            <div className="space-y-3">
+                <div className="dd-section-card p-4">
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                        <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Filter by Team</label>
+                        <span className="dd-badge border-slate-200 bg-slate-50 text-slate-700">{filteredSentByTeam.length} group{filteredSentByTeam.length === 1 ? '' : 's'}</span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                        {teamFilterChips.map((team) => {
+                            const isActive = teamFilter === team.id;
+
+                            return (
+                                <button
+                                    key={team.id}
+                                    type="button"
+                                    onClick={() => setTeamFilter(team.id)}
+                                    className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                                        isActive
+                                            ? 'border-[#d7e3f1] bg-[linear-gradient(135deg,rgba(49,94,141,0.12),rgba(255,255,255,0.95))] text-[#26486d] shadow-[0_12px_30px_rgba(49,94,141,0.10)]'
+                                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                                    }`}
+                                >
+                                    <span>{team.name}</span>
+                                    <span className={`rounded-full px-2 py-0.5 text-[11px] ${isActive ? 'bg-white/80 text-[#315e8d]' : 'bg-slate-100 text-slate-500'}`}>
+                                        {team.count}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {filteredSentByTeam.length === 0 ? (
+                    <div className="dd-section-card py-14 text-center">
+                        <Send size={36} className="mx-auto text-slate-300"></Send>
+                        <p className="mt-3 text-sm text-slate-600">No team invitation packets for this filter</p>
+                    </div>
+                ) : (
+                    filteredSentByTeam.map((group) => (
+                        <div key={group?.team?._id || group?.team?.name} className="dd-section-card p-4 space-y-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <h3 className="text-lg font-bold text-slate-900">{group?.team?.name || 'Unknown Team'}</h3>
+                                <span className="dd-badge border-slate-200 bg-slate-50 text-slate-700">{(group?.invitations || []).length} invitations</span>
+                                <p className="w-full text-sm text-slate-500">{group?.team?.title || 'Grouped team invitations'}</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                {(group?.invitations || []).map((inv) => (
+                                    <div key={inv._id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                                        <div className="flex items-center gap-3">
+                                            <img src={inv.sender?.profilePicture || `https://ui-avatars.com/api/?name=${inv.sender?.firstName}+${inv.sender?.lastName}&background=3b82f6&color=fff`} alt="" className="w-10 h-10 rounded-full object-cover" />
+                                            <div>
+                                                <p className="text-sm text-slate-700">
+                                                    From: {inv.sender?.firstName} {inv.sender?.lastName} (@{inv.sender?.username})
+                                                </p>
+                                                <p className="text-xs text-slate-500">
+                                                    To: {inv.receiver?.firstName} {inv.receiver?.lastName} (@{inv.receiver?.username})
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span className="dd-badge border-amber-200 bg-amber-50 text-amber-700"><Clock size={12}></Clock> Pending</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+        )}
+    </div>
+  )
 }
 
 export default Invitations

@@ -109,7 +109,7 @@ const ProfilePage = () => {
             setIsSaving(true);
             const data = await updateProfile(formData);
 
-            toast.success(data?.message || 'Profile updated successfully');
+
 
             if (pendingFormData.removeProfilePicture) {
                 setPreviewImage(null);
@@ -121,6 +121,11 @@ const ProfilePage = () => {
             setPendingFormData(null);
             if (fileInputRef.current) fileInputRef.current.value = '';
         } catch (error) {
+            if (error?.response?.status === 401) {
+                // logout() is usually handled by the context or a parent,
+                // but we should at least not show the generic failure toast.
+                return;
+            }
             toast.error(error?.response?.data?.message || 'Failed to update profile');
         } finally {
             setIsSaving(false);
@@ -170,7 +175,7 @@ const ProfilePage = () => {
                     <h3 className="text-base font-semibold text-slate-700">Profile Picture</h3>
                     <div className="text-right">
                         <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Member Since</p>
-                        <p className="text-sm font-medium text-slate-600">{user.memberSince || 'N/A'}</p>
+                        <p className="text-sm font-medium text-slate-600">{user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A'}</p>
                     </div>
                 </div>
 

@@ -47,30 +47,38 @@ const createTask= async (req, res) => {
         const isReceiverLeader= team.leader.toString() === assignedToStr;
         const isReceiverMember= team.members.some(m => m.user.toString() === assignedToStr);
 
-        if(isAdmin && isReceiverLeader){
-            return res.status(400).json({success: false, message: 'Admins cannot assign tasks to the team leader' });
+        if (!isLeader && isAdmin && isReceiverLeader) {
+            return res.status(400).json({ success: false, message: 'Admins cannot assign tasks to the team leader' });
         }
 
         if(!isReceiverMember){
             return res.status(400).json({success: false, message: 'Assigned user must be a member of the team' });
         }
 
-        const newTask= await Task.create({
+        const taskDueDate = dueDate ? new Date(dueDate) : undefined;
+        if (taskDueDate && isNaN(taskDueDate.getTime())) {
+            return res.status(400).json({ success: false, message: 'Invalid due date format' });
+        }
+
+        const newTask = await Task.create({
             title: trimmedTitle,
             description: description ? description.trim() : '',
             priority: priority || 'Medium',
-            dueDate: dueDate ? new Date(dueDate) : undefined,
+            dueDate: taskDueDate,
             assignedTo,
             assignedBy: userId,
             team: teamId,
-        })
+        });
 
-        await newTask
-        .populate('assignedTo', 'username firstName lastName profilePicture email').
-        populate('assignedBy', 'username firstName lastName profilePicture email');
+        await newTask.populate([
+            { path: 'assignedTo', select: 'username firstName lastName profilePicture email' },
+            { path: 'assignedBy', select: 'username firstName lastName profilePicture email' }
+        ]);
 
         
-        const actorName = `${newTask.assignedBy.firstName} ${newTask.assignedBy.lastName}`.trim();
+        const actorName = (newTask.assignedBy?.firstName && newTask.assignedBy?.lastName) 
+            ? `${newTask.assignedBy.firstName} ${newTask.assignedBy.lastName}`.trim()
+            : 'Someone';
 
         try{
             const teamMemberRecipients = new Set([
@@ -102,7 +110,9 @@ const createTask= async (req, res) => {
             priority: newTask.priority,
             dueDate: newTask.dueDate,
             assignedBy: actorName,
-            assignedTo: newTask.assignedTo.firstName + ' ' + newTask.assignedTo.lastName
+            assignedTo: (newTask.assignedTo?.firstName && newTask.assignedTo?.lastName)
+                ? newTask.assignedTo.firstName + ' ' + newTask.assignedTo.lastName
+                : 'Team Member'
         })
         const mailOptions= {
             from: `"Support" <${process.env.SENDER_EMAIL}>`,
@@ -118,9 +128,9 @@ const createTask= async (req, res) => {
 
         return res.status(201).json({success: true, message: "Task created successfully", task: newTask});
 
-    }catch(error){
-        console.log(error.message);
-        return res.status(500).json({success: false, message: 'Error while creating task' });
+    } catch (error) {
+        console.error('Error in createTask:', error.message);
+        return res.status(500).json({ success: false, message: `Error while creating task: ${error.message}` });
     }
 }
 

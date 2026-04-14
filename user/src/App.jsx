@@ -27,6 +27,7 @@ import PullRequests from './components/DashboardComponents/PullRequests.jsx'
 import TaskWorkspaceBoard from './components/DashboardComponents/TaskWorkspaceBoard.jsx'
 import TeamDetails from './components/DashboardComponents/TeamDetails.jsx'
 import Teams from './components/DashboardComponents/Teams.jsx'
+import UserProfile from './components/DashboardComponents/UserProfile.jsx'
 
 const ProtectedRoute = ({ children })=>{
   const { ensureAuthenticated } = useContext(AppContext);
@@ -69,6 +70,7 @@ const App = () => {
             <Route path='tasks-board' element={<TaskWorkspaceBoard />} />
             <Route path='pull-requests' element={<PullRequests />} />
             <Route path='invitations' element={<Invitations />} />
+            <Route path='user/:username' element={<UserProfile />} />
           </Route>
 
         </Routes>

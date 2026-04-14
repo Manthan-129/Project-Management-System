@@ -1,15 +1,14 @@
-import React from 'react'
 import { ChevronRight, Crown, Plus, Shield, Sparkles, Users, X } from 'lucide-react'
-import { useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
+import api from '../../api/axiosInstance.js'
 import { AppContext } from '../../context/AppContext.jsx'
 import Loading from '../LoadingPage'
-import { useForm }  from 'react-hook-form'
-import api from '../../api/axiosInstance.js'
 
 const Teams = () => {
 
-    const {token, navigate, setToken, user, authHeaders}= useContext(AppContext)
+    const {token,navigate, setToken, user, authHeaders}= useContext(AppContext)
     const [teams, setTeams]= useState([]);
     const [loading, setLoading]= useState(true);
 
@@ -25,9 +24,9 @@ const Teams = () => {
 
     const [creating, setCreating]= useState(false);
 
-    const fetchTeams= async ()=>{
+    const fetchTeams = useCallback(async () => {
         setLoading(true);
-        try{
+        try {
             const { data } = await api.get('/teams/my-teams', { headers: authHeaders });
 
             if(!data?.success){
@@ -37,10 +36,11 @@ const Teams = () => {
             }
 
             setTeams(data?.teams || []);
-        }catch(error){
-            if(error?.response?.status === 401){
+        } catch (error) {
+            if (error?.response?.status === 401) {
                 setToken(null);
                 localStorage.removeItem('token');
+                return; // Silent failure for 401
             }
             toast.error(error?.response?.data?.message || 'Unable to fetch teams');
             setTeams([]);
@@ -48,15 +48,15 @@ const Teams = () => {
         } finally {
             setLoading(false);
         }
-    }
+    }, [authHeaders, setToken]);
 
-    useEffect(()=>{
-        if(token){
+    useEffect(() => {
+        if (token) {
             fetchTeams();
         } else {
             setLoading(false);
         }
-    },[token]);
+    }, [token, fetchTeams]);
 
     const createTeam= async (formData)=>{
         setCreating(true);
@@ -68,7 +68,6 @@ const Teams = () => {
                 return;
             }
 
-            toast.success(data?.message || 'Team created successfully');
             setShowCreate(false);
             reset();
             await fetchTeams();
@@ -107,190 +106,119 @@ const Teams = () => {
     ];
 
     if(loading) return <Loading />;
-
-    return (
-        <div className="min-h-screen bg-[#f0f4f8] px-4 py-6 lg:px-8">
-
-            {/* ── Header ── */}
-            <div className="mb-6 flex items-center justify-between [animation:fadeUp_.4s_ease_both]">
+  return (
+    <div className="space-y-6">
+            <div className="dd-section-card dd-fade-up">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                    <div className="flex items-center gap-2 mb-1.5">
-                        <div className="w-7 h-7 rounded-lg bg-[#e9f0f8] flex items-center justify-center">
-                            <Users size={14} className="text-[#315e8d]" />
-                        </div>
-                        <span className="text-[10px] font-bold uppercase tracking-[.18em] text-[#315e8d]">
-                            Team Management
-                        </span>
-                    </div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">My Teams</h1>
-                    <p className="text-sm text-slate-500 mt-1">Manage your teams and collaborate on projects</p>
+                <div className="dd-page-kicker w-fit">
+                    <Users size={18} />
+                    <span>Team Management</span>
                 </div>
-                <button
-                    onClick={() => setShowCreate(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#315e8d] text-white text-sm font-semibold hover:bg-[#26486d] transition-all duration-200 shadow-sm cursor-pointer"
-                >
-                    <Plus size={16} /> New Team
-                </button>
+                <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900">My Teams</h1>
+                <p className="mt-1 text-sm text-slate-600">Manage your teams and collaborate on projects.</p>
             </div>
+            <button className="dd-primary-button w-fit" onClick={()=> setShowCreate(true)}><Plus size ={16} /> New Team</button>
+            </div>
+        </div>
 
-            {/* ── Create Team Modal ── */}
-            {showCreate && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-                    onClick={() => { setShowCreate(false); reset(); }}
-                >
-                    <div
-                        className="w-full max-w-lg bg-white rounded-2xl p-6 shadow-2xl"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Modal Header */}
-                        <div className="flex items-center justify-between mb-5">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                                    <Sparkles size={18} className="text-blue-600" />
-                                </div>
-                                <h2 className="text-lg font-bold text-slate-900">Create New Team</h2>
-                            </div>
-                            <button
-                                onClick={() => { setShowCreate(false); reset(); }}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all duration-150 cursor-pointer"
-                            >
-                                <X size={16} />
-                            </button>
+        {/* Create Team Modal */}
+        {showCreate && (
+                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/35 px-4 dd-fade-in">
+                    <div className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_30px_80px_rgba(15,23,42,0.2)] dd-fade-up">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                            <Sparkles size={18} className="text-blue-600" />
                         </div>
-
-                        <form onSubmit={handleSubmit(createTeam)} className="space-y-4">
-                            {/* Team Name */}
-                            <div className="space-y-1">
-                                <label className="text-sm font-semibold text-slate-700">Team Name *</label>
-                                <input
-                                    type="text"
-                                    {...register('name', { required: 'Team name is required' })}
-                                    placeholder="e.g. DevDash Core"
-                                    className="w-full rounded-xl border border-[#dbe5f1] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#315e8d]/25 focus:border-[#315e8d] transition-all duration-150"
-                                />
-                                {errors.name && <p className="text-xs text-red-500 font-medium">{errors.name.message}</p>}
-                            </div>
-
-                            {/* Team Title */}
-                            <div className="space-y-1">
-                                <label className="text-sm font-semibold text-slate-700">Team Title *</label>
-                                <input
-                                    type="text"
-                                    {...register('title', { required: 'Team title is required' })}
-                                    placeholder="e.g. DevDash Developers"
-                                    className="w-full rounded-xl border border-[#dbe5f1] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#315e8d]/25 focus:border-[#315e8d] transition-all duration-150"
-                                />
-                                {errors.title && <p className="text-xs text-red-500 font-medium">{errors.title.message}</p>}
-                            </div>
-
-                            {/* Team Description */}
-                            <div className="space-y-1">
-                                <label className="text-sm font-semibold text-slate-700">Team Description</label>
-                                <textarea
-                                    {...register('description')}
-                                    placeholder="Describe your team's purpose and goals..."
-                                    rows={3}
-                                    className="w-full rounded-xl border border-[#dbe5f1] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#315e8d]/25 focus:border-[#315e8d] transition-all duration-150 resize-none"
-                                />
-                            </div>
-
-                            {/* Buttons */}
-                            <div className="flex justify-end gap-2 pt-1">
-                                <button
-                                    type="button"
-                                    onClick={() => { setShowCreate(false); reset(); }}
-                                    className="px-4 py-2 rounded-xl border border-[#dbe5f1] text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all duration-150 cursor-pointer"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={creating}
-                                    className="px-4 py-2 rounded-xl bg-[#315e8d] text-white text-sm font-semibold hover:bg-[#26486d] transition-all duration-150 disabled:opacity-60 cursor-pointer"
-                                >
-                                    {creating ? 'Creating...' : 'Create Team'}
-                                </button>
-                            </div>
-                        </form>
+                        <h2 className="flex-1 text-lg font-bold text-slate-900">Create New Team</h2>
+                        <button className="rounded-xl border border-slate-200 p-2 text-slate-600" onClick={()=> {setShowCreate(false); reset();}}><X size={16}/></button>
                     </div>
-                </div>
-            )}
 
-            {/* ── Empty State ── */}
-            {teams.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
+                   <form onSubmit={handleSubmit(createTeam)} className="space-y-4">
+                    {/* Team Name */}
+                    <div className="space-y-1">
+                        <label className="text-sm font-semibold text-slate-700">Team Name *</label>
+                        <input className="dd-input" type="text" {...register('name', { required: true })} placeholder="e.g. DevDash Core"/>
+                        {errors.name && <p className="text-xs text-rose-600">{errors.name.message}</p>}
+                    </div>
+
+                    {/* Team Title */}
+                    <div className="space-y-1">
+                        <label className="text-sm font-semibold text-slate-700">Team Title *</label>
+                        <input className="dd-input" type="text" {...register('title', { required: true })} placeholder="e.g. DevDash Developers"/>
+                        {errors.title && <p className="text-xs text-rose-600">{errors.title.message}</p>}
+                    </div>
+
+                    {/* Team Description */}
+                    <div className="space-y-1">
+                        <label className="text-sm font-semibold text-slate-700">Team Description</label>
+                        <textarea className="dd-input min-h-[90px]" {...register('description')} placeholder="Describe your team's purpose and goals..."/>
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                        <button className="dd-ghost-button" type="button" onClick={()=>{setShowCreate(false); reset();}}>Cancel</button>
+                        <button className="dd-primary-button" type="submit" disabled={creating}>
+                            {creating ? 'Creating...' : 'Create Team'}
+                        </button>
+                    </div>
+                   </form>
+                </div>
+            </div>
+        )}
+
+        {/* Team List */}
+        {teams.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
                     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mb-5 shadow-sm">
                         <Users size={36} className="text-blue-400" />
                     </div>
                     <h3 className="text-lg font-bold text-gray-800 mb-2">No teams yet</h3>
                     <p className="text-gray-500 text-sm max-w-xs">Create your first team to start managing projects and collaborating with your crew.</p>
                 </div>
-            )}
+        )}
 
-            {/* ── Team List ── */}
-            <div className="space-y-3 [animation:fadeUp_.4s_ease_.1s_both]">
-                {teams.map((team, index) => {
-                    const role = getUserRole(team);
-                    const gradient = gradientColors[index % gradientColors.length];
-                    return (
-                        <div
-                            key={team._id}
-                            onClick={() => navigate(`/dashboard/teams/${team._id}`)}
-                            className="bg-white border border-[#dbe5f1] rounded-2xl px-5 py-4 flex items-center justify-between gap-4 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-[#c8d9ee] hover:shadow-sm"
-                        >
-                            {/* Left: Avatar + Info */}
-                            <div className="flex items-center gap-4 min-w-0">
-                                {/* Team Initial Avatar */}
-                                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-sm`}>
-                                    {team.name.charAt(0).toUpperCase()}
+        <div className="grid gap-3 md:grid-cols-2">
+            {teams.map(team=>{
+                const role= getUserRole(team);
+                return (
+                    <div key={team._id} onClick={()=> navigate(`/dashboard/teams/${team._id}`)} className="dd-section-card cursor-pointer border-slate-200 transition hover:-translate-y-0.5 hover:shadow-lg">
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-lg font-bold text-[#315e8d]">
+                                {team.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <h3 className="text-lg font-bold text-slate-900">{team.name}</h3>
+                                    <span className={`dd-badge ${roleBadgeColor(role)}`}>{roleIcon(role)} {role}</span>
                                 </div>
-
-                                <div className="min-w-0">
-                                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                                        <h3 className="text-sm font-bold text-slate-800 truncate">{team.name}</h3>
-                                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg ${roleBadgeColor(role)}`}>
-                                            {roleIcon(role)} {role}
-                                        </span>
-                                    </div>
-                                    {team.title && (
-                                        <p className="text-xs text-slate-500 truncate">{team.title}</p>
-                                    )}
-                                    <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-                                        {team.memberCount ?? team.members?.length ?? 0} members
-                                    </p>
-                                    <p className="text-[11px] text-slate-400 font-medium">
-                                        Leader: <span className="font-semibold text-slate-500">@{team.leader?.username}</span>
-                                    </p>
-                                </div>
+                                {team.title && <p className="text-sm text-slate-500">{team.title}</p>}
+                                <p className="mt-1 text-xs font-medium text-slate-500">{team.memberCount ?? team.members?.length ?? 0} members</p>
                             </div>
 
-                            {/* Right: Member Avatars + Chevron */}
-                            <div className="flex items-center gap-3 shrink-0">
-                                <div className="flex items-center -space-x-2">
-                                    {team.members?.slice(0, 4).map((m, i) => (
-                                        <img
-                                            key={i}
-                                            src={m.user?.profilePicture || `https://ui-avatars.com/api/?name=${m.user?.firstName}+${m.user?.lastName}&background=6366f1&color=fff&size=28`}
-                                            alt=""
-                                            className="w-7 h-7 rounded-lg object-cover ring-2 ring-white"
-                                        />
-                                    ))}
-                                    {(team.members?.length || 0) > 4 && (
-                                        <div className="w-7 h-7 rounded-lg bg-[#e9f0f8] ring-2 ring-white flex items-center justify-center text-[10px] font-bold text-[#315e8d]">
-                                            +{team.members.length - 4}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <ChevronRight size={16} className="text-slate-400" />
+                            <div className="text-right">
+                                <p className="text-xs text-slate-500">Team Leader Username: {team.leader?.username}</p>
                             </div>
                         </div>
-                    )
-                })}
-            </div>
+
+                        <div className="mt-4 flex items-center justify-between">
+                            <div className="flex -space-x-2">
+                                {team.members?.slice(0,4).map((m, i)=>(
+                                    <img key={i} className="h-8 w-8 rounded-full border-2 border-white object-cover" src={m.user?.profilePicture || `https://ui-avatars.com/api/?name=${m.user?.firstName}+${m.user?.lastName}&background=6366f1&color=fff&size=28`} alt="" />
+                                ))}
+
+                                {(team.members?.length || 0) > 4 && (
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-slate-200 text-xs font-semibold text-slate-700">+{team.members.length - 4}</div>
+                                )}
+                            </div>
+
+                            <ChevronRight size={16} className="text-slate-400" />
+                        </div>
+                    </div>
+                )
+            })}
         </div>
-    )
+    </div>
+  )
 }
 
 export default Teams

@@ -2,7 +2,7 @@ const express= require('express')
 
 const settingsRouter= express.Router();
 
-const { updateUserInfo }= require('../controllers/SettingsControllers/ProfilePageControllers');
+const { updateUserInfo, getUserProfile }= require('../controllers/SettingsControllers/ProfilePageControllers');
 
 const { updateUserEmailOTPRequest, verifyUpdateUserEmailOTP, deactivateUserAccount, deleteUserAccount }= require('../controllers/SettingsControllers/AccountPageControllers');
 
@@ -35,6 +35,7 @@ const { uploader }= require('../middlewares/multer');
 
 // ProfilePage.jsx file
 settingsRouter.patch('/update-user-info', authMiddleware, uploader.single('profilePicture'), updateUserInfo);
+settingsRouter.get('/profile/:username', authMiddleware, getUserProfile);
 
 // AccountPage.jsx file
 settingsRouter.post('/update-email-otp-request', authMiddleware, updateUserEmailOTPRequest);

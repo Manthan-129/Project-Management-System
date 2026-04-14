@@ -14,9 +14,13 @@ const sendRequestToMakeFriend= async (req, res) => {
             return res.status(400).json({success: false, message: 'Username is required'});
         }
 
-        const receiver= await User.findOne({username: trimmedUsername}).select('_id friends');
+        const receiver= await User.findOne({username: trimmedUsername}).select('_id friends privacySettings');
 
         if(!receiver){
+            return res.status(404).json({success: false, message: 'User not found'});
+        }
+
+        if(receiver.privacySettings?.showInSearch === false){
             return res.status(404).json({success: false, message: 'User not found'});
         }
 
@@ -194,7 +198,7 @@ const allFriends= async (req, res) => {
     try{
         const userId= req.userId;
 
-        const user= await User.findById(userId).select('friends').populate('friends', 'firstName lastName username email profilePicture').lean();
+        const user= await User.findById(userId).select('friends').populate('friends', 'firstName lastName username email profilePicture privacySettings').lean();
 
         return res.status(200).json({success: true, message: "Friends fetched successfully", friends: user.friends});
 

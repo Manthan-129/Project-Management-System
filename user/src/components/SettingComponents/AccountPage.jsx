@@ -81,7 +81,6 @@ const AccountPage = () => {
             );
 
             if (data?.success) {
-                toast.success(data.message || 'OTP sent to your new email');
                 return true;
             }
         } catch (error) {
@@ -145,9 +144,12 @@ const AccountPage = () => {
                 setNewEmail('');
                 setOtp('');
                 setPassword('');
-                toast.success(data.message || 'Email updated successfully');
             }
         }catch(error){
+            if (error?.response?.status === 401) {
+                await logout();
+                return;
+            }
             toast.error(getErrorMessage(error, 'Failed to verify OTP'));
         }finally{
             setIsVerifyingOtp(false);
@@ -173,9 +175,12 @@ const AccountPage = () => {
 
             setShowDeactivatePopup(false);
             resetDeactivate();
-            toast.success(response?.data?.message || 'Account deactivated');
             await logout();
         } catch (err) {
+            if (err?.response?.status === 401) {
+                await logout();
+                return;
+            }
             toast.error(getErrorMessage(err, 'Something went wrong'));
         } finally {
             setIsDeactivating(false);
@@ -192,9 +197,12 @@ const AccountPage = () => {
 
             setShowDeletePopup(false);
             resetDelete();
-            toast.success(response?.data?.message || 'Account deleted');
             await logout();
         } catch (err) {
+            if (err?.response?.status === 401) {
+                await logout();
+                return;
+            }
             toast.error(getErrorMessage(err, 'Failed to delete account'));
         } finally {
             setIsDeletingAccount(false);
