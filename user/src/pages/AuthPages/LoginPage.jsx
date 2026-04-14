@@ -46,8 +46,7 @@ const LoginPage = () => {
             }
 
             if(response?.success && response?.token){
-                setToken(response.token);
-                localStorage.setItem('token', response.token);
+                setToken(response.token || '');
                 toast.success(response.message || 'Logged in successfully');
                 navigate('/dashboard');
                 return;
