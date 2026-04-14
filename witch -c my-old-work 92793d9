@@ -1,0 +1,52 @@
+[33m3d653c6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mtailwind-work[m[33m, [m[1;32mmain[m[33m)[m Tailwind Add
+[33m8d0297a[m Tailwind in ForgetPassword.jsx file
+[33m8be7c9e[m Tailwind in KanbanBoard, ProgressTracking, TeamCollaboration, Testimonial, Footer.jsx file
+[33m3678417[m Tailwind in Features.jsx and HowItWorks file
+[33m1304b8e[m Tailwind in Stats.jsx file
+[33me436f8b[m Tailwind in Hero.jsx file
+[33m7eaf1d7[m Tailwind in Navbar.jsx file
+[33m93d4271[m Add Tailwind in ForgetPassword.jsx file
+[33m18f6848[m Add Tailwind in LoginPage.jsx file
+[33m2b7f8d8[m Add Tailwind in SignUPPage.jsx file
+[33m72f6027[m Add Tailwind in LoadingPage.jsx file
+[33m15f79ac[m Add Tailwind in ForgetPassword.jsx file
+[33m9f8cfc3[m Add Tailwind in LoginPage.jsx file
+[33mc4ac524[m Add Tailwind in SignUpPage.jsx file
+[33m5b386d8[m[33m ([m[1;31morigin/main[m[33m)[m App.css and Index.css keyframes Add
+[33mae8a098[m Token Problem Resolve
+[33mbffda18[m Sidebar.jsx file Tailwind
+[33m073552f[m Footer Products Add
+[33m5c59942[m OTP Resolve
+[33mf939daf[m Tailwind CSS in TeamDetails.jsx file
+[33m95adb1a[m Tailwind CSS in Teams.jsx file
+[33m28c8ba7[m Tailwind CSS in TaskWorkspaceBoard.jsx file
+[33m7eff01f[m Tailwind CSS in PullRequests.jsx file
+[33m6a17e90[m Tailwind CSS in NotificationPopup.jsx file
+[33m041cbe2[m Tailwind CSS in Invitations.jsx file
+[33mb46668f[m Tailwind CSS in Friends.jsx file
+[33m66cc5d5[m Tailwind CSS in DashboardSidebar.jsx file
+[33m0599af6[m Tailwind CSS in Dashboard Overview
+[33m352f5c1[m Fix Tailwind group-hover utility conflict in v4
+[33mb90ae11[m Add comprehensive animation system guide
+[33m3e2a7bf[m Add Advanced Animation System with Framer Motion & Premium Tailwind CSS
+[33m92793d9[m Axios Instance Corrected
+[33m21f1607[m User SignUp error Resolved
+[33mbdb968b[m Add Tailwind CSS changes
+[33m03a6d88[m OTP Validation constraints
+[33mbc52ef9[m Add Count of things is Activated
+[33md77aae9[m Privacy Page InitialSettings Count
+[33ma469a21[m User Information Fetches
+[33m4136461[m Resolve the HTTP status code errorrs
+[33m1bc7ff4[m Add AuthHeader
+[33me9c904b[m AuthHeaders in AppContext
+[33m89c1ae2[m Backend API Path Updated
+[33m06b2658[m AuthHeader in AppContext
+[33m68d272e[m ForgetPassword Connections
+[33m2f5b643[m SignupPage Connections
+[33m066e16b[m Login Page connectivity
+[33m3844fbf[m AuthController.js file Resolve errors
+[33m14e5140[m Connectivity of the SettingComponents Page
+[33mbd661e2[m Merge branch 'main' of https://github.com/Manthan-129/Project-Management-System
+[33m1f146b0[m Backend Controllers and Modals, Frontend Connectivity for Dashboard
+[33m685e22b[m Backend Controllers and Modals for Dashboard
+[33m5d0db62[m Initial commit

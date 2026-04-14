@@ -1,13 +1,14 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
 import {
-  Bell,
-  ChartColumnIncreasing,
-  GitPullRequest,
-  Globe,
-  LayoutDashboard,
-  Users,
+    Bell,
+    ChartColumnIncreasing,
+    GitPullRequest,
+    Globe,
+    LayoutDashboard,
+    Users,
 } from 'lucide-react'
+import { useContext } from 'react'
+import { Link } from 'react-router-dom'
+import { AppContext } from '../../context/AppContext'
 
 const iconColors = [
   'text-[#315e8d] bg-[#e9f0f8]',
@@ -52,6 +53,7 @@ const features = [
 ]
 
 const Feature = () => {
+  const { token } = useContext(AppContext);
   return (
     <section id="features" className="px-5 py-24 lg:px-12">
       <div className="max-w-7xl mx-auto space-y-12">
@@ -76,9 +78,15 @@ const Feature = () => {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Link to="/signup" className="px-5 py-2.5 text-sm font-semibold text-white bg-[#315e8d] hover:bg-[#26486d] rounded-xl transition-colors no-underline">
-            Create Your Workspace
-          </Link>
+          {token ? (
+            <Link to="/dashboard" className="px-5 py-2.5 text-sm font-semibold text-white bg-[#315e8d] hover:bg-[#26486d] rounded-xl transition-colors no-underline">
+              Dashboard
+            </Link>
+          ) : (
+            <Link to="/signup" className="px-5 py-2.5 text-sm font-semibold text-white bg-[#315e8d] hover:bg-[#26486d] rounded-xl transition-colors no-underline">
+              Create Your Workspace
+            </Link>
+          )}
           <a href="#how-it-works" className="px-5 py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 bg-white hover:bg-slate-50 rounded-xl transition-colors no-underline">
             See Workflow
           </a>

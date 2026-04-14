@@ -1,11 +1,10 @@
-import React from 'react'
+import { LockKeyhole, Sparkles, X } from 'lucide-react'
 import { useContext, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
-import { X } from 'lucide-react'
-import { AppContext } from '../../context/AppContext'
-import OTP from '../../components/AuthComponents/OTP'
 import api from '../../api/axiosInstance'
+import OTP from '../../components/AuthComponents/OTP'
+import { AppContext } from '../../context/AppContext'
 
 const ForgetPassword = () => {
     const { navigate, setToken } = useContext(AppContext)
@@ -99,18 +98,26 @@ const ForgetPassword = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center px-4 py-12">
-            <div className="w-full max-w-md">
-                <div className="mb-6 text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-violet-50 text-violet-600 text-xs font-semibold rounded-full border border-violet-100 mb-3 uppercase tracking-wider">
-                        <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></span>
-                        Account Recovery
+        <div className="dd-app-shell flex min-h-screen items-center justify-center px-4 py-10">
+            <div className="grid w-full max-w-5xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+                <div className="dd-shell-frame overflow-hidden p-6 md:p-8">
+                    <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                        <span className="dd-page-kicker"><Sparkles size={13} /> DevDash</span>
+                        <span className="hidden sm:inline">Secure account recovery</span>
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">Reset Password</h1>
-                    <p className="text-gray-400 text-sm">Enter your email and we&apos;ll send you a one-time code to reset your password.</p>
+                    <div className="mt-6 space-y-4">
+                        <h1 className="text-4xl font-black tracking-tight text-slate-900">Reset password.</h1>
+                        <p className="max-w-md text-sm leading-6 text-slate-600">Use the same polished workflow as the rest of the app while keeping recovery secure with OTP confirmation.</p>
+                    </div>
+
+                    <div className="mt-8 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+                        <LockKeyhole size={18} className="text-[#315e8d]" />
+                        <p className="mt-3 text-sm font-semibold text-slate-800">Recovery stays contained</p>
+                        <p className="mt-1 text-xs text-slate-500">The reset flow still uses OTP validation and a password confirmation step.</p>
+                    </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-8">
+                <div className="dd-shell-frame p-6 md:p-8">
                     <form onSubmit={handleSubmit(requestOtp)} className="space-y-4">
                         <div className="space-y-1.5">
                             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</label>

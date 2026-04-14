@@ -281,7 +281,7 @@ const getSentInvitationsByMe= async (req, res) => {
             });
         }
 
-        const sentInvitationsByMe= (await TeamInvitation.find({team: {$in: teamIds}, sender: userId , status: 'pending'}).select('team receiver status createdAt')).populate('team', 'name title description').populate('receiver', 'username firstName lastName profilePicture').sort({createdAt: -1}).lean();
+        const sentInvitationsByMe= await TeamInvitation.find({team: {$in: teamIds}, sender: userId , status: 'pending'}).select('team receiver status createdAt').populate('team', 'name title description').populate('receiver', 'username firstName lastName profilePicture').sort({createdAt: -1}).lean();
 
         const groupedSentInvitations= groupByTeam(sentInvitationsByMe);
 
@@ -313,7 +313,7 @@ const getSentInvitationsByTeam= async (req, res) => {
             });
         }
 
-        const sentInvitationsByTeam= (await TeamInvitation.find({team: {$in: teamIds}, status: 'pending'}).select('team sender receiver status createdAt')).populate('team', 'name title description').populate('sender', 'username firstName lastName profilePicture').populate('receiver', 'username firstName lastName profilePicture').sort({createdAt: -1}).lean();
+        const sentInvitationsByTeam= await TeamInvitation.find({team: {$in: teamIds}, status: 'pending'}).select('team sender receiver status createdAt').populate('team', 'name title description').populate('sender', 'username firstName lastName profilePicture').populate('receiver', 'username firstName lastName profilePicture').sort({createdAt: -1}).lean();
 
         const groupedSentInvitations= groupByTeam(sentInvitationsByTeam);
 
@@ -448,8 +448,8 @@ const allMemberOfTeam= async (req, res) => {
         const userIdStr= userId.toString();
 
         const team= await Team.findById(teamId).select('leader members')
-        .populate('leader', 'username firstName lastName profilePicture')
-        .populate('members.user', 'firstName lastName username profilePicture')
+        .populate('leader', 'username firstName lastName profilePicture privacySettings')
+        .populate('members.user', 'firstName lastName username profilePicture privacySettings')
         .lean();
 
         if(!team){

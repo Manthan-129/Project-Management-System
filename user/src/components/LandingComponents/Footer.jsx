@@ -1,7 +1,6 @@
 import { Github, Linkedin, Mail, Sparkles, Twitter } from 'lucide-react'
 import { useContext } from 'react'
-import { Link } from 'react-router-dom'
-import { AppContext } from '../../context/AppContext.jsx'
+import { AppContext } from '../../context/AppContext'
 
 const socialLinks = [
   { label: 'GitHub', href: 'https://github.com', icon: <Github size={16} /> },
@@ -10,52 +9,40 @@ const socialLinks = [
   { label: 'Email', href: 'mailto:support@devdash.app', icon: <Mail size={16} /> },
 ]
 
-const footerLinks = [
-  {
-    heading: 'Product',
-    links: [
-      { label: 'Features', href: '#features' },
-      { label: 'Collaboration', href: '#collaboration' },
-      { label: 'Progress', href: '#tracking' },
-      { label: 'Testimonials', href: '#testimonials' },
-    ],
-  },
-  {
-    heading: 'Company',
-    links: [
-      { label: 'About', href: '#stats' },
-      { label: 'Sign In', href: '/login' },
-      { label: 'Sign Up', href: '/signup' },
-      { label: 'Contact', href: '#site-footer' },
-    ],
-  },
-  {
-    heading: 'Resources',
-    links: [
-      { label: 'How It Works', href: '#how-it-works' },
-      { label: 'Demo Board', href: '#kanban-preview' },
-      { label: 'Security Settings', href: '/settings/security' },
-      { label: 'System Status', href: '#stats' },
-    ],
-  },
-]
-
 const Footer = () => {
-  const { token, logout } = useContext(AppContext)
+  const { token } = useContext(AppContext)
 
-  const companyLinks = token
-    ? [
+  const footerLinks = [
+    {
+      heading: 'Product',
+      links: [
+        { label: 'Features', href: '#features' },
+        { label: 'Collaboration', href: '#collaboration' },
+        { label: 'Progress', href: '#tracking' },
+        { label: 'Testimonials', href: '#testimonials' },
+      ],
+    },
+    {
+      heading: 'Company',
+      links: [
         { label: 'About', href: '#stats' },
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Logout', action: logout },
+        ...(token ? [{ label: 'Dashboard', href: '/dashboard' }] : [
+          { label: 'Sign In', href: '/login' },
+          { label: 'Sign Up', href: '/signup' },
+        ]),
         { label: 'Contact', href: '#site-footer' },
-      ]
-    : [
-        { label: 'About', href: '#stats' },
-        { label: 'Sign In', href: '/login' },
-        { label: 'Sign Up', href: '/signup' },
-        { label: 'Contact', href: '#site-footer' },
-      ]
+      ],
+    },
+    {
+      heading: 'Resources',
+      links: [
+        { label: 'How It Works', href: '#how-it-works' },
+        { label: 'Demo Board', href: '#kanban-preview' },
+        { label: 'Security Settings', href: '/settings/security' },
+        { label: 'System Status', href: '#stats' },
+      ],
+    },
+  ]
 
   return (
     <footer id="site-footer" className="bg-[#0f1f34] px-5 py-16 lg:px-12">

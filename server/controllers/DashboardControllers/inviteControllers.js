@@ -194,7 +194,7 @@ const allFriends= async (req, res) => {
     try{
         const userId= req.userId;
 
-        const user= await User.findById(userId).select('friends').populate('friends', 'firstName lastName username email profilePicture').lean();
+        const user= await User.findById(userId).select('friends').populate('friends', 'firstName lastName username email profilePicture privacySettings').lean();
 
         return res.status(200).json({success: true, message: "Friends fetched successfully", friends: user.friends});
 
