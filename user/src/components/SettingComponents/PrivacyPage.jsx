@@ -92,7 +92,6 @@ const PrivacyPage = () => {
 
             if (data?.success) {
                 setInitialSettings({ ...settings });
-                toast.success(data.message || 'Privacy settings updated successfully');
             }
         } catch (error) {
             if (error?.response?.status === 401) {

@@ -154,7 +154,7 @@ const sendTeamInvitation= async (req, res) => {
         const receiverAlreadyAdded= team.members.some(m => m.user.toString() === receiver._id.toString()) || team.leader.toString() === receiver._id.toString(); 
 
         if(receiverAlreadyAdded){
-            return res.status(404).json({success: false, message: "User is already a member of the team"})
+            return res.status(409).json({success: false, message: "User is already a member of the team"})
         }
         
         const sender= await User.findById(userId).select('_id firstName lastName username');;
@@ -165,13 +165,13 @@ const sendTeamInvitation= async (req, res) => {
         });
 
         if(!isFriend){
-            return res.status(404).json({success: false, message: "Sender and Receiver are not mutual friends. You have to be friends before sending him the team invitations."});
+            return res.status(400).json({success: false, message: "Sender and Receiver are not mutual friends. You have to be friends before sending him the team invitations."});
         }
 
         const existingInvitation= await TeamInvitation.findOne({team: teamId, receiver: receiver._id, status: 'pending'});
 
         if(existingInvitation){
-            return res.status(404).json({success: false, message: "An invitation has already been sent to this user"})
+            return res.status(409).json({success: false, message: "An invitation has already been sent to this user"})
         }
 
         const invitation= await TeamInvitation.create({

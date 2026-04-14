@@ -1,4 +1,4 @@
-import { Bell, Eye, Link, LogOut, Palette, ShieldCheck, Sparkles, User, UserCog } from 'lucide-react'
+import { Bell, Eye, LayoutDashboard, Link, LogOut, Palette, ShieldCheck, Sparkles, User, UserCog } from 'lucide-react'
 import { useContext, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext.jsx'
@@ -57,6 +57,13 @@ const Sidebar = () => {
                     <h1 className="text-base font-black tracking-tight text-slate-900">Dev<span className="text-[#315e8d]">Dash</span></h1>
                     <p className="text-xs font-medium text-slate-500">Settings workspace</p>
                 </div>
+            </NavLink>
+        </div>
+
+        <div className="px-1">
+            <NavLink to="/dashboard" className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">
+                <LayoutDashboard size={18} className="text-slate-300" />
+                <span>Go to Dashboard</span>
             </NavLink>
         </div>
 

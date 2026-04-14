@@ -298,6 +298,18 @@ const initiateIntegrationConnection = async (req, res) => {
 			return res.status(400).json({ success: false, message: "Unsupported platform" });
 		}
 
+		const config = getPlatformConfig(platform);
+		const clientId = process.env[config.clientIdEnv];
+		const clientSecret = process.env[config.clientSecretEnv];
+		const redirectUri = process.env[config.redirectUriEnv];
+
+		if (!clientId || !clientSecret || !redirectUri) {
+			return res.status(400).json({
+				success: false,
+				message: `OAuth credentials for ${platform} are not configured. Please add ${config.clientIdEnv}, ${config.clientSecretEnv}, and ${config.redirectUriEnv} to your .env file.`,
+			});
+		}
+
 		const authUrl = buildAuthorizationUrl(platform, req.userId);
 		return res.status(200).json({ success: true, authUrl });
 	} catch (error) {

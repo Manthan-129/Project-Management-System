@@ -72,7 +72,6 @@ const SecurityPage = () => {
             )
 
             if (response?.success) {
-                toast.success(response.message || 'Password changed successfully')
                 resetField('currentPassword')
                 resetField('newPassword')
                 resetField('confirmNewPassword')
@@ -107,7 +106,6 @@ const SecurityPage = () => {
                 setTwoFAMode(twoFAEnabled ? 'disable' : 'enable')
                 setShow2FASetup(true)
                 setOtp('')
-                toast.success(data.message || 'OTP sent successfully')
             }
         } catch (error) {
             if (error?.response?.status === 401) {
@@ -141,7 +139,6 @@ const SecurityPage = () => {
                 setTwoFAEnabled(twoFAMode === 'enable')
                 setShow2FASetup(false)
                 setOtp('')
-                toast.success(data.message || '2FA status updated successfully')
             }
         } catch (error) {
             if (error?.response?.status === 401) {

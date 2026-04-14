@@ -106,7 +106,6 @@ const IntegrationPage = () => {
                     ...prev,
                     [platform]: { connected: false, username: '', lastSynced: null, autoSync: false },
                 }));
-                toast.success(data.message || `${platform} disconnected successfully`);
             }
         } catch (error) {
             if (error?.response?.status === 401) {
@@ -139,7 +138,6 @@ const IntegrationPage = () => {
                         autoSync: Boolean(data.autoSync),
                     },
                 }));
-                toast.success(data.message || `Auto sync ${nextValue ? 'enabled' : 'disabled'} for ${platform}`);
             }
         } catch (error) {
             if (error?.response?.status === 401) {
@@ -165,7 +163,6 @@ const IntegrationPage = () => {
         if (!platform || !status) return;
 
         if (status === 'success') {
-            toast.success(`${platform} connected successfully`);
             fetchIntegrationStatus();
         } else if (status === 'error') {
             toast.error(errorMessage || `Failed to connect ${platform}`);

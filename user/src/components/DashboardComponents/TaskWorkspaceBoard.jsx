@@ -27,6 +27,7 @@ const TaskWorkspaceBoard = () => {
     const {token, setToken, authHeaders }= useContext(AppContext);
     const [tab, setTab]= useState('assignedTaskToMe');
     const [loading, setLoading]= useState(true);
+    const [isExtending, setIsExtending]= useState(false);
     const [alert, setAlert]= useState({ isOpen: false, title: '', message: '', type: 'info' });
     const [workspaceBoard, setWorkspaceBoard]= useState({
         assignedTaskToMe: createEmptyBoard(),
@@ -96,6 +97,7 @@ const TaskWorkspaceBoard = () => {
         nextDate.setDate(nextDate.getDate() + 1);
         const dueDate= nextDate.toISOString().slice(0,10);
 
+        setIsExtending(true);
         try{
             const { data } = await api.put(`/tasks/update/${taskId}`, { dueDate }, { headers: authHeaders });
 
@@ -125,10 +127,12 @@ const TaskWorkspaceBoard = () => {
                 });
             }
 
-            toast.success(data?.message || 'Due date updated successfully');
+
 
         }catch(error){
             toast.error(error?.response?.data?.message || 'Unable to extend due date');
+        } finally {
+            setIsExtending(false);
         }
     }
 
@@ -154,9 +158,9 @@ const TaskWorkspaceBoard = () => {
 
 
     const tabs= [
-        {key: 'assignedTaskToMe', label: 'Assigned Task To Me', count: taskByCategory.assignedTaskToMe.length, icon: Inbox},
-        {key: 'assignedTaskByMeAsAdmin', label: 'Assigned Task By Me As Admin', count: taskByCategory.assignedTaskByMeAsAdmin.length, icon: Send},
-        {key: 'assignedTaskByMeAsLeader', label: 'Assigned Task By Me As Leader', count: taskByCategory.assignedTaskByMeAsLeader.length, icon: UserCheck},
+        {key: 'assignedTaskToMe', label: 'Assigned Task To Me', count: taskByCategory.assignedTaskToMe, icon: Inbox},
+        {key: 'assignedTaskByMeAsAdmin', label: 'Assigned Task By Me As Admin', count: taskByCategory.assignedTaskByMeAsAdmin, icon: Send},
+        {key: 'assignedTaskByMeAsLeader', label: 'Assigned Task By Me As Leader', count: taskByCategory.assignedTaskByMeAsLeader, icon: UserCheck},
     ];
 
     const tasksByStatus= getTasksByStatus;
@@ -239,7 +243,9 @@ const TaskWorkspaceBoard = () => {
                                         </div>
 
                                         <div className="mt-3">
-                                            <button className="dd-ghost-button !w-full !py-2" onClick={()=> extendTaskDueDate(task._id, task.dueDate)}>+1 Day</button>
+                                            <button disabled={isExtending} className="dd-ghost-button !w-full !py-2 disabled:opacity-50" onClick={()=> extendTaskDueDate(task._id, task.dueDate)}>
+                                                {isExtending ? 'Extending...' : '+1 Day'}
+                                            </button>
                                         </div>
                                     </article>
                                 )

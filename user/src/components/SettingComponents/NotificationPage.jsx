@@ -87,7 +87,6 @@ const NotificationPage = () => {
 
         if (data?.success) {
           setInitialPreferences({ ...preferences });
-          toast.success(data.message || 'Notification settings updated successfully');
         }
       } catch (error) {
         if (error?.response?.status === 401) {

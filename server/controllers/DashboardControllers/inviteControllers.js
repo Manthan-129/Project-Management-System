@@ -14,9 +14,13 @@ const sendRequestToMakeFriend= async (req, res) => {
             return res.status(400).json({success: false, message: 'Username is required'});
         }
 
-        const receiver= await User.findOne({username: trimmedUsername}).select('_id friends');
+        const receiver= await User.findOne({username: trimmedUsername}).select('_id friends privacySettings');
 
         if(!receiver){
+            return res.status(404).json({success: false, message: 'User not found'});
+        }
+
+        if(receiver.privacySettings?.showInSearch === false){
             return res.status(404).json({success: false, message: 'User not found'});
         }
 

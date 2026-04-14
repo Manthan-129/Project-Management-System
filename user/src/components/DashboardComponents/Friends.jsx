@@ -27,6 +27,9 @@ const Friends = () => {
     const [sending , setSending]= useState(false);
     const [tab, setTab]= useState("friends");
     const [username, setUsername]= useState('');
+    const [isResponding, setIsResponding]= useState(false);
+    const [isCancelling, setIsCancelling]= useState(false);
+    const [isUnfriending, setIsUnfriending]= useState(false);
     const [alert, setAlert]= useState({ isOpen: false, title: '', message: '', type: 'info' });
 
     const fetchFriends = async ()=>{
@@ -109,7 +112,7 @@ const Friends = () => {
                 return;
             }
 
-            toast.success(data?.message || 'Friend request sent');
+
             setUsername('');
 
             const sentRes = await api.get('/invites/invitations/sent', { headers: authHeaders });
@@ -128,6 +131,7 @@ const Friends = () => {
     }
 
     const respondRequest= async (inviteId, status)=>{
+        setIsResponding(true);
         try{
             const { data } = await api.post(
                 `/invites/invitations/respond-request/${inviteId}`,
@@ -140,17 +144,20 @@ const Friends = () => {
                 return;
             }
 
-            toast.success(data?.message || `Request ${status}`);
+
             setReceived((prev) => prev.filter((r) => r._id !== inviteId));
             if(status === 'accepted'){
                 await fetchFriends();
             }
         }catch(error){
             toast.error(error?.response?.data?.message || 'Unable to respond to request');
+        } finally {
+            setIsResponding(false);
         }
     }
 
     const cancelRequest= async (inviteId)=>{
+        setIsCancelling(true);
         try{
             const { data } = await api.delete(`/invites/invitations/cancel-request/${inviteId}`, {
                 headers: authHeaders,
@@ -161,15 +168,18 @@ const Friends = () => {
                 return;
             }
 
-            toast.success(data?.message || 'Request cancelled');
+
             setSent((prev) => prev.filter((s) => s._id !== inviteId));
 
         }catch(error){
             toast.error(error?.response?.data?.message || 'Unable to cancel request');
+        } finally {
+            setIsCancelling(false);
         }
     }
 
     const unfriend= async (friendId)=>{
+        setIsUnfriending(true);
         try{
             const { data } = await api.post(`/invites/unfriend/${friendId}`, {}, { headers: authHeaders });
 
@@ -178,10 +188,12 @@ const Friends = () => {
                 return;
             }
 
-            toast.success(data?.message || 'Unfriended successfully');
+
             setFriends((prev) => prev.filter((f) => f._id !== friendId));
         }catch(error){
             toast.error(error?.response?.data?.message || 'Unable to unfriend user');
+        } finally {
+            setIsUnfriending(false);
         }
     }
 
@@ -206,10 +218,12 @@ const Friends = () => {
 
             <form onSubmit={sendRequest} className="dd-section-card flex flex-col gap-3 md:flex-row md:items-center">
                 <div className="relative flex-1">
-                    <input className="dd-input" type="text" value={username} onChange={(e)=> setUsername(e.target.value)} placeholder="Enter username to add friend..." />
+                    <input className="dd-input" type="text" value={username} onChange={(e)=> setUsername(e.target.value)} placeholder="Enter username to add friend..." disabled={sending} />
                 </div>
 
-                <button className="dd-primary-button" type="submit" disabled={sending || !username.trim()}><Send size={16} /> Send</button>
+                <button className="dd-primary-button disabled:opacity-50" type="submit" disabled={sending || !username.trim()}>
+                    {sending ? 'Sending...' : <><Send size={16} /> Send</>}
+                </button>
             </form>
 
             <div className="dd-section-card p-3">
@@ -231,8 +245,7 @@ const Friends = () => {
                         <EmptyState icon={Users} text="No friends yet. Send a request to get started!"/>
                     ) : (
                         friends.map((f)=>{
-                            const visibility = f.privacySettings?.profileVisibility || 'public';
-                            const showGreenBadge = visibility === 'public';
+                            const showGreenBadge = f.privacySettings?.showOnlineStatus !== false;
                             return (
                             <div key={f._id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/50 p-4 transition-all hover:bg-white hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                                 <div className="flex items-center gap-4">
@@ -259,8 +272,8 @@ const Friends = () => {
                                     <button type="button" onClick={() => navigate(`/dashboard/user/${f.username}`)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-indigo-600 transition-colors">
                                         View Profile
                                     </button>
-                                    <button className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition-colors" onClick={()=> unfriend(f._id)}>
-                                        <UserMinus size={14} className="inline-block" /> Unfriend
+                                    <button disabled={isUnfriending} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition-colors disabled:opacity-50" onClick={()=> unfriend(f._id)}>
+                                        <UserMinus size={14} className="inline-block" /> {isUnfriending ? 'Unfriending...' : 'Unfriend'}
                                     </button>
                                 </div>
                             </div>
@@ -289,8 +302,12 @@ const Friends = () => {
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <button className="dd-primary-button !px-3 !py-2" onClick={()=> respondRequest(r._id, 'accepted')}><Check size={14} /> Accept</button>
-                                    <button className="dd-ghost-button !px-3 !py-2 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={()=> respondRequest(r._id, 'rejected')}><X size={14} /> Reject</button>
+                                    <button disabled={isResponding} className="dd-primary-button !px-3 !py-2 disabled:opacity-50" onClick={()=> respondRequest(r._id, 'accepted')}>
+                                        {isResponding ? 'Accepting...' : <><Check size={14} /> Accept</>}
+                                    </button>
+                                    <button disabled={isResponding} className="dd-ghost-button !px-3 !py-2 border-rose-200 text-rose-600 hover:bg-rose-50 disabled:opacity-50" onClick={()=> respondRequest(r._id, 'rejected')}>
+                                        {isResponding ? 'Rejecting...' : <><X size={14} /> Reject</>}
+                                    </button>
                                 </div>
                             </div>
                         ))
@@ -316,7 +333,9 @@ const Friends = () => {
                                         <p className="text-sm text-slate-500">@{s.receiver?.username}</p>
                                     </div>
                                 </div>
-                                <button className="dd-ghost-button border-rose-200 text-rose-600 hover:bg-rose-50" onClick={()=> cancelRequest(s._id)}><X size={14} />Cancel</button>
+                                <button disabled={isCancelling} className="dd-ghost-button border-rose-200 text-rose-600 hover:bg-rose-50 disabled:opacity-50" onClick={()=> cancelRequest(s._id)}>
+                                    {isCancelling ? 'Cancelling...' : <><X size={14} />Cancel</>}
+                                </button>
                             </div>
                         ))
                     )}

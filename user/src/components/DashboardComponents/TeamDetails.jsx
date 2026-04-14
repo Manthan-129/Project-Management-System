@@ -21,7 +21,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../api/axiosInstance.js';
@@ -105,6 +105,20 @@ const TeamDetails = () => {
     onConfirm: null,
   });
 
+  const [isInviting, setIsInviting] = useState(false);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [isUpdatingTask, setIsUpdatingTask] = useState(false);
+  const [isSubmittingPR, setIsSubmittingPR] = useState(false);
+  const [isReviewingPR, setIsReviewingPR] = useState(false);
+  const [isTransferringLeadership, setIsTransferringLeadership] = useState(false);
+  const [isRemovingMember, setIsRemovingMember] = useState(false);
+  const [isLeavingTeam, setIsLeavingTeam] = useState(false);
+  const [isDeletingTeam, setIsDeletingTeam] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isRestoringTask, setIsRestoringTask] = useState(false);
+  const [isExtendingDueDate, setIsExtendingDueDate] = useState(false);
+  const [isChangingRole, setIsChangingRole] = useState(false);
+
   const teamLeader = team?.leader || null;
 
   const visibleMembers = useMemo(() => {
@@ -147,27 +161,27 @@ const TeamDetails = () => {
     return list;
   }, [pullRequests, prFilter]);
 
-  const fetchTeam = async () => {
+  const fetchTeam = useCallback(async () => {
     const { data } = await api.get(`/teams/${teamId}`, { headers: authHeaders });
     if (!data?.success) throw new Error(data?.message || 'Failed to fetch team');
     setTeam(data.team);
-  };
+  }, [teamId, authHeaders]);
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     const { data } = await api.get(`/teams/all-members/${teamId}`, { headers: authHeaders });
     if (!data?.success) throw new Error(data?.message || 'Failed to fetch members');
     setTeamMembers(Array.isArray(data.members) ? data.members : []);
     setTeam((prev) => (prev ? { ...prev, leader: data.leader || prev.leader } : prev));
-  };
+  }, [teamId, authHeaders]);
 
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     const { data } = await api.get(`/tasks/team-task/${teamId}`, { headers: authHeaders });
     if (!data?.success) throw new Error(data?.message || 'Failed to fetch tasks');
     setKanbanBoard(data.kanbanBoard || emptyBoard());
     setTeamStats(data.stats || null);
-  };
+  }, [teamId, authHeaders]);
 
-  const fetchProgress = async () => {
+  const fetchProgress = useCallback(async () => {
     setProgressLoading(true);
     try {
       const { data } = await api.get(`/tasks/team-member-progress/${teamId}`, { headers: authHeaders });
@@ -183,35 +197,39 @@ const TeamDetails = () => {
     } finally {
       setProgressLoading(false);
     }
-  };
+  }, [teamId, authHeaders]);
 
-  const fetchPullRequests = async () => {
+  const fetchPullRequests = useCallback(async () => {
     const statuses = ['pending', 'accepted', 'rejected'];
-    const responses = await Promise.all(
-      statuses.map((status) =>
-        api.get(`/pull-requests/team/${teamId}`, {
-          headers: authHeaders,
-          params: { status },
-        })
-      )
-    );
+    try {
+      const responses = await Promise.all(
+        statuses.map((status) =>
+          api.get(`/pull-requests/team/${teamId}`, {
+            headers: authHeaders,
+            params: { status },
+          })
+        )
+      );
 
-    const merged = [];
-    const seen = new Set();
+      const merged = [];
+      const seen = new Set();
 
-    responses.forEach((response) => {
-      (response?.data?.pullRequests || []).forEach((pr) => {
-        if (!seen.has(pr._id)) {
-          seen.add(pr._id);
-          merged.push(pr);
-        }
+      responses.forEach((response) => {
+        (response?.data?.pullRequests || []).forEach((pr) => {
+          if (!seen.has(pr._id)) {
+            seen.add(pr._id);
+            merged.push(pr);
+          }
+        });
       });
-    });
 
-    setPullRequests(merged);
-  };
+      setPullRequests(merged);
+    } catch (error) {
+       console.error('Error fetching pull requests:', error);
+    }
+  }, [teamId, authHeaders]);
 
-  const loadAll = async () => {
+  const loadAll = useCallback(async () => {
     if (!token || !teamId) return;
 
     setLoading(true);
@@ -221,12 +239,13 @@ const TeamDetails = () => {
       if (error?.response?.status === 401) {
         setToken(null);
         localStorage.removeItem('token');
+        return; // Silent failure for 401
       }
       toast.error(error?.response?.data?.message || error.message || 'Unable to load team details');
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, teamId, fetchTeam, fetchMembers, fetchTasks, fetchPullRequests, setToken]);
 
   useEffect(() => {
     if (token && teamId) {
@@ -234,23 +253,28 @@ const TeamDetails = () => {
     } else {
       setLoading(false);
     }
-  }, [token, teamId]);
+  }, [token, teamId, loadAll]);
 
   useEffect(() => {
     if (activeTab === 'progress' && token && teamId && !progressData) {
       fetchProgress();
     }
-  }, [activeTab, token, teamId, progressData]);
+  }, [activeTab, token, teamId, progressData, fetchProgress]);
 
-  const refreshTaskData = async () => {
-    await Promise.all([fetchTasks(), fetchPullRequests()]);
-    if (activeTab === 'progress') {
-      await fetchProgress();
+  const refreshTaskData = useCallback(async () => {
+    try {
+      await Promise.all([fetchTasks(), fetchPullRequests()]);
+      if (activeTab === 'progress') {
+        await fetchProgress();
+      }
+    } catch (error) {
+      console.error('Refresh background data failed:', error);
     }
-  };
+  }, [fetchTasks, fetchPullRequests, fetchProgress, activeTab]);
 
   const handleCreateTask = async (event) => {
     event.preventDefault();
+    setIsCreatingTask(true);
     try {
       const { data } = await api.post(
         `/tasks/create/${teamId}/${taskForm.assignedTo}`,
@@ -268,16 +292,18 @@ const TeamDetails = () => {
         return;
       }
 
-      toast.success(data?.message || 'Task created successfully');
       setShowCreateTask(false);
       setTaskForm(emptyTaskForm);
       await refreshTaskData();
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to create task');
+    } finally {
+      setIsCreatingTask(false);
     }
   };
 
   const updateTaskStatus = async (taskId, status) => {
+    setIsUpdatingStatus(true);
     try {
       const { data } = await api.patch(
         `/tasks/update-status/${taskId}`,
@@ -290,10 +316,11 @@ const TeamDetails = () => {
         return;
       }
 
-      toast.success(data?.message || 'Task status updated');
       await refreshTaskData();
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to update task status');
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -304,6 +331,7 @@ const TeamDetails = () => {
       message: 'Delete this task?',
       intent: 'danger',
       onConfirm: async () => {
+        setIsUpdatingTask(true);
         try {
           const { data } = await api.put(`/tasks/${taskId}`, {}, { headers: authHeaders });
           if (!data?.success) {
@@ -311,16 +339,18 @@ const TeamDetails = () => {
             return;
           }
 
-          toast.success(data?.message || 'Task deleted');
           await refreshTaskData();
         } catch (error) {
           toast.error(error?.response?.data?.message || 'Unable to delete task');
+        } finally {
+          setIsUpdatingTask(false);
         }
       },
     });
   };
 
   const restoreTask = async (taskId) => {
+    setIsRestoringTask(true);
     try {
       const { data } = await api.patch(`/tasks/restore/${taskId}`, {}, { headers: authHeaders });
       if (!data?.success) {
@@ -328,10 +358,11 @@ const TeamDetails = () => {
         return;
       }
 
-      toast.success(data?.message || 'Task restored');
       await refreshTaskData();
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to restore task');
+    } finally {
+      setIsRestoringTask(false);
     }
   };
 
@@ -341,6 +372,7 @@ const TeamDetails = () => {
     nextDate.setDate(nextDate.getDate() + 1);
     const dueDate = nextDate.toISOString().slice(0, 10);
 
+    setIsExtendingDueDate(true);
     try {
       const { data } = await api.put(
         `/tasks/update/${taskId}`,
@@ -353,10 +385,11 @@ const TeamDetails = () => {
         return;
       }
 
-      toast.success(data?.message || 'Due date extended');
       await refreshTaskData();
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to extend due date');
+    } finally {
+      setIsExtendingDueDate(false);
     }
   };
 
@@ -374,7 +407,7 @@ const TeamDetails = () => {
   const updateTaskDetails = async (event) => {
     event.preventDefault();
     if (!editingTask?._id) return;
-
+    setIsUpdatingTask(true);
     try {
       const { data } = await api.put(
         `/tasks/update/${editingTask._id}`,
@@ -393,19 +426,20 @@ const TeamDetails = () => {
         return;
       }
 
-      toast.success(data?.message || 'Task updated successfully');
       setEditingTask(null);
       setEditingTaskForm(emptyTaskForm);
       await refreshTaskData();
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to update task');
+    } finally {
+      setIsUpdatingTask(false);
     }
   };
 
   const handleSubmitPR = async (event) => {
     event.preventDefault();
     if (!selectedTaskForPR) return;
-
+    setIsSubmittingPR(true);
     try {
       const { data } = await api.post(
         `/pull-requests/create/${selectedTaskForPR}`,
@@ -421,17 +455,19 @@ const TeamDetails = () => {
         return;
       }
 
-      toast.success(data?.message || 'Pull request submitted');
       setShowPRModal(false);
       setSelectedTaskForPR(null);
       setPrForm(emptyPrForm);
       await refreshTaskData();
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to submit PR');
+    } finally {
+      setIsSubmittingPR(false);
     }
   };
 
   const handleReviewPR = async (prId, status) => {
+    setIsReviewingPR(true);
     try {
       const { data } = await api.post(
         `/pull-requests/review/${prId}`,
@@ -444,18 +480,19 @@ const TeamDetails = () => {
         return;
       }
 
-      toast.success(data?.message || 'Pull request reviewed');
       setReviewingPR(null);
       setReviewNote('');
       await refreshTaskData();
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to review PR');
+    } finally {
+      setIsReviewingPR(false);
     }
   };
 
   const handleInvite = async (event) => {
     event.preventDefault();
-
+    setIsInviting(true);
     try {
       const { data } = await api.post(
         `/teams/invitations/send/${teamId}`,
@@ -468,15 +505,17 @@ const TeamDetails = () => {
         return;
       }
 
-      toast.success(data?.message || 'Invitation sent');
       setInviteForm(emptyInviteForm);
       setShowInvite(false);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to send invitation');
+    } finally {
+      setIsInviting(false);
     }
   };
 
   const changeRole = async (memberId, role) => {
+    setIsChangingRole(true);
     try {
       const { data } = await api.patch(
         `/teams/change-role/${teamId}/${memberId}`,
@@ -489,16 +528,17 @@ const TeamDetails = () => {
         return;
       }
 
-      toast.success(data?.message || 'Role updated');
       await fetchMembers();
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to change role');
+    } finally {
+      setIsChangingRole(false);
     }
   };
 
   const handleTransferLeadership = async () => {
     if (!transferTarget?._id) return;
-
+    setIsTransferringLeadership(true);
     try {
       const { data } = await api.post(
         `/teams/transfer-leadership/${teamId}/${transferTarget._id}`,
@@ -511,12 +551,13 @@ const TeamDetails = () => {
         return;
       }
 
-      toast.success(data?.message || 'Leadership transferred');
       setShowTransfer(false);
       setTransferTarget(null);
       await Promise.all([fetchTeam(), fetchMembers()]);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to transfer leadership');
+    } finally {
+      setIsTransferringLeadership(false);
     }
   };
 
@@ -527,6 +568,7 @@ const TeamDetails = () => {
       message: 'Remove this member from the team?',
       intent: 'danger',
       onConfirm: async () => {
+        setIsRemovingMember(true);
         try {
           const { data } = await api.delete(`/teams/remove-member/${teamId}/${memberId}`, {
             headers: authHeaders,
@@ -537,11 +579,12 @@ const TeamDetails = () => {
             return;
           }
 
-          toast.success(data?.message || 'Member removed');
           await fetchMembers();
           await refreshTaskData();
         } catch (error) {
           toast.error(error?.response?.data?.message || 'Unable to remove member');
+        } finally {
+          setIsRemovingMember(false);
         }
       },
     });
@@ -554,6 +597,7 @@ const TeamDetails = () => {
       message: 'Leave this team?',
       intent: 'warning',
       onConfirm: async () => {
+        setIsLeavingTeam(true);
         try {
           const { data } = await api.delete(`/teams/leave/${teamId}`, { headers: authHeaders });
 
@@ -562,10 +606,11 @@ const TeamDetails = () => {
             return;
           }
 
-          toast.success(data?.message || 'Left team successfully');
           navigate('/dashboard/teams');
         } catch (error) {
           toast.error(error?.response?.data?.message || 'Unable to leave team');
+        } finally {
+          setIsLeavingTeam(false);
         }
       },
     });
@@ -578,6 +623,7 @@ const TeamDetails = () => {
       message: 'Delete this team permanently? This action cannot be undone.',
       intent: 'danger',
       onConfirm: async () => {
+        setIsDeletingTeam(true);
         try {
           const { data } = await api.delete(`/teams/delete/${teamId}`, { headers: authHeaders });
 
@@ -586,10 +632,11 @@ const TeamDetails = () => {
             return;
           }
 
-          toast.success(data?.message || 'Team deleted successfully');
           navigate('/dashboard/teams');
         } catch (error) {
           toast.error(error?.response?.data?.message || 'Unable to delete team');
+        } finally {
+          setIsDeletingTeam(false);
         }
       },
     });
@@ -632,21 +679,21 @@ const TeamDetails = () => {
         <div className="flex flex-wrap justify-end gap-2">
           {canManage && (
             <>
-              <button type="button" onClick={() => setShowInvite(true)} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700">
+              <button disabled={isInviting} type="button" onClick={() => setShowInvite(true)} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 disabled:opacity-50">
                 <UserPlus size={16} /> Invite
               </button>
-              <button type="button" onClick={() => setShowCreateTask(true)} className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-3 py-2 text-sm font-semibold text-white">
+              <button disabled={isCreatingTask} type="button" onClick={() => setShowCreateTask(true)} className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
                 <Plus size={16} /> New Task
               </button>
             </>
           )}
           {isLeader ? (
-            <button type="button" onClick={deleteTeam} className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-3 py-2 text-sm font-semibold text-red-600">
-              Delete Team
+            <button disabled={isDeletingTeam} type="button" onClick={deleteTeam} className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 disabled:opacity-50">
+              {isDeletingTeam ? 'Deleting...' : 'Delete Team'}
             </button>
           ) : (
-            <button type="button" onClick={leaveTeam} className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-3 py-2 text-sm font-semibold text-red-600">
-              Leave Team
+            <button disabled={isLeavingTeam} type="button" onClick={leaveTeam} className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 disabled:opacity-50">
+              {isLeavingTeam ? 'Leaving...' : 'Leave Team'}
             </button>
           )}
         </div>
@@ -752,6 +799,7 @@ const TeamDetails = () => {
                           setSelectedTaskForPR(taskId);
                           setShowPRModal(true);
                         }}
+                        isActionPending={isUpdatingStatus || isUpdatingTask || isRestoringTask || isExtendingDueDate || isSubmittingPR}
                       />
                     ))}
 
@@ -783,6 +831,7 @@ const TeamDetails = () => {
                 setTransferTarget(userItem);
                 setShowTransfer(true);
               }}
+              isActionPending={isChangingRole || isRemovingMember || isTransferringLeadership}
             />
           )}
 
@@ -801,6 +850,7 @@ const TeamDetails = () => {
                     setTransferTarget(userItem);
                     setShowTransfer(true);
                   }}
+                  isActionPending={isChangingRole || isRemovingMember || isTransferringLeadership}
                 />
               ))}
           </div>
@@ -934,19 +984,19 @@ const TeamDetails = () => {
                             className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none"
                           />
                           <div className="flex flex-wrap gap-2">
-                            <button type="button" onClick={() => handleReviewPR(pr._id, 'accepted')} className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white">
-                              Accept
+                            <button disabled={isReviewingPR} type="button" onClick={() => handleReviewPR(pr._id, 'accepted')} className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                              {isReviewingPR ? 'Accepting...' : 'Accept'}
                             </button>
-                            <button type="button" onClick={() => handleReviewPR(pr._id, 'rejected')} className="rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white">
-                              Reject
+                            <button disabled={isReviewingPR} type="button" onClick={() => handleReviewPR(pr._id, 'rejected')} className="rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                              {isReviewingPR ? 'Rejecting...' : 'Reject'}
                             </button>
-                            <button type="button" onClick={() => { setReviewingPR(null); setReviewNote(''); }} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600">
+                            <button disabled={isReviewingPR} type="button" onClick={() => { setReviewingPR(null); setReviewNote(''); }} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
                               Cancel
                             </button>
                           </div>
                         </>
                       ) : (
-                        <button type="button" onClick={() => setReviewingPR(pr._id)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700">
+                        <button disabled={isReviewingPR} type="button" onClick={() => setReviewingPR(pr._id)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 disabled:opacity-50">
                           Review PR
                         </button>
                       )}
@@ -989,11 +1039,11 @@ const TeamDetails = () => {
               </select>
             </Field>
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => { setShowCreateTask(false); setTaskForm(emptyTaskForm); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600">
+              <button disabled={isCreatingTask} type="button" onClick={() => { setShowCreateTask(false); setTaskForm(emptyTaskForm); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
                 Cancel
               </button>
-              <button type="submit" className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white">
-                Create Task
+              <button disabled={isCreatingTask} type="submit" className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                {isCreatingTask ? 'Creating...' : 'Create Task'}
               </button>
             </div>
           </form>
@@ -1030,11 +1080,11 @@ const TeamDetails = () => {
               </select>
             </Field>
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setEditingTask(null)} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600">
+              <button disabled={isUpdatingTask} type="button" onClick={() => setEditingTask(null)} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
                 Cancel
               </button>
-              <button type="submit" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">
-                Save Changes
+              <button disabled={isUpdatingTask} type="submit" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                {isUpdatingTask ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </form>
@@ -1051,11 +1101,11 @@ const TeamDetails = () => {
               <textarea value={inviteForm.message} onChange={(e) => setInviteForm((prev) => ({ ...prev, message: e.target.value }))} rows={3} className="w-full rounded-xl border border-gray-200 px-3 py-2" />
             </Field>
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => { setShowInvite(false); setInviteForm(emptyInviteForm); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600">
+              <button disabled={isInviting} type="button" onClick={() => { setShowInvite(false); setInviteForm(emptyInviteForm); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
                 Cancel
               </button>
-              <button type="submit" className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white">
-                Send Invite
+              <button disabled={isInviting} type="submit" className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                {isInviting ? 'Inviting...' : 'Send Invite'}
               </button>
             </div>
           </form>
@@ -1072,11 +1122,11 @@ const TeamDetails = () => {
               <textarea value={prForm.message} onChange={(e) => setPrForm((prev) => ({ ...prev, message: e.target.value }))} rows={3} className="w-full rounded-xl border border-gray-200 px-3 py-2" />
             </Field>
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => { setShowPRModal(false); setSelectedTaskForPR(null); setPrForm(emptyPrForm); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600">
+              <button disabled={isSubmittingPR} type="button" onClick={() => { setShowPRModal(false); setSelectedTaskForPR(null); setPrForm(emptyPrForm); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
                 Cancel
               </button>
-              <button type="submit" className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white">
-                Submit PR
+              <button disabled={isSubmittingPR} type="submit" className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                {isSubmittingPR ? 'Submitting...' : 'Submit PR'}
               </button>
             </div>
           </form>
@@ -1124,11 +1174,11 @@ const TeamDetails = () => {
               Transfer leadership to <strong>{transferTarget.firstName} {transferTarget.lastName}</strong> (@{transferTarget.username}).
             </p>
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => { setShowTransfer(false); setTransferTarget(null); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600">
+              <button disabled={isTransferringLeadership} type="button" onClick={() => { setShowTransfer(false); setTransferTarget(null); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
                 Cancel
               </button>
-              <button type="button" onClick={handleTransferLeadership} className="rounded-xl bg-yellow-500 px-4 py-2 text-sm font-semibold text-white">
-                Confirm Transfer
+              <button disabled={isTransferringLeadership} type="button" onClick={handleTransferLeadership} className="rounded-xl bg-yellow-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                {isTransferringLeadership ? 'Transferring...' : 'Confirm Transfer'}
               </button>
             </div>
           </div>
@@ -1177,7 +1227,7 @@ const Field = ({ label, children }) => (
   </label>
 );
 
-const MemberRow = ({ member, isLeader, isAdmin, onChangeRole, onRemove, onTransfer }) => {
+const MemberRow = ({ member, isLeader, isAdmin, onChangeRole, onRemove, onTransfer, isActionPending }) => {
   const { user: currentUser, authHeaders, navigate } = useContext(AppContext);
   const user = member?.user;
   
@@ -1186,8 +1236,7 @@ const MemberRow = ({ member, isLeader, isAdmin, onChangeRole, onRemove, onTransf
 
   if (!user) return null;
 
-  const visibility = user.privacySettings?.profileVisibility || 'public';
-  const showGreenBadge = visibility === 'public' || visibility === 'team-only';
+  const showGreenBadge = user.privacySettings?.showOnlineStatus !== false;
   const isSelf = currentUser?._id === user._id;
   const isFriend = currentUser?.friends?.includes(user._id);
 
@@ -1197,7 +1246,6 @@ const MemberRow = ({ member, isLeader, isAdmin, onChangeRole, onRemove, onTransf
       setRequestingFriend(true);
       const { data } = await api.post('/invites/invitations/send-request', { username: user.username }, { headers: authHeaders });
       if (data?.success) {
-        toast.success(data.message || 'Friend request sent!');
         setFriendRequested(true);
       }
     } catch (error) {
@@ -1242,30 +1290,30 @@ const MemberRow = ({ member, isLeader, isAdmin, onChangeRole, onRemove, onTransf
         {!isSelf && !isFriend && (
           <button 
              type="button" 
-             disabled={friendRequested || requestingFriend}
+             disabled={friendRequested || requestingFriend || isActionPending}
              onClick={handleAddFriend} 
-             className={`rounded-xl px-3 py-2 text-sm font-semibold shadow-sm transition-colors ${friendRequested ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-100'}`}>
-            <UserPlus size={14} className="inline-block mr-1" /> {friendRequested ? 'Request Sent' : 'Add Friend'}
+             className={`rounded-xl px-3 py-2 text-sm font-semibold shadow-sm transition-colors ${friendRequested || requestingFriend || isActionPending ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-50' : 'bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-100'}`}>
+            <UserPlus size={14} className="inline-block mr-1" /> {requestingFriend ? 'Requesting...' : friendRequested ? 'Request Sent' : 'Add Friend'}
           </button>
         )}
 
         {isLeader && member.role !== 'leader' && (
           <>
-            <select value={member.role} onChange={(e) => onChangeRole(user._id, e.target.value)} className="appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none hover:border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 min-w-[100px]">
+            <select disabled={isActionPending} value={member.role} onChange={(e) => onChangeRole(user._id, e.target.value)} className="appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 outline-none hover:border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 min-w-[100px] disabled:opacity-50">
               <option value="member">Member</option>
               <option value="admin">Admin</option>
             </select>
-            <button type="button" onClick={() => onTransfer(user)} className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+            <button disabled={isActionPending} type="button" onClick={() => onTransfer(user)} className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50">
               <ArrowRightLeft size={14} className="inline-block" /> Transfer
             </button>
-            <button type="button" onClick={() => onRemove(user._id)} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition-colors">
+            <button disabled={isActionPending} type="button" onClick={() => onRemove(user._id)} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition-colors disabled:opacity-50">
               <UserMinus size={14} className="inline-block" /> Remove
             </button>
           </>
         )}
 
         {isAdmin && !isLeader && member.role !== 'leader' && !isSelf && (
-          <button type="button" onClick={() => onRemove(user._id)} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition-colors">
+          <button disabled={isActionPending} type="button" onClick={() => onRemove(user._id)} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition-colors disabled:opacity-50">
             <UserMinus size={14} className="inline-block" /> Remove
           </button>
         )}
@@ -1279,11 +1327,12 @@ const TaskCard = ({
   canManage,
   currentUserId,
   onStatusChange,
-  onDelete,
   onEditTask,
+  onDelete,
   onRestoreTask,
   onExtendDueDate,
   onSubmitPR,
+  isActionPending,
 }) => {
   const isAssignedToMe = task.assignedTo?._id === currentUserId;
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
@@ -1317,41 +1366,45 @@ const TaskCard = ({
 
       <div className="mt-3 flex flex-wrap gap-2">
         {!task.isDeleted && isAssignedToMe && task.status === 'todo' && (
-          <button type="button" onClick={() => onStatusChange(task._id, 'in-progress')} className="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-[10px] font-bold text-blue-700">
+          <button disabled={isActionPending} type="button" onClick={() => onStatusChange(task._id, 'in-progress')} className="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-[10px] font-bold text-blue-700 disabled:opacity-50">
             Start Working
           </button>
         )}
 
         {!task.isDeleted && isAssignedToMe && task.status === 'in-progress' && (
-          <button type="button" onClick={() => onSubmitPR(task._id)} className="rounded-lg border border-purple-200 bg-purple-50 px-2.5 py-1.5 text-[10px] font-bold text-purple-700">
+          <button disabled={isActionPending} type="button" onClick={() => onSubmitPR(task._id)} className="rounded-lg border border-purple-200 bg-purple-50 px-2.5 py-1.5 text-[10px] font-bold text-purple-700 disabled:opacity-50">
             Submit PR
           </button>
         )}
 
         {canManage && !task.isDeleted && (
           <>
-            <button type="button" onClick={() => onEditTask(task)} className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[10px] font-bold text-indigo-700">
-              Edit
-            </button>
-            <button type="button" onClick={() => onExtendDueDate(task._id, task.dueDate)} className="rounded-lg border border-cyan-200 bg-cyan-50 px-2.5 py-1.5 text-[10px] font-bold text-cyan-700">
+            {task.status === 'todo' && (
+              <button disabled={isActionPending} type="button" onClick={() => onEditTask(task)} className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[10px] font-bold text-indigo-700 disabled:opacity-50">
+                Edit
+              </button>
+            )}
+            <button disabled={isActionPending} type="button" onClick={() => onExtendDueDate(task._id, task.dueDate)} className="rounded-lg border border-cyan-200 bg-cyan-50 px-2.5 py-1.5 text-[10px] font-bold text-cyan-700 disabled:opacity-50">
               +1 Day
             </button>
-            <select value={task.status} onChange={(e) => onStatusChange(task._id, e.target.value)} className="rounded-lg border border-gray-200 px-2 py-1 text-[10px] font-bold uppercase text-gray-700">
-              {TASK_STATUSES.map((status) => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
+            {isAssignedToMe && (
+              <select disabled={isActionPending} value={task.status} onChange={(e) => onStatusChange(task._id, e.target.value)} className="rounded-lg border border-gray-200 px-2 py-1 text-[10px] font-bold uppercase text-gray-700 disabled:opacity-50">
+                {TASK_STATUSES.map((status) => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+            )}
           </>
         )}
 
-        {canManage && !task.isDeleted && (
-          <button type="button" onClick={() => onDelete(task._id)} className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-[10px] font-bold text-red-700">
+        {canManage && !task.isDeleted && task.status === 'todo' && (
+          <button disabled={isActionPending} type="button" onClick={() => onDelete(task._id)} className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-[10px] font-bold text-red-700 disabled:opacity-50">
             Delete
           </button>
         )}
 
         {canManage && task.isDeleted && (
-          <button type="button" onClick={() => onRestoreTask(task._id)} className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[10px] font-bold text-emerald-700">
+          <button disabled={isActionPending} type="button" onClick={() => onRestoreTask(task._id)} className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[10px] font-bold text-emerald-700 disabled:opacity-50">
             Restore
           </button>
         )}

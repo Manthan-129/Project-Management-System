@@ -29,11 +29,7 @@ const SettingPage = () => {
                 </div>
               </div>
 
-              <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
-                <NavLink to="/dashboard" className="dd-ghost-button">
-                  Move to Dashboard
-                </NavLink>
-              </div>
+
             </div>
 
             <div className="dd-shell-surface min-h-[calc(100vh-13rem)] overflow-hidden">

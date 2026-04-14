@@ -12,7 +12,7 @@ import {
     TrendingUp,
     Users,
 } from 'lucide-react';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import axiosInstance from '../../api/axiosInstance.js';
 import { AppContext } from '../../context/AppContext.jsx';
@@ -36,7 +36,7 @@ const DashboardOverview = () => {
     const [loading, setLoading] = useState(true);
     const [tasksLoading, setTasksLoading] = useState(false);
 
-    const fetchTeams = async () => {
+    const fetchTeams = useCallback(async () => {
         try {
             const { data } = await axiosInstance.get('/teams/my-teams', {
                 headers: authHeaders,
@@ -61,6 +61,7 @@ const DashboardOverview = () => {
             if (error?.response?.status === 401) {
                 setToken(null);
                 localStorage.removeItem('token');
+                return; // Silent failure for 401
             }
             toast.error(error?.response?.data?.message || 'Unable to fetch teams');
             setTeams([]);
@@ -68,7 +69,7 @@ const DashboardOverview = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [authHeaders, setToken]);
 
     useEffect(() => {
         if (token) {
@@ -76,9 +77,9 @@ const DashboardOverview = () => {
         } else {
             setLoading(false);
         }
-    }, [token]);
+    }, [token, fetchTeams]);
 
-    const fetchTasks = async () => {
+    const fetchTasks = useCallback(async () => {
         if (!selectedTeam) return;
 
         setTasksLoading(true);
@@ -112,6 +113,11 @@ const DashboardOverview = () => {
                 overDue: fetchedStats.overDue || 0,
             });
         } catch (error) {
+            if (error?.response?.status === 401) {
+                setToken(null);
+                localStorage.removeItem('token');
+                return; // Silent failure for 401
+            }
             setAllTasks([]);
             setDeletedTasks([]);
             setTaskByMember({});
@@ -120,13 +126,13 @@ const DashboardOverview = () => {
         } finally {
             setTasksLoading(false);
         }
-    };
+    }, [selectedTeam, authHeaders]);
 
     useEffect(() => {
         if (token && selectedTeam) {
             fetchTasks();
         }
-    }, [token, selectedTeam]);
+    }, [token, selectedTeam, fetchTasks]);
 
     const todayFocus= useMemo(()=> {
         const priorityRank= {High: 3, Medium: 2, Low: 1};

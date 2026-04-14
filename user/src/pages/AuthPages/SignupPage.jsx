@@ -46,7 +46,6 @@ const SignupPage = () => {
                 setOtp('');
                 setOpenOtp(true);
                 setToken(response.token || '');
-                toast.success(response.message || 'OTP sent to email successfully');
                 return;
             }
 
@@ -86,7 +85,6 @@ const SignupPage = () => {
             if(response?.success && response?.token){
                 setToken(response.token);
                 localStorage.setItem('token', response.token);
-                toast.success(response.message || 'Account created successfully');
                 setOpenOtp(false);
                 setOtp('');
                 setFormData(null);

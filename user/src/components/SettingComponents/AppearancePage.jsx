@@ -112,7 +112,6 @@ const AppearancePage = () => {
                 applyThemeToDocument(theme);
                 await fetchCurrentUser();
                 setInitialSettings({ theme, sidebarPosition });
-                toast.success(data.message || 'Appearance settings updated successfully');
             }
         } catch (error) {
             if (error?.response?.status === 401) {

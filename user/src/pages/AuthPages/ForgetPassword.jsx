@@ -36,12 +36,10 @@ const ForgetPassword = () => {
 
             const email = data.email.trim().toLowerCase()
             const { data: response } = await api.post('/auth/forget-password-otp-request', { email })
-
             if (response?.success) {
                 setPendingEmail(email)
                 setOtp('')
                 setOpenOtp(true)
-                toast.success(response.message || 'OTP sent to email for password reset')
                 return
             }
 
@@ -81,7 +79,6 @@ const ForgetPassword = () => {
             if (response?.success && response?.token) {
                 setToken(response.token)
                 localStorage.setItem('token', response.token)
-                toast.success(response.message || 'Password updated successfully')
                 setOpenOtp(false)
                 setOtp('')
                 setPendingEmail('')

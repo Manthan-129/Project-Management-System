@@ -41,13 +41,11 @@ const LoginPage = () => {
                 setPendingCredential(data.loginCredential);
                 setOtp('');
                 setOpenOtp(true);
-                toast.success(response.message || '2FA verification required');
                 return;
             }
 
             if(response?.success && response?.token){
                 setToken(response.token || '');
-                toast.success(response.message || 'Logged in successfully');
                 navigate('/dashboard');
                 return;
             }
@@ -93,7 +91,6 @@ const LoginPage = () => {
                 setOtp('');
                 setTwoFactorToken('');
                 setPendingCredential('');
-                toast.success(response.message || '2FA verified successfully');
                 navigate('/dashboard');
                 return;
             }

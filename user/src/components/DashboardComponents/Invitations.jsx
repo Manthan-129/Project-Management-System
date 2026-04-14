@@ -14,6 +14,7 @@ const Invitations = () => {
     const [tab, setTab]= useState('received');
     const [teamFilter, setTeamFilter]= useState('all');
     const [loading, setLoading]= useState(true);
+    const [isResponding, setIsResponding]= useState(false);
 
     const fetchInvitations = async () => {
         setLoading(true);
@@ -65,6 +66,7 @@ const Invitations = () => {
     }, [token, authHeaders]);
 
     const respondInvitation= async (inviteId, status) => {
+        setIsResponding(true);
         try{
             const { data }= await api.put(`/teams/invitations/respond/${inviteId}`, { status }, { headers: authHeaders });
 
@@ -73,10 +75,11 @@ const Invitations = () => {
                 return;
             }
 
-            toast.success(data?.message || 'Invitation response sent');
             setReceived((prev) => prev.filter(inv => inv._id !== inviteId));
         } catch(error){
             toast.error(error?.response?.data?.message || 'Unable to respond to invitation');
+        } finally {
+            setIsResponding(false);
         }
     };
 
@@ -158,8 +161,12 @@ const Invitations = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <button className="dd-primary-button !px-3 !py-2" onClick={()=> respondInvitation(inv._id, 'accepted')}><Check size= {16} />Accept</button>
-                            <button className="dd-ghost-button !px-3 !py-2 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={()=> respondInvitation(inv._id, 'rejected')}><X size= {16} />Reject</button>
+                            <button disabled={isResponding} className="dd-primary-button !px-3 !py-2 disabled:opacity-50" onClick={()=> respondInvitation(inv._id, 'accepted')}>
+                                {isResponding ? 'Accepting...' : <><Check size= {16} />Accept</>}
+                            </button>
+                            <button disabled={isResponding} className="dd-ghost-button !px-3 !py-2 border-rose-200 text-rose-600 hover:bg-rose-50 disabled:opacity-50" onClick={()=> respondInvitation(inv._id, 'rejected')}>
+                                {isResponding ? 'Rejecting...' : <><X size= {16} />Reject</>}
+                            </button>
                         </div>
                         </div>
                     </div>

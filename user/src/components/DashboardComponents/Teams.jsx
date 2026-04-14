@@ -1,5 +1,5 @@
 import { ChevronRight, Crown, Plus, Shield, Sparkles, Users, X } from 'lucide-react'
-import { useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import api from '../../api/axiosInstance.js'
@@ -24,9 +24,9 @@ const Teams = () => {
 
     const [creating, setCreating]= useState(false);
 
-    const fetchTeams= async ()=>{
+    const fetchTeams = useCallback(async () => {
         setLoading(true);
-        try{
+        try {
             const { data } = await api.get('/teams/my-teams', { headers: authHeaders });
 
             if(!data?.success){
@@ -36,10 +36,11 @@ const Teams = () => {
             }
 
             setTeams(data?.teams || []);
-        }catch(error){
-            if(error?.response?.status === 401){
+        } catch (error) {
+            if (error?.response?.status === 401) {
                 setToken(null);
                 localStorage.removeItem('token');
+                return; // Silent failure for 401
             }
             toast.error(error?.response?.data?.message || 'Unable to fetch teams');
             setTeams([]);
@@ -47,15 +48,15 @@ const Teams = () => {
         } finally {
             setLoading(false);
         }
-    }
+    }, [authHeaders, setToken]);
 
-    useEffect(()=>{
-        if(token){
+    useEffect(() => {
+        if (token) {
             fetchTeams();
         } else {
             setLoading(false);
         }
-    },[token]);
+    }, [token, fetchTeams]);
 
     const createTeam= async (formData)=>{
         setCreating(true);
@@ -67,7 +68,6 @@ const Teams = () => {
                 return;
             }
 
-            toast.success(data?.message || 'Team created successfully');
             setShowCreate(false);
             reset();
             await fetchTeams();
