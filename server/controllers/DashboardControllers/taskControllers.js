@@ -86,8 +86,9 @@ const createTask= async (req, res) => {
                 ...team.members.map((member) => member.user.toString()),
             ]);
 
+            const userIdStr = userId.toString();
             const taskAddedNotifications = Array.from(teamMemberRecipients)
-                .filter((recipientId) => recipientId !== userId)
+                .filter((recipientId) => recipientId !== userIdStr)
                 .map((recipientId) => ({
                     recipient: recipientId,
                     actor: userId,
@@ -121,9 +122,11 @@ const createTask= async (req, res) => {
             text: taskAssignmentNotification.html.replace(/<[^>]+>/g, ''),
         }
 
-        await transporter.sendMail(mailOptions);
+        transporter.sendMail(mailOptions).catch(err => {
+            console.log('Error sending task assignment email:', err.message);
+        });
         }catch(error){
-            console.log('Error sending task assignment email:', error.message);
+            console.log('Error preparing task assignment email:', error.message);
         }
 
         return res.status(201).json({success: true, message: "Task created successfully", task: newTask});
@@ -569,9 +572,11 @@ const updateTask= async (req, res) => {
                 text: emailTemplate.html.replace(/<[^>]+>/g, ''),
             }
 
-            await transporter.sendMail(mailOptions);
+            transporter.sendMail(mailOptions).catch(err => {
+                console.log('Error sending task update email:', err.message);
+            });
         }catch(error){
-            console.log('Error sending task update email:', error.message);
+            console.log('Error preparing task update email:', error.message);
         }
 
         return res.status(200).json({success: true, message: "Task updated successfully", task});
@@ -664,8 +669,9 @@ const deleteTask= async (req, res) => {
             ...team.members.map((member) => member.user.toString()),
         ]);
 
+        const userIdStr = userId.toString();
         const removalNotifications = Array.from(recipients)
-            .filter((recipientId) => recipientId !== userId)
+            .filter((recipientId) => recipientId !== userIdStr)
             .map((recipientId) => ({
                 recipient: recipientId,
                 actor: userId,
@@ -758,48 +764,43 @@ const getWorkspaceTaskBoard= async (req, res) => {
         .sort({createdAt: -1})
         .lean();
 
+        const uid = userId.toString();
+        
         for(const t of tasks){
-            const isAssignedToMe= t.assignedTo._id.toString() === userId.toString();
-
+            const isAssignedToMe = t.assignedTo._id.toString() === uid;
+            const isAssignedByMe = t.assignedBy._id.toString() === uid;
+            const isTeamLeader = t.team.leader.toString() === uid;
+            const member = t.team.members.find(m => m.user.toString() === uid);
+            const isTeamAdmin = member?.role === 'admin';
+            // Each category is independent — no 'continue' to skip others
             if(isAssignedToMe){
                 if(t.isDeleted){
                     assignedToMe.deleted.push(t);
                     assignedToMe.stats.byStatus.deleted++;
-                    continue;
-                }
-                if (assignedToMe[t.status]) {
+                } else if (assignedToMe[t.status]) {
                     assignedToMe[t.status].push(t);
                     assignedToMe.stats.byStatus[t.status]++;
                 }
             }
 
-            const isAssignedByMe= t.assignedBy._id.toString() === userId.toString();
-
-            const isTeamLeader = t.team.leader.toString() === userId.toString();
-
             if(isAssignedByMe && isTeamLeader){
                 if(t.isDeleted){
                     assignedByMeAsLeader.deleted.push(t);
                     assignedByMeAsLeader.stats.byStatus.deleted++;
-                    continue;
+                }else {
+                    assignedByMeAsLeader[t.status].push(t);
+                    assignedByMeAsLeader.stats.byStatus[t.status]++;
                 }
-                assignedByMeAsLeader[t.status].push(t);
-                assignedByMeAsLeader.stats.byStatus[t.status] ++;
             }
 
-            const member = t.team.members.find(
-                m => m.user.toString() === userId.toString()
-            );
-            const isTeamAdmin = member?.role === 'admin';
-
-            if(isAssignedByMe && !isTeamLeader && isTeamAdmin ){
+            if(isAssignedByMe && !isTeamLeader && isTeamAdmin){
                 if(t.isDeleted){
                     assignedByMeAsAdmin.deleted.push(t);
                     assignedByMeAsAdmin.stats.byStatus.deleted++;
-                    continue;
+                } else {
+                    assignedByMeAsAdmin[t.status].push(t);
+                    assignedByMeAsAdmin.stats.byStatus[t.status]++;
                 }
-                assignedByMeAsAdmin[t.status].push(t);
-                assignedByMeAsAdmin.stats.byStatus[t.status] ++;
             }
         }
 
