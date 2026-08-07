@@ -4,13 +4,14 @@ const getMyNotifications= async (req, res) => {
     try{
         const userId= req.userId;
 
-        const notifications= await Notification.find({ recipient: userId })
-        .populate('actor', 'firstName lastName username profilePicture')
-        .sort({createdAt: -1})
-        .limit(100)
-        .lean();
-
-        const unreadCount= await Notification.countDocuments({ recipient: userId, isRead: false });
+        const [notifications, unreadCount] = await Promise.all([
+            Notification.find({ recipient: userId })
+                .populate('actor', 'firstName lastName username profilePicture')
+                .sort({createdAt: -1})
+                .limit(100)
+                .lean(),
+            Notification.countDocuments({ recipient: userId, isRead: false }),
+        ]);
 
         return res.status(200).json({ success: true, message:"Notifications of the User",notifications, unreadCount });
 
