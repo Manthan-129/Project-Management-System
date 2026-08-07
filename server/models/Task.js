@@ -9,13 +9,11 @@ const taskSchema= new mongoose.Schema({
     assignedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
     status: {type: String, enum: ['todo', 'in-progress', 'in-review', 'completed'], default: 'todo'},
     team: {type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true},
-    createdAt: {type: Date, default: Date.now},
     completedAt: {type: Date},
-    isDeleted: {type: Boolean, default: false},
+    isDeleted: {type: Boolean, default: false, index: true},
     deletedAt: {type: Date},
     deletedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     updatedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-    updatedAt: {type: Date, default: Date.now},
 }, {timestamps: true});
 
 

@@ -7,4 +7,5 @@ const OTPSchema= new mongoose.Schema({
     expiresAt: {type: Date, index: {expires: 0}, required: true},
 }, {timestamps: true});
 
+OTPSchema.index({ email: 1, purpose: 1, createdAt: -1 });
 module.exports= mongoose.models.OTP || mongoose.model("OTP", OTPSchema);

@@ -14,7 +14,6 @@ const teamSchema= new mongoose.Schema({
         }
     ],
     memberCount: {type: Number, default: 1},
-    createdAt: {type: Date, default: Date.now},
 }, {timestamps: true});
 
 teamSchema.index({name: 1, leader: 1}, {unique: true}); // prevent duplicate team per user
