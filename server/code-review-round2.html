@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚀 DevDash Backend — Round 2: Deploy & Route Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a28;--surface3:#222235;
+  --border:#2a2a40;--border2:#3a3a55;
+  --text:#e4e4ef;--text2:#9999b5;--text3:#6666805;
+  --red:#ff4d6a;--red-bg:rgba(255,77,106,.08);--red-border:rgba(255,77,106,.25);
+  --orange:#ff9f43;--orange-bg:rgba(255,159,67,.08);--orange-border:rgba(255,159,67,.25);
+  --yellow:#ffd43b;--yellow-bg:rgba(255,212,59,.08);--yellow-border:rgba(255,212,59,.25);
+  --green:#22c55e;--green-bg:rgba(34,197,94,.08);--green-border:rgba(34,197,94,.25);
+  --blue:#3b82f6;--blue-bg:rgba(59,130,246,.08);--blue-border:rgba(59,130,246,.25);
+  --purple:#a855f7;
+  --accent:#6366f1;--accent-glow:rgba(99,102,241,.3);
+  --diff-add-bg:rgba(34,197,94,.12);--diff-add-border:rgba(34,197,94,.3);
+  --diff-del-bg:rgba(255,77,106,.12);--diff-del-border:rgba(255,77,106,.3);
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-height:1.6;overflow-x:hidden}
+.container{max-width:1100px;margin:0 auto;padding:20px 24px 80px}
+
+/* HEADER */
+.header{text-align:center;padding:48px 0 32px;position:relative}
+.header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:300px;
+  background:radial-gradient(ellipse,rgba(99,102,241,.15),transparent 70%);pointer-events:none}
+.header h1{font-size:32px;font-weight:800;background:linear-gradient(135deg,#e4e4ef,#6366f1);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;position:relative}
+.header p{color:var(--text2);font-size:15px}
+
+/* STATS BAR */
+.stats-bar{display:flex;gap:12px;justify-content:center;margin:24px 0 36px;flex-wrap:wrap}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 22px;
+  display:flex;align-items:center;gap:10px;min-width:140px;justify-content:center}
+.stat .num{font-size:24px;font-weight:800}
+.stat .label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.stat.critical .num{color:var(--red)} .stat.high .num{color:var(--orange)}
+.stat.medium .num{color:var(--yellow)} .stat.applied .num{color:var(--green)}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;margin-bottom:28px;justify-content:center;flex-wrap:wrap}
+.filter-btn{background:var(--surface);border:1px solid var(--border);color:var(--text2);padding:8px 16px;
+  border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s}
+.filter-btn:hover{border-color:var(--accent);color:var(--text)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* FILE GROUP */
+.file-group{margin-bottom:32px}
+.file-header{display:flex;align-items:center;gap:12px;padding:14px 18px;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px 12px 0 0;
+  cursor:pointer;user-select:none;position:sticky;top:0;z-index:10}
+.file-header:hover{background:var(--surface2)}
+.file-header .icon{font-size:18px;transition:transform .2s}
+.file-header.collapsed .icon{transform:rotate(-90deg)}
+.file-header .path{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--blue);font-weight:500}
+.file-header .count{margin-left:auto;background:var(--surface3);padding:3px 10px;border-radius:20px;
+  font-size:12px;color:var(--text2);font-weight:600}
+.file-body{border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;overflow:hidden}
+.file-body.hidden{display:none}
+
+/* FIX CARD */
+.fix-card{padding:20px;border-bottom:1px solid var(--border);transition:background .2s}
+.fix-card:last-child{border-bottom:none}
+.fix-card:hover{background:rgba(99,102,241,.03)}
+.fix-card.applied{background:var(--green-bg)}
+.fix-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.severity{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;white-space:nowrap;flex-shrink:0}
+.severity.critical{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.severity.high{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border)}
+.severity.medium{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border)}
+.severity.low{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.severity.info{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border)}
+.fix-title{font-weight:600;font-size:14px;flex:1}
+.fix-desc{color:var(--text2);font-size:13px;margin-bottom:14px;line-height:1.7}
+.fix-line{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);margin-bottom:8px}
+
+/* DIFF VIEW */
+.diff-container{border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:12px}
+.diff-header{display:flex;background:var(--surface3);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.diff-header span{flex:1;padding:8px 14px;color:var(--text2)}
+.diff-header span:first-child{border-right:1px solid var(--border)}
+.diff-header .before-h{color:var(--red)} .diff-header .after-h{color:var(--green)}
+.diff-body{display:flex}
+.diff-side{flex:1;overflow-x:auto}
+.diff-side:first-child{border-right:1px solid var(--border)}
+.diff-line{padding:2px 14px;white-space:pre;min-height:20px;line-height:20px;position:relative}
+.diff-line.removed{background:var(--diff-del-bg);color:var(--red)}
+.diff-line.added{background:var(--diff-add-bg);color:var(--green)}
+.diff-line.context{color:var(--text2);opacity:.6}
+.diff-line .ln{display:inline-block;width:30px;text-align:right;margin-right:12px;color:var(--text3);opacity:.5;user-select:none}
+
+/* ACTION BUTTON */
+.fix-actions{display:flex;align-items:center;gap:10px}
+.btn{padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;
+  transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-apply{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 2px 12px rgba(34,197,94,.3)}
+.btn-apply:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(34,197,94,.4)}
+.btn-undo{background:var(--surface3);color:var(--text2);border:1px solid var(--border)}
+.btn-undo:hover{border-color:var(--red);color:var(--red)}
+.btn-apply-all{background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;padding:12px 28px;font-size:14px;
+  box-shadow:0 4px 20px var(--accent-glow);border-radius:10px;border:none;cursor:pointer;font-weight:700}
+.btn-apply-all:hover{transform:translateY(-2px);box-shadow:0 6px 30px var(--accent-glow)}
+.status-badge{font-size:12px;font-weight:600;padding:4px 12px;border-radius:6px}
+.status-badge.pending{color:var(--text3);background:var(--surface3)}
+.status-badge.approved{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
+
+/* FLOATING BAR */
+.floating-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(18,18,26,.95);backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:center;gap:20px;z-index:100}
+.floating-bar .summary{color:var(--text2);font-size:13px}
+.floating-bar .summary strong{color:var(--green)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border2)}
+
+@media(max-width:768px){
+  .diff-body{flex-direction:column}
+  .diff-side:first-child{border-right:none;border-bottom:1px solid var(--border)}
+  .stats-bar{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🚀 DevDash Backend — Round 2: Deploy & Route Audit</h1>
+    <p>Remaining bugs, Render deployment fixes, and route-level improvements</p>
+  </div>
+  <div class="stats-bar">
+    <div class="stat critical"><div><div class="num" id="stat-critical">0</div><div class="label">Critical</div></div></div>
+    <div class="stat high"><div><div class="num" id="stat-high">0</div><div class="label">High</div></div></div>
+    <div class="stat medium"><div><div class="num" id="stat-medium">0</div><div class="label">Medium</div></div></div>
+    <div class="stat applied"><div><div class="num" id="stat-applied">0</div><div class="label">Approved</div></div></div>
+  </div>
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="critical">🔴 Critical</button>
+    <button class="filter-btn" data-filter="high">🟠 High</button>
+    <button class="filter-btn" data-filter="medium">🟡 Medium</button>
+    <button class="filter-btn" data-filter="low">🟢 Low</button>
+    <button class="filter-btn" data-filter="approved">✅ Approved</button>
+    <button class="filter-btn" data-filter="pending">⏳ Pending</button>
+  </div>
+  <div id="fixes-root"></div>
+</div>
+<div class="floating-bar">
+  <span class="summary"><strong id="approved-count">0</strong> of <span id="total-count">0</span> fixes approved</span>
+  <button class="btn btn-apply" onclick="approveAll()">✅ Approve All</button>
+  <button class="btn btn-undo" onclick="undoAll()">↩ Undo All</button>
+  <button class="btn btn-apply-all" onclick="exportApproved()">📋 Copy Approved List</button>
+</div>
+
+<script>
+const FIXES = [
+{
+  file: "server.js", severity: "critical", line: "L28-58",
+  title: "server.js is broken — routes registered OUTSIDE startServer(), before DB connects",
+  desc: "Routes (L42-54) and app.listen (L56) run immediately at module load — BEFORE startServer() resolves. connectDB() is awaited inside startServer() but routes and listen are outside it. On Render, the server starts accepting requests before MongoDB is connected. Also, 'app' is never declared because it was removed when startServer was added. This crashes on deploy.",
+  before: `const startServer = async () => {
+    connectCloudinary();
+    await connectDB();
+    // Security & parsing middlewares
+    app.use(express.json({ limit: '1mb' }));
+    app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+    app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+    app.use(morgan('dev'));
+    // Apply rate limiting to auth routes
+    app.use('/api/auth', authLimiter);
+}
+
+startServer();
+
+// Routes
+app.get('/', (req, res)=>{
+    console.log("API is working fine");
+    return res.status(200).json({message: "API is working fine!!"});
+});
+
+app.use('/api/auth', authRouter);
+app.use('/api/settings', settingsRouter);
+app.use('/api/invites', inviteRouter);
+app.use('/api/teams', teamRouter);
+app.use('/api/tasks', taskRouter);
+app.use('/api/pull-requests', pullRequestRouter);
+app.use('/api/notifications', notificationRouter);
+
+app.listen(PORT, ()=>{
+    console.log(\`Server is running on port \${PORT}\`);
+})`,
+  after: `const app= express();
+const PORT= process.env.PORT || 5000;
+
+const startServer = async () => {
+    try {
+        connectCloudinary();
+        await connectDB();
+
+        // Security & parsing middlewares
+        app.use(express.json({ limit: '1mb' }));
+        app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+        app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+        app.use(morgan('dev'));
+
+        // Apply rate limiting to auth routes
+        app.use('/api/auth', authLimiter);
+
+        // Health check
+        app.get('/', (req, res) => {
+            return res.status(200).json({ message: 'API is working fine!!' });
+        });
+
+        // Routes
+        app.use('/api/auth', authRouter);
+        app.use('/api/settings', settingsRouter);
+        app.use('/api/invites', inviteRouter);
+        app.use('/api/teams', teamRouter);
+        app.use('/api/tasks', taskRouter);
+        app.use('/api/pull-requests', pullRequestRouter);
+        app.use('/api/notifications', notificationRouter);
+
+        // Global error handler
+        app.use((err, req, res, next) => {
+            console.error('Unhandled error:', err.message);
+            res.status(500).json({ success: false, message: 'Internal server error' });
+        });
+
+        // Graceful shutdown for Render
+        process.on('SIGTERM', () => {
+            console.log('SIGTERM received. Shutting down gracefully...');
+            server.close(() => process.exit(0));
+        });
+
+        const server = app.listen(PORT, () => {
+            console.log(\`Server is running on port \${PORT}\`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+};
+
+startServer();`
+},
+{
+  file: "server.js", severity: "high", line: "L3-4",
+  title: "Missing connectDB and connectCloudinary imports — server crashes on startup",
+  desc: "The current server.js calls connectCloudinary() and connectDB() but never imports them. These were likely in the original file but got lost during refactoring. Without these imports, the server crashes immediately.",
+  before: `const cors= require('cors');
+const morgan = require('morgan');`,
+  after: `const cors= require('cors');
+const morgan = require('morgan');
+const {connectDB} = require('./configs/db');
+const {connectCloudinary} = require('./configs/cloudinary');`
+},
+{
+  file: "server.js", severity: "high", line: "L19-25",
+  title: "Remove duplicate PORT/app declarations — they exist outside startServer",
+  desc: "The variables 'app' and 'PORT' appear to be declared outside startServer but used inside. With the fix, declare them at the top, remove duplicates.",
+  before: `const rateLimit = require('express-rate-limit');
+
+const {authRouter}= require('./routes/AuthRoutes')`,
+  after: `const rateLimit = require('express-rate-limit');
+
+const {connectDB} = require('./configs/db');
+const {connectCloudinary} = require('./configs/cloudinary');
+
+const {authRouter}= require('./routes/AuthRoutes')`
+},
+{
+  file: "package.json", severity: "high", line: "L26",
+  title: "nodemon is in dependencies — gets installed on Render production, wastes resources",
+  desc: "nodemon is a dev-only tool. Render installs all dependencies on deploy. Move it to devDependencies so production builds are leaner and faster.",
+  before: `  "dependencies": {
+    "axios": "^1.13.6",
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.9.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.3.0",
+    "morgan": "^1.10.1",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.2",
+    "nodemon": "^3.1.14",
+    "validator": "^13.15.26"
+  }`,
+  after: `  "dependencies": {
+    "axios": "^1.13.6",
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.9.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.3.0",
+    "morgan": "^1.10.1",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.2",
+    "validator": "^13.15.26"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }`
+},
+{
+  file: "controllers/DashboardControllers/pullRequestControllers.js", severity: "critical", line: "L130-153",
+  title: "BUG: reviewPullRequest re-populate overwrites sender.email — email send fails",
+  desc: "Line 93 populates sender with 'email' included. But line 130 re-populates sender with only 'firstName lastName username profilePicture' (no email). Line 148 then tries to use pullRequest.sender.email which is now undefined. The email either fails or goes to 'undefined'. Also, line 153 still awaits sendMail (blocking response).",
+  before: `        await pullRequest.populate([
+            { path: 'sender', select: 'firstName lastName username profilePicture' },
+            { path: 'reviewedBy', select: 'firstName lastName username profilePicture' },
+            { path: 'task', select: 'title description status priority' },
+        ]);
+
+        // Send email to PR sender about the review result
+        const reviewerInfo= await User.findById(userId).select('firstName lastName');
+
+        const emailTemplate= pullRequestReviewTemplate({
+            taskTitle: pullRequest.task.title,
+            reviewerName: reviewerInfo.firstName + ' ' + reviewerInfo.lastName,
+            status,
+            reviewNote: reviewNote || '',
+        });
+
+        const mailOptions= {
+            from: \`"Support" <\${process.env.SENDER_EMAIL}>\`,
+            to: pullRequest.sender.email,
+            subject: emailTemplate.subject,
+            text: emailTemplate.html.replace(/<[^>]+>/g, ''),
+        }
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({success: true, message: 'Pull request reviewed successfully', pullRequest});`,
+  after: `        // Save sender email BEFORE re-populating (re-populate overwrites it)
+        const senderEmail = pullRequest.sender.email;
+
+        await pullRequest.populate([
+            { path: 'sender', select: 'firstName lastName username profilePicture' },
+            { path: 'reviewedBy', select: 'firstName lastName username profilePicture' },
+            { path: 'task', select: 'title description status priority' },
+        ]);
+
+        // Send email to PR sender about the review result (fire-and-forget)
+        const reviewerInfo= await User.findById(userId).select('firstName lastName').lean();
+
+        const emailTemplate= pullRequestReviewTemplate({
+            taskTitle: pullRequest.task.title,
+            reviewerName: reviewerInfo.firstName + ' ' + reviewerInfo.lastName,
+            status,
+            reviewNote: reviewNote || '',
+        });
+
+        const mailOptions= {
+            from: \`"Support" <\${process.env.SENDER_EMAIL}>\`,
+            to: senderEmail,
+            subject: emailTemplate.subject,
+            text: emailTemplate.html.replace(/<[^>]+>/g, ''),
+        }
+
+        transporter.sendMail(mailOptions).catch(err => {
+            console.error('Error sending PR review email:', err.message);
+        });
+
+        return res.status(200).json({success: true, message: 'Pull request reviewed successfully', pullRequest});`
+},
+{
+  file: "controllers/DashboardControllers/pullRequestControllers.js", severity: "high", line: "L23",
+  title: "BUG: createPullRequest permission check — ObjectId vs String comparison",
+  desc: "task.assignedTo._id.toString() !== userId — userId is a string from JWT decode. toString() on ObjectId returns hex string. This comparison DOES work, but only by accident. Better to be explicit and consistent.",
+  before: `        if(task.assignedTo._id.toString() !== userId){
+            return res.status(403).json({success: false, message: "Only the assigned user can submit a pull request for this task"});
+        }`,
+  after: `        if(task.assignedTo._id.toString() !== userId.toString()){
+            return res.status(403).json({success: false, message: "Only the assigned user can submit a pull request for this task"});
+        }`
+},
+{
+  file: "controllers/DashboardControllers/pullRequestControllers.js", severity: "high", line: "L101",
+  title: "reviewPullRequest: leader permission check — ObjectId vs String type mismatch",
+  desc: "team.leader._id.toString() === userId — userId is a String from JWT. This works because toString() returns hex, but if Express/JWT ever returns an ObjectId, it breaks. Use explicit .toString() on both sides.",
+  before: `        const isLeaderOrAdmin= team.leader._id.toString() === userId || team.members.some(m => m.user.toString() === userId && m.role === 'admin');`,
+  after: `        const userIdStr = userId.toString();
+        const isLeaderOrAdmin= team.leader._id.toString() === userIdStr || team.members.some(m => m.user.toString() === userIdStr && m.role === 'admin');`
+},
+{
+  file: "controllers/SettingsControllers/AccountPageControllers.js", severity: "critical", line: "L183",
+  title: "deleteUserAccount has NO cascade cleanup — orphans teams, tasks, PRs, friends",
+  desc: "Only deletes the User document. Teams where user is leader become leaderless. Tasks assigned to/by user, PullRequests, Invites, TeamInvitations, Notifications, and friends lists on other users all become orphaned/stale.",
+  before: `        await User.findByIdAndDelete(userId);
+
+        return res.status(200).json({success: true, message: "Account deleted successfully"});`,
+  after: `        const Team = require('../../models/Team');
+        const Task = require('../../models/Task');
+        const PullRequest = require('../../models/PullRequest');
+        const Notification = require('../../models/Notification');
+        const Invite = require('../../models/Invite');
+        const TeamInvitation = require('../../models/TeamInvitation');
+
+        // Delete teams led by this user (and their tasks/invitations)
+        const ledTeams = await Team.find({ leader: userId }).select('_id').lean();
+        const ledTeamIds = ledTeams.map(t => t._id);
+        if (ledTeamIds.length > 0) {
+            await Task.deleteMany({ team: { $in: ledTeamIds } });
+            await PullRequest.deleteMany({ team: { $in: ledTeamIds } });
+            await TeamInvitation.deleteMany({ team: { $in: ledTeamIds } });
+            await Team.deleteMany({ _id: { $in: ledTeamIds } });
+        }
+
+        // Remove user from teams they are a member of
+        await Team.updateMany(
+            { 'members.user': userId },
+            { $pull: { members: { user: userId } }, $inc: { memberCount: -1 } }
+        );
+
+        // Clean up social data
+        await User.updateMany({ friends: userId }, { $pull: { friends: userId } });
+        await Invite.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
+        await TeamInvitation.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
+        await Notification.deleteMany({ $or: [{ recipient: userId }, { actor: userId }] });
+        await PullRequest.deleteMany({ sender: userId });
+
+        await User.findByIdAndDelete(userId);
+
+        return res.status(200).json({success: true, message: "Account deleted successfully"});`
+},
+{
+  file: "controllers/SettingsControllers/AccountPageControllers.js", severity: "high", line: "L49-54",
+  title: "updateEmailTemplate() called 3 times — generates HTML 3x redundantly",
+  desc: "Same issue as AuthControllers had before fix — the template function is invoked 3 times with the same args.",
+  before: `        const mailOptions= {
+            from: \`"Support" <\${process.env.SENDER_EMAIL}>\`,
+            to: newEmail,
+            subject: updateEmailTemplate(otp,5).subject,
+            text: updateEmailTemplate(otp,5).html.replace(/<[^>]+>/g, ''),
+            html: updateEmailTemplate(otp,5).html, 
+        }`,
+  after: `        const tmpl = updateEmailTemplate(otp, 5);
+        const mailOptions= {
+            from: \`"Support" <\${process.env.SENDER_EMAIL}>\`,
+            to: newEmail,
+            subject: tmpl.subject,
+            text: tmpl.html.replace(/<[^>]+>/g, ''),
+            html: tmpl.html, 
+        }`
+},
+{
+  file: "controllers/SettingsControllers/ProfilePageControllers.js", severity: "high", line: "L43",
+  title: "Debug console.log left in production code — logs every upload to stdout",
+  desc: "console.log('Cloudinary Upload Result:') left in production path. On Render, this pollutes logs and leaks the Cloudinary URL to anyone with log access.",
+  before: `        console.log("Cloudinary Upload Result:", imageUpload.secure_url);
+
+        user.profilePicture= imageUpload.secure_url;`,
+  after: `        user.profilePicture= imageUpload.secure_url;`
+},
+{
+  file: "controllers/SettingsControllers/ProfilePageControllers.js", severity: "high", line: "L36-46",
+  title: "Multer temp file never cleaned up after Cloudinary upload — disk fills up on Render",
+  desc: "After cloudinary.uploader.upload(imageFile.path), the temp file remains on disk. On Render with ephemeral storage, this wastes limited disk and can cause 'No space left on device' errors.",
+  before: `        if(imageFile){
+        const imageUpload= await cloudinary.uploader.upload(imageFile.path, {
+            folder: "devdash_profiles",
+            resource_type: "image",
+            transformation: [{width: 500, height: 500, crop: "fill"}]
+        })
+
+        user.profilePicture= imageUpload.secure_url;
+        }`,
+  after: `        if(imageFile){
+        const imageUpload= await cloudinary.uploader.upload(imageFile.path, {
+            folder: "devdash_profiles",
+            resource_type: "image",
+            transformation: [{width: 500, height: 500, crop: "fill"}]
+        })
+
+        // Clean up temp file after upload
+        const fs = require('fs');
+        fs.unlink(imageFile.path, () => {});
+
+        user.profilePicture= imageUpload.secure_url;
+        }`
+},
+{
+  file: "controllers/SettingsControllers/SecurityPageControllers.js", severity: "medium", line: "L72, L120, L164, L213",
+  title: "All 2FA controllers fetch full User document — only need 1-2 fields each",
+  desc: "User.findById(userId) loads entire user including friends[], integrations, settings. Add .select() for only needed fields.",
+  before: `        const user= await User.findById(userId);
+
+        if(!user){
+            return res.status(404).json({success: false, message: "User not found"});
+        }
+
+        if(user.twoFactorEnabled){
+            return res.status(400).json({success: false, message: "Two-factor authentication is already enabled"});
+        }`,
+  after: `        const user= await User.findById(userId).select('email twoFactorEnabled');
+
+        if(!user){
+            return res.status(404).json({success: false, message: "User not found"});
+        }
+
+        if(user.twoFactorEnabled){
+            return res.status(400).json({success: false, message: "Two-factor authentication is already enabled"});
+        }`
+},
+{
+  file: "controllers/SettingsControllers/SecurityPageControllers.js", severity: "medium", line: "L97-103, L189-195",
+  title: "2FA email sending blocks API response — adds latency to security endpoints",
+  desc: "Both setupTwoFactorAuthentication and disableTwoFactorAuthentication await transporter.sendMail(). Fire-and-forget instead.",
+  before: `        await transporter.sendMail({
+            from: \`"Security" <\${process.env.SENDER_EMAIL}>\`,
+            to: user.email,
+            subject: template.subject,
+            text: template.html.replace(/<[^>]+>/g, ''),
+            html: template.html,
+        });
+
+        return res.status(200).json({success: true, message: "OTP sent to email for 2FA setup"});`,
+  after: `        transporter.sendMail({
+            from: \`"Security" <\${process.env.SENDER_EMAIL}>\`,
+            to: user.email,
+            subject: template.subject,
+            text: template.html.replace(/<[^>]+>/g, ''),
+            html: template.html,
+        }).catch(err => console.error('Error sending 2FA email:', err.message));
+
+        return res.status(200).json({success: true, message: "OTP sent to email for 2FA setup"});`
+},
+{
+  file: "controllers/DashboardControllers/teamControllers.js", severity: "high", line: "L604-606",
+  title: "deleteTeam: Missing cascade delete for PullRequests and Notifications",
+  desc: "When a team is deleted, TeamInvitations and Tasks are cleaned up, but PullRequests and Notifications referencing that team remain orphaned in the database.",
+  before: `        await TeamInvitation.deleteMany({team: teamId});
+        await Task.deleteMany({team: teamId});
+
+        return res.status(200).json({success: true, message: 'Team deleted successfully'});`,
+  after: `        const PullRequest = require('../../models/PullRequest');
+        const Notification = require('../../models/Notification');
+
+        await Promise.all([
+            TeamInvitation.deleteMany({team: teamId}),
+            Task.deleteMany({team: teamId}),
+            PullRequest.deleteMany({team: teamId}),
+            Notification.deleteMany({'metadata.teamId': teamId}),
+        ]);
+
+        return res.status(200).json({success: true, message: 'Team deleted successfully'});`
+},
+{
+  file: "controllers/DashboardControllers/teamControllers.js", severity: "medium", line: "L458",
+  title: "allMemberOfTeam: Broken membership check — boolean vs object comparison",
+  desc: "team.members.find(...) || team.leader._id.toString() === userIdStr — when user IS the leader, this evaluates to true (boolean). Then if(!member) is !true = false. Works by accident but is fragile. Fix: use explicit boolean.",
+  before: `        const member= team.members.find(m => m.user._id.toString() === userIdStr) || team.leader._id.toString() === userIdStr;
+
+        if(!member){
+            return res.status(403).json({success: false, message: 'Access denied' });
+        }`,
+  after: `        const isMember = team.members.some(m => m.user._id.toString() === userIdStr) || team.leader._id.toString() === userIdStr;
+
+        if(!isMember){
+            return res.status(403).json({success: false, message: 'Access denied' });
+        }`
+},
+{
+  file: "controllers/DashboardControllers/teamControllers.js", severity: "medium", line: "L200",
+  title: "sendTeamInvitation: team.members.map(m => m.user) passes ObjectIds to email template — member list always empty",
+  desc: "The teamInvitationTemplate expects objects with .name/.username, but receives raw ObjectIds. The 'Current Members' section in the invitation email renders as empty strings.",
+  before: `        const teamInvitationData= teamInvitationTemplate({
+            senderName: sender.firstName + ' ' + sender.lastName,
+            senderUsername: sender.username,
+            teamName: team.name,
+            teamDescription: team.description,
+            members: team.members.map(m => m.user),
+            customMessage: trimmedMessage
+        });`,
+  after: `        // Populate members for the email template
+        const populatedTeam = await Team.findById(teamId)
+            .select('members')
+            .populate('members.user', 'firstName lastName username')
+            .lean();
+        
+        const memberNames = (populatedTeam?.members || []).map(m => ({
+            name: m.user?.firstName + ' ' + m.user?.lastName,
+            username: m.user?.username,
+        }));
+
+        const teamInvitationData= teamInvitationTemplate({
+            senderName: sender.firstName + ' ' + sender.lastName,
+            senderUsername: sender.username,
+            teamName: team.name,
+            teamDescription: team.description,
+            members: memberNames,
+            customMessage: trimmedMessage
+        });`
+},
+{
+  file: "controllers/DashboardControllers/inviteControllers.js", severity: "medium", line: "L54-62",
+  title: "respondToFriendRequest: Two sequential User.updateOne calls — can be parallelized",
+  desc: "Both friend additions are independent updates. Run them concurrently with Promise.all.",
+  before: `        if(status === 'accepted'){
+            await User.updateOne(
+                {_id: invitation.sender._id},
+                {$addToSet: {friends: invitation.receiver._id}},
+            )
+            await User.updateOne(
+                {_id: invitation.receiver._id},
+                {$addToSet: {friends: invitation.sender._id}},
+            )
+        }`,
+  after: `        if(status === 'accepted'){
+            await Promise.all([
+                User.updateOne(
+                    {_id: invitation.sender._id},
+                    {$addToSet: {friends: invitation.receiver._id}},
+                ),
+                User.updateOne(
+                    {_id: invitation.receiver._id},
+                    {$addToSet: {friends: invitation.sender._id}},
+                ),
+            ]);
+        }`
+},
+{
+  file: "controllers/DashboardControllers/inviteControllers.js", severity: "medium", line: "L211-212",
+  title: "unfriendUser: Two sequential User.findById calls — second only needs .exists()",
+  desc: "Loads full user for userId (with friends array) and full friend document. The friend lookup only needs existence check. The user lookup only needs friends array.",
+  before: `        const user= await User.findById(userId).select('_id friends');
+        const friend= await User.findById(friendId).select('_id');
+
+        if(!friend){
+            return res.status(404).json({success: false, message: 'User not found'});
+        }`,
+  after: `        const [user, friendExists] = await Promise.all([
+            User.findById(userId).select('friends').lean(),
+            User.exists({_id: friendId}),
+        ]);
+
+        if(!friendExists){
+            return res.status(404).json({success: false, message: 'User not found'});
+        }`
+},
+{
+  file: "controllers/DashboardControllers/inviteControllers.js", severity: "medium", line: "L224-232",
+  title: "unfriendUser: Two sequential User.updateOne calls — parallelize with Promise.all",
+  desc: "Both $pull operations are independent. Run concurrently.",
+  before: `        await User.updateOne(
+            {_id: userId},
+            {$pull: {friends: friendId}},
+        )
+
+        await User.updateOne(
+            {_id: friendId},
+            {$pull: {friends: userId}},
+        )`,
+  after: `        await Promise.all([
+            User.updateOne({_id: userId}, {$pull: {friends: friendId}}),
+            User.updateOne({_id: friendId}, {$pull: {friends: userId}}),
+        ]);`
+},
+{
+  file: "controllers/DashboardControllers/taskControllers.js", severity: "medium", line: "L48, L458",
+  title: "createTask manual updatedAt is silently overwritten by Mongoose timestamps",
+  desc: "task.updatedAt = new Date() in createTask and updateTaskStatus is immediately overwritten by Mongoose's timestamps:true on .save(). These lines do nothing. Remove them.",
+  before: `        task.updatedAt= new Date();
+        if(status === 'completed'){
+            task.completedAt= new Date();
+        }`,
+  after: `        // updatedAt is auto-managed by Mongoose {timestamps: true}
+        if(status === 'completed'){
+            task.completedAt= new Date();
+        }`
+},
+{
+  file: "controllers/DashboardControllers/taskControllers.js", severity: "medium", line: "L551-552",
+  title: "updateTask: Same manual updatedAt issue — silently overwritten",
+  desc: "task.updatedBy is fine (custom field). But task.updatedAt = new Date() is overwritten by timestamps:true.",
+  before: `        task.updatedBy= userId;
+        task.updatedAt= new Date();
+
+        await task.save();`,
+  after: `        task.updatedBy= userId;
+        // updatedAt is auto-managed by Mongoose {timestamps: true}
+
+        await task.save();`
+},
+{
+  file: "controllers/DashboardControllers/taskControllers.js", severity: "medium", line: "L619-620",
+  title: "restoreTask: Same manual updatedAt issue",
+  desc: "task.updatedAt = new Date() in restoreTask is silently overwritten by timestamps:true.",
+  before: `        task.updatedBy= userId;
+        task.updatedAt= new Date();
+        task.status= 'todo';`,
+  after: `        task.updatedBy= userId;
+        // updatedAt is auto-managed by Mongoose {timestamps: true}
+        task.status= 'todo';`
+},
+{
+  file: "controllers/DashboardControllers/taskControllers.js", severity: "medium", line: "L663-664",
+  title: "deleteTask: Same manual updatedAt issue",
+  desc: "task.updatedAt = new Date() in deleteTask is silently overwritten by timestamps:true.",
+  before: `        task.updatedBy= userId;
+        task.updatedAt= new Date();
+        await task.save();`,
+  after: `        task.updatedBy= userId;
+        // updatedAt is auto-managed by Mongoose {timestamps: true}
+        await task.save();`
+},
+{
+  file: "controllers/AuthControllers.js", severity: "medium", line: "L78, L199, L334",
+  title: "Auth OTP emails block API response — adds 200-2000ms latency on login/register/forgot flows",
+  desc: "sendRegistrationOTP, loginUser (2FA OTP), and forgetPasswordOTPRequest all await transporter.sendMail(). These are user-facing flows where latency is critical. Fire-and-forget.",
+  before: `        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({success: true, message: "OTP sent to email successfully"});`,
+  after: `        transporter.sendMail(mailOptions).catch(err => {
+            console.error('Error sending OTP email:', err.message);
+        });
+
+        return res.status(200).json({success: true, message: "OTP sent to email successfully"});`
+},
+{
+  file: "controllers/SettingsControllers/AccountPageControllers.js", severity: "medium", line: "L57",
+  title: "updateUserEmailOTPRequest: Email send blocks response",
+  desc: "await transporter.sendMail() blocks the response. Fire-and-forget.",
+  before: `        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({success: true, message: "OTP sent to new email for verification"});`,
+  after: `        transporter.sendMail(mailOptions).catch(err => {
+            console.error('Error sending email update OTP:', err.message);
+        });
+
+        return res.status(200).json({success: true, message: "OTP sent to new email for verification"});`
+},
+{
+  file: "routes/DashboardRoutes/TeamRoutes.js", severity: "medium", line: "L13",
+  title: "Route ordering bug — GET /:teamId catches /my-teams, /invitations/*, etc.",
+  desc: "teamRouter.get('/:teamId') on L13 is a wildcard param route. It's defined BEFORE /invitations/received (L15), /invitations/sent-by-me (L16), etc. Express matches routes in order, so GET /invitations/received would match /:teamId with teamId='invitations'. The controller would then try Team.findOne({_id: 'invitations'}) which fails with a CastError. This may work because the middleware validates ObjectId format, but it's fragile.",
+  before: `teamRouter.post('/create', createTeam);
+teamRouter.get('/my-teams', getMyTeams);
+teamRouter.get('/:teamId', getTeamDetails);
+teamRouter.post('/invitations/send/:teamId', sendTeamInvitation);
+teamRouter.get('/invitations/received', getReceivedTeamInvitations);
+teamRouter.get('/invitations/sent-by-me', getSentInvitationsByMe);
+teamRouter.get('/invitations/sent-by-team', getSentInvitationsByTeam);`,
+  after: `teamRouter.post('/create', createTeam);
+teamRouter.get('/my-teams', getMyTeams);
+// Static routes MUST come before dynamic /:param routes
+teamRouter.get('/invitations/received', getReceivedTeamInvitations);
+teamRouter.get('/invitations/sent-by-me', getSentInvitationsByMe);
+teamRouter.get('/invitations/sent-by-team', getSentInvitationsByTeam);
+teamRouter.post('/invitations/send/:teamId', sendTeamInvitation);
+teamRouter.put('/invitations/respond/:invitationId', respondToTeamInvitation);
+teamRouter.get('/:teamId', getTeamDetails);`
+},
+{
+  file: "controllers/DashboardControllers/teamControllers.js", severity: "medium", line: "L124",
+  title: "sendTeamInvitation: username.trim() crashes if username is undefined/null",
+  desc: "const trimmedUsername = username.trim() — if username is not provided in req.body, this throws 'Cannot read property trim of undefined'. The null-check happens AFTER the trim.",
+  before: `        const trimmedUsername= username.trim();
+        const trimmedMessage= message ? message.trim() : '';
+
+        if(!trimmedUsername){
+            return res.status(400).json({success: false, message: 'Username is required' });
+        }`,
+  after: `        const trimmedUsername= username?.trim();
+        const trimmedMessage= message ? message.trim() : '';
+
+        if(!trimmedUsername){
+            return res.status(400).json({success: false, message: 'Username is required' });
+        }`
+},
+{
+  file: "controllers/DashboardControllers/teamControllers.js", severity: "medium", line: "L18-19",
+  title: "createTeam: name.trim() and title.trim() crash if undefined",
+  desc: "const trimmedName = name.trim() — if name is not provided, this throws TypeError. The null-check happens after trim.",
+  before: `        const trimmedName= name.trim();
+        const trimmedTitle= title.trim();
+        const trimmedDescription= description ? description.trim() : '';
+
+        if(!trimmedName || !trimmedTitle){`,
+  after: `        const trimmedName= name?.trim();
+        const trimmedTitle= title?.trim();
+        const trimmedDescription= description ? description.trim() : '';
+
+        if(!trimmedName || !trimmedTitle){`
+}
+];
+
+// ========== STATE ==========
+const state = FIXES.map((f, i) => ({ ...f, id: i, approved: false }));
+
+function getStats() {
+  const c = { critical: 0, high: 0, medium: 0, low: 0, info: 0, approved: 0 };
+  state.forEach(f => { c[f.severity]++; if (f.approved) c.approved++; });
+  return c;
+}
+
+function updateStats() {
+  const s = getStats();
+  document.getElementById('stat-critical').textContent = s.critical;
+  document.getElementById('stat-high').textContent = s.high;
+  document.getElementById('stat-medium').textContent = s.medium;
+  document.getElementById('stat-applied').textContent = s.approved;
+  document.getElementById('approved-count').textContent = s.approved;
+  document.getElementById('total-count').textContent = state.length;
+}
+
+function toggleApproval(id) {
+  state[id].approved = !state[id].approved;
+  const card = document.querySelector(\`[data-fix-id="\${id}"]\`);
+  card.classList.toggle('applied', state[id].approved);
+  const btn = card.querySelector('.action-btn');
+  if (state[id].approved) {
+    btn.className = 'btn btn-undo action-btn';
+    btn.innerHTML = '↩ Undo';
+  } else {
+    btn.className = 'btn btn-apply action-btn';
+    btn.innerHTML = '✅ Apply Fix';
+  }
+  const badge = card.querySelector('.status-badge');
+  badge.className = 'status-badge ' + (state[id].approved ? 'approved' : 'pending');
+  badge.textContent = state[id].approved ? '✅ Approved' : '⏳ Pending';
+  updateStats();
+}
+
+function approveAll() { state.forEach((f, i) => { if (!f.approved) toggleApproval(i); }); }
+function undoAll() { state.forEach((f, i) => { if (f.approved) toggleApproval(i); }); }
+
+function exportApproved() {
+  const list = state.filter(f => f.approved).map(f => \`[\${f.severity.toUpperCase()}] \${f.file} — \${f.title}\`).join('\\n');
+  navigator.clipboard.writeText(list || 'No fixes approved yet.');
+  const btn = document.querySelector('.btn-apply-all');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '✅ Copied!';
+  setTimeout(() => btn.innerHTML = orig, 1500);
+}
+
+function buildDiff(before, after) {
+  const bLines = before.split('\\n');
+  const aLines = after.split('\\n');
+  let leftHTML = '', rightHTML = '';
+  const maxLen = Math.max(bLines.length, aLines.length);
+  for (let i = 0; i < maxLen; i++) {
+    const bLine = bLines[i];
+    const aLine = aLines[i];
+    const bExists = i < bLines.length;
+    const aExists = i < aLines.length;
+    const same = bExists && aExists && bLine === aLine;
+    if (same) {
+      leftHTML += \`<div class="diff-line context"><span class="ln">\${i+1}</span>\${escHtml(bLine)}</div>\`;
+      rightHTML += \`<div class="diff-line context"><span class="ln">\${i+1}</span>\${escHtml(aLine)}</div>\`;
+    } else {
+      leftHTML += bExists
+        ? \`<div class="diff-line removed"><span class="ln">\${i+1}</span>\${escHtml(bLine)}</div>\`
+        : \`<div class="diff-line"><span class="ln"></span></div>\`;
+      rightHTML += aExists
+        ? \`<div class="diff-line added"><span class="ln">\${i+1}</span>\${escHtml(aLine)}</div>\`
+        : \`<div class="diff-line"><span class="ln"></span></div>\`;
+    }
+  }
+  return \`<div class="diff-container">
+    <div class="diff-header"><span class="before-h">❌ Before (Problem)</span><span class="after-h">✅ After (Fix)</span></div>
+    <div class="diff-body"><div class="diff-side">\${leftHTML}</div><div class="diff-side">\${rightHTML}</div></div>
+  </div>\`;
+}
+
+function escHtml(s) {
+  if (s === undefined) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function render() {
+  const groups = {};
+  state.forEach(f => { if (!groups[f.file]) groups[f.file] = []; groups[f.file].push(f); });
+  let html = '';
+  for (const [file, fixes] of Object.entries(groups)) {
+    html += \`<div class="file-group" data-file="\${file}">
+      <div class="file-header" onclick="this.classList.toggle('collapsed');this.nextElementSibling.classList.toggle('hidden')">
+        <span class="icon">▼</span>
+        <span class="path">\${file}</span>
+        <span class="count">\${fixes.length} issue\${fixes.length>1?'s':''}</span>
+      </div>
+      <div class="file-body">\`;
+    fixes.forEach(f => {
+      html += \`<div class="fix-card" data-fix-id="\${f.id}" data-severity="\${f.severity}">
+        <div class="fix-top">
+          <span class="severity \${f.severity}">\${f.severity}</span>
+          <span class="fix-title">\${escHtml(f.title)}</span>
+          <span class="status-badge pending">⏳ Pending</span>
+        </div>
+        <div class="fix-desc">\${escHtml(f.desc)}</div>
+        <div class="fix-line">📍 \${escHtml(f.file)} : \${f.line}</div>
+        \${buildDiff(f.before, f.after)}
+        <div class="fix-actions">
+          <button class="btn btn-apply action-btn" onclick="toggleApproval(\${f.id})">✅ Apply Fix</button>
+        </div>
+      </div>\`;
+    });
+    html += '</div></div>';
+  }
+  document.getElementById('fixes-root').innerHTML = html;
+  updateStats();
+}
+
+// FILTERING
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('.fix-card').forEach(card => {
+      const sev = card.dataset.severity;
+      const isApproved = card.classList.contains('applied');
+      let show = true;
+      if (filter === 'approved') show = isApproved;
+      else if (filter === 'pending') show = !isApproved;
+      else if (filter !== 'all') show = sev === filter;
+      card.style.display = show ? '' : 'none';
+    });
+    // Show/hide file groups that have no visible cards
+    document.querySelectorAll('.file-group').forEach(g => {
+      const visible = g.querySelectorAll('.fix-card:not([style*="display: none"])');
+      g.style.display = visible.length > 0 ? '' : 'none';
+    });
+  });
+});
+
+render();
+</script>
+</body>
+</html>

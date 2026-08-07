@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚀 DevDash Backend — Master Code Review & Optimization Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a28;--surface3:#222235;
+  --border:#2a2a40;--border2:#3a3a55;
+  --text:#e4e4ef;--text2:#9999b5;--text3:#666680;
+  --red:#ff4d6a;--red-bg:rgba(255,77,106,.08);--red-border:rgba(255,77,106,.25);
+  --orange:#ff9f43;--orange-bg:rgba(255,159,67,.08);--orange-border:rgba(255,159,67,.25);
+  --yellow:#ffd43b;--yellow-bg:rgba(255,212,59,.08);--yellow-border:rgba(255,212,59,.25);
+  --green:#22c55e;--green-bg:rgba(34,197,94,.08);--green-border:rgba(34,197,94,.25);
+  --blue:#3b82f6;--blue-bg:rgba(59,130,246,.08);--blue-border:rgba(59,130,246,.25);
+  --purple:#a855f7;
+  --accent:#6366f1;--accent-glow:rgba(99,102,241,.3);
+  --diff-add-bg:rgba(34,197,94,.12);--diff-add-border:rgba(34,197,94,.3);
+  --diff-del-bg:rgba(255,77,106,.12);--diff-del-border:rgba(255,77,106,.3);
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-height:1.6;overflow-x:hidden}
+.container{max-width:1100px;margin:0 auto;padding:20px 24px 80px}
+
+.header{text-align:center;padding:48px 0 32px;position:relative}
+.header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:300px;
+  background:radial-gradient(ellipse,rgba(99,102,241,.15),transparent 70%);pointer-events:none}
+.header h1{font-size:32px;font-weight:800;background:linear-gradient(135deg,#e4e4ef,#6366f1);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;position:relative}
+.header p{color:var(--text2);font-size:15px}
+
+.stats-bar{display:flex;gap:12px;justify-content:center;margin:24px 0 36px;flex-wrap:wrap}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 22px;
+  display:flex;align-items:center;gap:10px;min-width:140px;justify-content:center}
+.stat .num{font-size:24px;font-weight:800}
+.stat .label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.stat.critical .num{color:var(--red)} .stat.high .num{color:var(--orange)}
+.stat.medium .num{color:var(--yellow)} .stat.applied .num{color:var(--green)}
+
+.filter-bar{display:flex;gap:8px;margin-bottom:28px;justify-content:center;flex-wrap:wrap}
+.filter-btn{background:var(--surface);border:1px solid var(--border);color:var(--text2);padding:8px 16px;
+  border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s}
+.filter-btn:hover{border-color:var(--accent);color:var(--text)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.file-group{margin-bottom:32px}
+.file-header{display:flex;align-items:center;gap:12px;padding:14px 18px;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px 12px 0 0;
+  cursor:pointer;user-select:none;position:sticky;top:0;z-index:10}
+.file-header:hover{background:var(--surface2)}
+.file-header .icon{font-size:18px;transition:transform .2s}
+.file-header.collapsed .icon{transform:rotate(-90deg)}
+.file-header .path{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--blue);font-weight:500}
+.file-header .count{margin-left:auto;background:var(--surface3);padding:3px 10px;border-radius:20px;
+  font-size:12px;color:var(--text2);font-weight:600}
+.file-body{border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;overflow:hidden}
+.file-body.hidden{display:none}
+
+.fix-card{padding:20px;border-bottom:1px solid var(--border);transition:background .2s}
+.fix-card:last-child{border-bottom:none}
+.fix-card:hover{background:rgba(99,102,241,.03)}
+.fix-card.applied{background:var(--green-bg)}
+.fix-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.severity{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;white-space:nowrap;flex-shrink:0}
+.severity.critical{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.severity.high{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border)}
+.severity.medium{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border)}
+.severity.low{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.fix-title{font-weight:600;font-size:14px;flex:1}
+
+.why-box { background: var(--surface3); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 4px 8px 8px 4px; margin-bottom: 14px; }
+.why-box strong { color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+.why-desc { color: var(--text2); font-size: 13px; line-height: 1.6; }
+
+.fix-line{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);margin-bottom:8px}
+
+.diff-container{border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:12px}
+.diff-header{display:flex;background:var(--surface3);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.diff-header span{flex:1;padding:8px 14px;color:var(--text2)}
+.diff-header span:first-child{border-right:1px solid var(--border)}
+.diff-header .before-h{color:var(--red)} .diff-header .after-h{color:var(--green)}
+.diff-body{display:flex}
+.diff-side{flex:1;overflow-x:auto}
+.diff-side:first-child{border-right:1px solid var(--border)}
+.diff-line{padding:2px 14px;white-space:pre;min-height:20px;line-height:20px;position:relative}
+.diff-line.removed{background:var(--diff-del-bg);color:var(--red)}
+.diff-line.added{background:var(--diff-add-bg);color:var(--green)}
+.diff-line.context{color:var(--text2);opacity:.6}
+.diff-line .ln{display:inline-block;width:30px;text-align:right;margin-right:12px;color:var(--text3);opacity:.5;user-select:none}
+
+.fix-actions{display:flex;align-items:center;gap:10px}
+.btn{padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;
+  transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-apply{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 2px 12px rgba(34,197,94,.3)}
+.btn-apply:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(34,197,94,.4)}
+.btn-undo{background:var(--surface3);color:var(--text2);border:1px solid var(--border)}
+.btn-undo:hover{border-color:var(--red);color:var(--red)}
+.btn-apply-all{background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;padding:12px 28px;font-size:14px;
+  box-shadow:0 4px 20px var(--accent-glow);border-radius:10px;border:none;cursor:pointer;font-weight:700}
+.btn-apply-all:hover{transform:translateY(-2px);box-shadow:0 6px 30px var(--accent-glow)}
+.status-badge{font-size:12px;font-weight:600;padding:4px 12px;border-radius:6px}
+.status-badge.pending{color:var(--text3);background:var(--surface3)}
+.status-badge.approved{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
+
+.floating-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(18,18,26,.95);backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:center;gap:20px;z-index:100}
+.floating-bar .summary{color:var(--text2);font-size:13px}
+.floating-bar .summary strong{color:var(--green)}
+
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border2)}
+
+@media(max-width:768px){
+  .diff-body{flex-direction:column}
+  .diff-side:first-child{border-right:none;border-bottom:1px solid var(--border)}
+  .stats-bar{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🚀 DevDash Backend — Master Code Review & Optimization Hub</h1>
+    <p>Complete audit of all bugs, security flaws, Render deployment fixes, and latency bottlenecks with reasons for code removal</p>
+  </div>
+  <div class="stats-bar">
+    <div class="stat critical"><div><div class="num" id="stat-critical">0</div><div class="label">Critical</div></div></div>
+    <div class="stat high"><div><div class="num" id="stat-high">0</div><div class="label">High</div></div></div>
+    <div class="stat medium"><div><div class="num" id="stat-medium">0</div><div class="label">Medium</div></div></div>
+    <div class="stat applied"><div><div class="num" id="stat-applied">0</div><div class="label">Approved</div></div></div>
+  </div>
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="critical">🔴 Critical</button>
+    <button class="filter-btn" data-filter="high">🟠 High</button>
+    <button class="filter-btn" data-filter="medium">🟡 Medium</button>
+    <button class="filter-btn" data-filter="low">🟢 Low</button>
+    <button class="filter-btn" data-filter="approved">✅ Approved</button>
+    <button class="filter-btn" data-filter="pending">⏳ Pending</button>
+  </div>
+  <div id="fixes-root"></div>
+</div>
+<div class="floating-bar">
+  <span class="summary"><strong id="approved-count">0</strong> of <span id="total-count">0</span> fixes approved</span>
+  <button class="btn btn-apply" onclick="approveAll()">✅ Approve All</button>
+  <button class="btn btn-undo" onclick="undoAll()">↩ Undo All</button>
+  <button class="btn btn-apply-all" onclick="exportApproved()">📋 Copy Approved Code</button>
+</div>
+
+<script>
+const FIXES = [
+  {
+    "id": 1,
+    "file": "server.js",
+    "severity": "critical",
+    "line": "L28-58",
+    "title": "server.js is broken — routes & listen running OUTSIDE startServer()",
+    "desc": "The old code registered middleware, routes, and `app.listen()` synchronously at module load time before `connectDB()` inside `startServer()` finished connecting to MongoDB. On Render deployment, the server accepted incoming traffic before DB connection was ready.",
+    "before": "const startServer = async () => {\n    connectCloudinary();\n    await connectDB();\n    app.use(express.json({ limit: '1mb' }));\n    app.use(express.urlencoded({ extended: true, limit: '1mb' }));\n    app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));\n    app.use(morgan('dev'));\n    app.use('/api/auth', authLimiter);\n}\nstartServer();\n\napp.get('/', (req, res)=>{ ... });\napp.use('/api/auth', authRouter);\n...\napp.listen(PORT, ()=>{ ... })",
+    "after": "const app= express();\nconst PORT= process.env.PORT || 5000;\n\nconst startServer = async () => {\n    try {\n        connectCloudinary();\n        await connectDB();\n\n        app.use(express.json({ limit: '1mb' }));\n        app.use(express.urlencoded({ extended: true, limit: '1mb' }));\n        app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));\n        app.use(morgan('dev'));\n        app.use('/api/auth', authLimiter);\n\n        app.get('/', (req, res) => res.status(200).json({ message: 'API is working fine!!' }));\n        app.use('/api/auth', authRouter);\n        app.use('/api/settings', settingsRouter);\n        app.use('/api/invites', inviteRouter);\n        app.use('/api/teams', teamRouter);\n        app.use('/api/tasks', taskRouter);\n        app.use('/api/pull-requests', pullRequestRouter);\n        app.use('/api/notifications', notificationRouter);\n\n        app.use((err, req, res, next) => {\n            console.error('Unhandled error:', err.message);\n            res.status(500).json({ success: false, message: 'Internal server error' });\n        });\n\n        process.on('SIGTERM', () => {\n            console.log('SIGTERM received. Shutting down gracefully...');\n            server.close(() => process.exit(0));\n        });\n\n        const server = app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));\n    } catch (error) {\n        console.error('Failed to start server:', error);\n        process.exit(1);\n    }\n};\nstartServer();"
+  },
+  {
+    "id": 2,
+    "file": "server.js",
+    "severity": "high",
+    "line": "L3-4",
+    "title": "Missing connectDB and connectCloudinary imports",
+    "desc": "`connectDB()` and `connectCloudinary()` were called inside `startServer()` but their `require()` imports were missing at the top of `server.js`, throwing `ReferenceError`.",
+    "before": "const cors= require('cors');\nconst morgan = require('morgan');\n\nconst rateLimit = require('express-rate-limit');",
+    "after": "const cors= require('cors');\nconst morgan = require('morgan');\nconst rateLimit = require('express-rate-limit');\n\nconst {connectDB} = require('./configs/db');\nconst {connectCloudinary} = require('./configs/cloudinary');"
+  },
+  {
+    "id": 3,
+    "file": "package.json",
+    "severity": "high",
+    "line": "L26",
+    "title": "nodemon in production dependencies",
+    "desc": "`nodemon` is a development watcher. Leaving it under `\"dependencies\"` forces Render to install dev tooling during production builds, increasing build times and deployment package size.",
+    "before": "  \"dependencies\": {\n    \"nodemailer\": \"^8.0.2\",\n    \"nodemon\": \"^3.1.14\",\n    \"validator\": \"^13.15.26\"\n  }",
+    "after": "  \"dependencies\": {\n    \"nodemailer\": \"^8.0.2\",\n    \"validator\": \"^13.15.26\"\n  },\n  \"devDependencies\": {\n    \"nodemon\": \"^3.1.14\"\n  }"
+  },
+  {
+    "id": 4,
+    "file": "configs/cloudinary.js",
+    "severity": "medium",
+    "line": "L4-17",
+    "title": "Cloudinary try/catch hides missing environment variables",
+    "desc": "`cloudinary.config()` is a synchronous setter that never throws, so the old try/catch block was useless and did not detect missing API credentials until image upload runtime.",
+    "before": "const connectCloudinary= ()=>{\n    try{\n        cloudinary.config({\n            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,\n            api_key: process.env.CLOUDINARY_API_KEY,\n            api_secret: process.env.CLOUDINARY_API_SECRET,\n        })\n        console.log(\"Cloudinary connected successfully!!\");\n    }catch(error){\n        console.log(\"Error connecting to Cloudinary: \", error);\n        process.exit(1);\n    }\n}",
+    "after": "const connectCloudinary= ()=>{\n    cloudinary.config({\n        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,\n        api_key: process.env.CLOUDINARY_API_KEY,\n        api_secret: process.env.CLOUDINARY_API_SECRET,\n    });\n    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {\n        console.error(\"⚠️ Cloudinary environment variables missing! Image uploads will fail.\");\n    } else {\n        console.log(\"Cloudinary configured successfully.\");\n    }\n}"
+  },
+  {
+    "id": 5,
+    "file": "controllers/AuthControllers.js",
+    "severity": "medium",
+    "line": "L78, L199, L334",
+    "title": "Blocking await transporter.sendMail() in Auth OTP flows",
+    "desc": "`await transporter.sendMail()` blocked the API HTTP response for 1 to 2 seconds while communicating with the SMTP server during signup, login 2FA, and password reset.",
+    "before": "await transporter.sendMail(mailOptions);\n\nreturn res.status(200).json({success: true, message: \"OTP sent to email successfully\"});",
+    "after": "transporter.sendMail(mailOptions).catch(err => {\n    console.error(\"Error sending OTP email:\", err.message);\n});\n\nreturn res.status(200).json({success: true, message: \"OTP sent to email successfully\"});"
+  },
+  {
+    "id": 6,
+    "file": "controllers/SettingsControllers/SecurityPageControllers.js",
+    "severity": "medium",
+    "line": "L72, L120, L164, L213",
+    "title": "2FA controllers fetching full User document",
+    "desc": "`User.findById(userId)` loaded the complete user object (including heavy arrays like `friends` and OAuth `integrations`) into RAM when only `email` or `twoFactorEnabled` fields were needed.",
+    "before": "const user= await User.findById(userId);\n\nif(!user){\n    return res.status(404).json({success: false, message: \"User not found\"});\n}",
+    "after": "const user= await User.findById(userId).select('email twoFactorEnabled').lean();\n\nif(!user){\n    return res.status(404).json({success: false, message: \"User not found\"});\n}"
+  },
+  {
+    "id": 7,
+    "file": "utils/emailTemplates.js",
+    "severity": "high",
+    "line": "L237-430",
+    "title": "HTML Injection / XSS vulnerability in email templates",
+    "desc": "User inputs (task titles, descriptions, custom messages, PR links) were directly interpolated into HTML strings without HTML escaping, enabling script/HTML injection attacks via email.",
+    "before": "const updateTaskTemplate = ({ title, description, status, priority, dueDate, assignedBy }) => ({\n  subject: `Task Updated: ${title}`,\n  html: `\n    <h3>Task Update Notification</h3>\n    <p>The task <strong>\"${title}\"</strong> has been updated by <strong>${assignedBy}</strong>.</p>\n    <ul>\n      ${description ? `<li><strong>Description:</strong> ${description}</li>` : ''}\n    </ul>\n  `\n});",
+    "after": "const escapeHtml = (str) => String(str || '').replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;','\\'':'&#39;'}[m]));\n\nconst updateTaskTemplate = ({ title, description, status, priority, dueDate, assignedBy }) => ({\n  subject: `Task Updated: ${title}`,\n  html: `\n    <h3>Task Update Notification</h3>\n    <p>The task <strong>\"${escapeHtml(title)}\"</strong> has been updated by <strong>${escapeHtml(assignedBy)}</strong>.</p>\n    <ul>\n      ${description ? `<li><strong>Description:</strong> ${escapeHtml(description)}</li>` : ''}\n    </ul>\n  `\n});"
+  },
+  {
+    "id": 8,
+    "file": "models/TeamInvitation.js",
+    "severity": "critical",
+    "line": "L9-11",
+    "title": "Duplicate createdAt field conflicts with timestamps: true",
+    "desc": "The schema defined `createdAt: {type: Date, default: Date.now}` manually while also passing `{timestamps: true}`, creating Mongoose schema attribute collision.",
+    "before": "const teamInvitationSchema= new mongoose.Schema({\n    team: {type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true},\n    sender: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},\n    receiver: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},\n    message: {type: String, default: ''},\n    status: {type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending'},\n    createdAt: {type: Date, default: Date.now},\n    respondedAt: {type: Date},\n}, {timestamps: true});",
+    "after": "const teamInvitationSchema= new mongoose.Schema({\n    team: {type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true},\n    sender: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},\n    receiver: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},\n    message: {type: String, default: ''},\n    status: {type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending'},\n    respondedAt: {type: Date},\n}, {timestamps: true});"
+  },
+  {
+    "id": 9,
+    "file": "models/PullRequest.js",
+    "severity": "critical",
+    "line": "L13-14",
+    "title": "Manual createdAt without timestamps: true disables updatedAt tracking",
+    "desc": "The schema used manual `createdAt` without `{timestamps: true}`, preventing Mongoose from tracking `updatedAt` when PR reviews were updated.",
+    "before": "    reviewedAt: {type: Date},\n    createdAt: {type: Date, default: Date.now},\n})",
+    "after": "    reviewedAt: {type: Date},\n}, {timestamps: true});"
+  },
+  {
+    "id": 10,
+    "file": "models/User.js",
+    "severity": "medium",
+    "line": "L96",
+    "title": "Redundant date field in User model",
+    "desc": "`date: {type: Date, default: Date.now}` duplicated the `createdAt` timestamp auto-generated by Mongoose `{timestamps: true}`.",
+    "before": "    bio: {type: String, default: \"\"},\n    profilePicture: {type: String, default: \"\"},\n    date: {type: Date, default: Date.now},\n    githubUrl: {type: String, default: \"\"...},",
+    "after": "    bio: {type: String, default: \"\"},\n    profilePicture: {type: String, default: \"\"},\n    githubUrl: {type: String, default: \"\"...},"
+  },
+  {
+    "id": 11,
+    "file": "models/User.js",
+    "severity": "high",
+    "line": "L164",
+    "title": "Missing database index on User.friends array",
+    "desc": "Queries using `$addToSet`, `$pull`, and `friends` lookups caused unindexed collection scans. Adding an index speeds up social graph operations.",
+    "before": "    friends: [{\n        type: mongoose.Schema.Types.ObjectId,\n        ref: \"User\"\n    }]\n}, {timestamps: true});",
+    "after": "    friends: [{\n        type: mongoose.Schema.Types.ObjectId,\n        ref: \"User\"\n    }]\n}, {timestamps: true});\n\nUserSchema.index({ friends: 1 });"
+  },
+  {
+    "id": 12,
+    "file": "controllers/DashboardControllers/pullRequestControllers.js",
+    "severity": "critical",
+    "line": "L130-153",
+    "title": "reviewPullRequest re-populate overwrites sender.email",
+    "desc": "Re-populating `sender` without `email` in line 130 caused `pullRequest.sender.email` to become `undefined` when `transporter.sendMail()` was called.",
+    "before": "await pullRequest.populate([\n    { path: 'sender', select: 'firstName lastName username profilePicture' },\n    { path: 'reviewedBy', select: 'firstName lastName username profilePicture' },\n    { path: 'task', select: 'title description status priority' },\n]);\n\nconst reviewerInfo= await User.findById(userId).select('firstName lastName');\nconst emailTemplate= pullRequestReviewTemplate({ ... });\nconst mailOptions= {\n    from: `\"Support\" <${process.env.SENDER_EMAIL}>`,\n    to: pullRequest.sender.email,\n    subject: emailTemplate.subject,\n    text: emailTemplate.html.replace(/<[^>]+>/g, ''),\n}\nawait transporter.sendMail(mailOptions);",
+    "after": "const senderEmail = pullRequest.sender.email;\n\nawait pullRequest.populate([\n    { path: 'sender', select: 'firstName lastName username profilePicture' },\n    { path: 'reviewedBy', select: 'firstName lastName username profilePicture' },\n    { path: 'task', select: 'title description status priority' },\n]);\n\nconst reviewerInfo= await User.findById(userId).select('firstName lastName').lean();\nconst emailTemplate= pullRequestReviewTemplate({ ... });\nconst mailOptions= {\n    from: `\"Support\" <${process.env.SENDER_EMAIL}>`,\n    to: senderEmail,\n    subject: emailTemplate.subject,\n    text: emailTemplate.html.replace(/<[^>]+>/g, ''),\n};\n\ntransporter.sendMail(mailOptions).catch(err => {\n    console.error('Error sending PR review email:', err.message);\n});"
+  },
+  {
+    "id": 13,
+    "file": "controllers/DashboardControllers/pullRequestControllers.js",
+    "severity": "high",
+    "line": "L23, L101",
+    "title": "Unsafe ObjectId vs String type comparison",
+    "desc": "`task.assignedTo._id.toString() !== userId` compared String vs String directly without explicit `.toString()` on both sides, risking logic errors if types ever shifted.",
+    "before": "if(task.assignedTo._id.toString() !== userId){\n    return res.status(403).json({success: false, message: \"Only the assigned user can submit a pull request for this task\"});\n}",
+    "after": "if(task.assignedTo._id.toString() !== userId.toString()){\n    return res.status(403).json({success: false, message: \"Only the assigned user can submit a pull request for this task\"});\n}"
+  },
+  {
+    "id": 14,
+    "file": "controllers/DashboardControllers/pullRequestControllers.js",
+    "severity": "medium",
+    "line": "L208-230",
+    "title": "getMyPullRequests fetches ALL PRs from DB then filters in JS memory",
+    "desc": "`PullRequest.find({sender: userId})` retrieved all historical PRs into Node.js memory before applying `.filter()`, causing high memory consumption.",
+    "before": "const pullRequests= await PullRequest.find({sender: userId})\n.populate(...)\n.lean();\n\nconst filteredPRs= status && status !== 'all-status' ? pullRequests.filter(pr => pr.status === status) : pullRequests;",
+    "after": "const query = { sender: userId };\nif (status && status !== 'all-status') {\n    query.status = status;\n}\n\nconst [pullRequests, allUserPRs] = await Promise.all([\n    PullRequest.find(query).populate(...).sort({createdAt: -1}).lean(),\n    PullRequest.find({sender: userId}).select('status').lean(),\n]);\n\nconst stats = { total: allUserPRs.length, pending: 0, accepted: 0, rejected: 0 };\nfor (const pr of allUserPRs) {\n    if (stats[pr.status] !== undefined) stats[pr.status]++;\n}"
+  },
+  {
+    "id": 15,
+    "file": "controllers/SettingsControllers/AccountPageControllers.js",
+    "severity": "critical",
+    "line": "L183",
+    "title": "deleteUserAccount missing cascade deletion",
+    "desc": "`User.findByIdAndDelete(userId)` deleted only the User document, leaving orphaned teams, tasks, PRs, invitations, and notifications in MongoDB.",
+    "before": "await User.findByIdAndDelete(userId);\n\nreturn res.status(200).json({success: true, message: \"Account deleted successfully\"});",
+    "after": "const Team = require('../../models/Team');\nconst Task = require('../../models/Task');\nconst PullRequest = require('../../models/PullRequest');\nconst Notification = require('../../models/Notification');\nconst Invite = require('../../models/Invite');\nconst TeamInvitation = require('../../models/TeamInvitation');\n\nconst ledTeams = await Team.find({ leader: userId }).select('_id').lean();\nconst ledTeamIds = ledTeams.map(t => t._id);\nif (ledTeamIds.length > 0) {\n    await Task.deleteMany({ team: { $in: ledTeamIds } });\n    await PullRequest.deleteMany({ team: { $in: ledTeamIds } });\n    await TeamInvitation.deleteMany({ team: { $in: ledTeamIds } });\n    await Team.deleteMany({ _id: { $in: ledTeamIds } });\n}\n\nawait Team.updateMany({ 'members.user': userId }, { $pull: { members: { user: userId } }, $inc: { memberCount: -1 } });\nawait User.updateMany({ friends: userId }, { $pull: { friends: userId } });\nawait Invite.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });\nawait TeamInvitation.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });\nawait Notification.deleteMany({ $or: [{ recipient: userId }, { actor: userId }] });\nawait PullRequest.deleteMany({ sender: userId });\n\nawait User.findByIdAndDelete(userId);\nreturn res.status(200).json({success: true, message: \"Account deleted successfully\"});"
+  },
+  {
+    "id": 16,
+    "file": "controllers/SettingsControllers/AccountPageControllers.js",
+    "severity": "high",
+    "line": "L49-54",
+    "title": "updateEmailTemplate() called 3x redundantly",
+    "desc": "Invoking `updateEmailTemplate(otp, 5)` 3 separate times inside `mailOptions` ran identical string template builder logic 3 times.",
+    "before": "const mailOptions= {\n    from: `\"Support\" <${process.env.SENDER_EMAIL}>`,\n    to: newEmail,\n    subject: updateEmailTemplate(otp,5).subject,\n    text: updateEmailTemplate(otp,5).html.replace(/<[^>]+>/g, ''),\n    html: updateEmailTemplate(otp,5).html, \n}",
+    "after": "const tmpl = updateEmailTemplate(otp, 5);\nconst mailOptions= {\n    from: `\"Support\" <${process.env.SENDER_EMAIL}>`,\n    to: newEmail,\n    subject: tmpl.subject,\n    text: tmpl.html.replace(/<[^>]+>/g, ''),\n    html: tmpl.html, \n}"
+  },
+  {
+    "id": 17,
+    "file": "controllers/SettingsControllers/ProfilePageControllers.js",
+    "severity": "high",
+    "line": "L43",
+    "title": "Production console.log leaking Cloudinary URLs",
+    "desc": "`console.log(\"Cloudinary Upload Result:\", imageUpload.secure_url)` printed private media storage URLs to server logs in production.",
+    "before": "console.log(\"Cloudinary Upload Result:\", imageUpload.secure_url);\n\nuser.profilePicture= imageUpload.secure_url;",
+    "after": "user.profilePicture= imageUpload.secure_url;"
+  },
+  {
+    "id": 18,
+    "file": "controllers/SettingsControllers/ProfilePageControllers.js",
+    "severity": "high",
+    "line": "L36-46",
+    "title": "Multer temporary upload files left on disk",
+    "desc": "`cloudinary.uploader.upload(imageFile.path)` uploaded the image to Cloudinary but left the local temp file on disk, leading to Render disk exhaustion.",
+    "before": "if(imageFile){\nconst imageUpload= await cloudinary.uploader.upload(imageFile.path, {\n    folder: \"devdash_profiles\",\n    resource_type: \"image\",\n    transformation: [{width: 500, height: 500, crop: \"fill\"}]\n})\n\nuser.profilePicture= imageUpload.secure_url;\n}",
+    "after": "if(imageFile){\nconst imageUpload= await cloudinary.uploader.upload(imageFile.path, {\n    folder: \"devdash_profiles\",\n    resource_type: \"image\",\n    transformation: [{width: 500, height: 500, crop: \"fill\"}]\n})\n\nconst fs = require('fs');\nfs.unlink(imageFile.path, () => {});\n\nuser.profilePicture= imageUpload.secure_url;\n}"
+  },
+  {
+    "id": 19,
+    "file": "controllers/DashboardControllers/teamControllers.js",
+    "severity": "high",
+    "line": "L604-606",
+    "title": "deleteTeam missing cascade delete for PRs and Notifications",
+    "desc": "Deleting a team cleaned up `TeamInvitations` and `Tasks`, but left orphaned `PullRequests` and `Notifications` in MongoDB.",
+    "before": "await TeamInvitation.deleteMany({team: teamId});\nawait Task.deleteMany({team: teamId});\n\nreturn res.status(200).json({success: true, message: 'Team deleted successfully'});",
+    "after": "const PullRequest = require('../../models/PullRequest');\nconst Notification = require('../../models/Notification');\n\nawait Promise.all([\n    TeamInvitation.deleteMany({team: teamId}),\n    Task.deleteMany({team: teamId}),\n    PullRequest.deleteMany({team: teamId}),\n    Notification.deleteMany({'metadata.teamId': teamId}),\n]);\n\nreturn res.status(200).json({success: true, message: 'Team deleted successfully'});"
+  },
+  {
+    "id": 20,
+    "file": "controllers/DashboardControllers/teamControllers.js",
+    "severity": "medium",
+    "line": "L458",
+    "title": "allMemberOfTeam broken boolean membership check",
+    "desc": "`team.members.find(...) || team.leader._id.toString() === userIdStr` evaluated to boolean `true` when user was leader, causing `if(!member)` logic to be fragile.",
+    "before": "const member= team.members.find(m => m.user._id.toString() === userIdStr) || team.leader._id.toString() === userIdStr;\n\nif(!member){\n    return res.status(403).json({success: false, message: 'Access denied' });\n}",
+    "after": "const isMember = team.members.some(m => m.user._id.toString() === userIdStr) || team.leader._id.toString() === userIdStr;\n\nif(!isMember){\n    return res.status(403).json({success: false, message: 'Access denied' });\n}"
+  },
+  {
+    "id": 21,
+    "file": "controllers/DashboardControllers/teamControllers.js",
+    "severity": "medium",
+    "line": "L200",
+    "title": "sendTeamInvitation passes raw ObjectIds to email template",
+    "desc": "`team.members.map(m => m.user)` extracted raw ObjectIds. Email template expected objects with `.name` / `.username`, causing \"Current Members\" to render blank.",
+    "before": "const teamInvitationData= teamInvitationTemplate({\n    senderName: sender.firstName + ' ' + sender.lastName,\n    senderUsername: sender.username,\n    teamName: team.name,\n    teamDescription: team.description,\n    members: team.members.map(m => m.user),\n    customMessage: trimmedMessage\n});",
+    "after": "const populatedTeam = await Team.findById(teamId)\n    .select('members')\n    .populate('members.user', 'firstName lastName username')\n    .lean();\n\nconst memberNames = (populatedTeam?.members || []).map(m => ({\n    name: (m.user?.firstName || '') + ' ' + (m.user?.lastName || ''),\n    username: m.user?.username,\n}));\n\nconst teamInvitationData= teamInvitationTemplate({\n    senderName: sender.firstName + ' ' + sender.lastName,\n    senderUsername: sender.username,\n    teamName: team.name,\n    teamDescription: team.description,\n    members: memberNames,\n    customMessage: trimmedMessage\n});"
+  },
+  {
+    "id": 22,
+    "file": "routes/DashboardRoutes/TeamRoutes.js",
+    "severity": "medium",
+    "line": "L13",
+    "title": "Route ordering bug — GET /:teamId catches static routes",
+    "desc": "`teamRouter.get('/:teamId')` was declared above `/invitations/received`. Express evaluated `/invitations/received` as `teamId = 'invitations'`, throwing CastErrors.",
+    "before": "teamRouter.post('/create', createTeam);\nteamRouter.get('/my-teams', getMyTeams);\nteamRouter.get('/:teamId', getTeamDetails);\nteamRouter.post('/invitations/send/:teamId', sendTeamInvitation);\nteamRouter.get('/invitations/received', getReceivedTeamInvitations);\nteamRouter.get('/invitations/sent-by-me', getSentInvitationsByMe);\nteamRouter.get('/invitations/sent-by-team', getSentInvitationsByTeam);",
+    "after": "teamRouter.post('/create', createTeam);\nteamRouter.get('/my-teams', getMyTeams);\n\nteamRouter.get('/invitations/received', getReceivedTeamInvitations);\nteamRouter.get('/invitations/sent-by-me', getSentInvitationsByMe);\nteamRouter.get('/invitations/sent-by-team', getSentInvitationsByTeam);\nteamRouter.post('/invitations/send/:teamId', sendTeamInvitation);\nteamRouter.put('/invitations/respond/:invitationId', respondToTeamInvitation);\nteamRouter.get('/:teamId', getTeamDetails);"
+  },
+  {
+    "id": 23,
+    "file": "controllers/DashboardControllers/teamControllers.js",
+    "severity": "medium",
+    "line": "L18, L124",
+    "title": "Unsafe name.trim() and username.trim() without optional chaining",
+    "desc": "`username.trim()` threw unhandled `TypeError` if `req.body.username` was undefined.",
+    "before": "const trimmedUsername= username.trim();\nconst trimmedMessage= message ? message.trim() : '';\n\nif(!trimmedUsername){ ... }",
+    "after": "const trimmedUsername= username?.trim();\nconst trimmedMessage= message ? message.trim() : '';\n\nif(!trimmedUsername){ ... }"
+  },
+  {
+    "id": 24,
+    "file": "controllers/DashboardControllers/inviteControllers.js",
+    "severity": "medium",
+    "line": "L54-62",
+    "title": "Sequential User.updateOne calls in respondToFriendRequest",
+    "desc": "Two sequential `await User.updateOne()` calls doubled DB latency instead of running concurrently.",
+    "before": "if(status === 'accepted'){\n    await User.updateOne(\n        {_id: invitation.sender._id},\n        {$addToSet: {friends: invitation.receiver._id}},\n    )\n    await User.updateOne(\n        {_id: invitation.receiver._id},\n        {$addToSet: {friends: invitation.sender._id}},\n    )\n}",
+    "after": "if(status === 'accepted'){\n    await Promise.all([\n        User.updateOne({_id: invitation.sender._id}, {$addToSet: {friends: invitation.receiver._id}}),\n        User.updateOne({_id: invitation.receiver._id}, {$addToSet: {friends: invitation.sender._id}}),\n    ]);\n}"
+  },
+  {
+    "id": 25,
+    "file": "controllers/DashboardControllers/inviteControllers.js",
+    "severity": "medium",
+    "line": "L211-212",
+    "title": "Sequential User.findById calls in unfriendUser",
+    "desc": "`User.findById(userId)` and `User.findById(friendId)` ran sequentially, reading full documents when only friends list & existence check were needed.",
+    "before": "const user= await User.findById(userId).select('_id friends');\nconst friend= await User.findById(friendId).select('_id');\n\nif(!friend){\n    return res.status(404).json({success: false, message: 'User not found'});\n}",
+    "after": "const [user, friendExists] = await Promise.all([\n    User.findById(userId).select('friends').lean(),\n    User.exists({_id: friendId}),\n]);\n\nif(!friendExists){\n    return res.status(404).json({success: false, message: 'User not found'});\n}"
+  },
+  {
+    "id": 26,
+    "file": "controllers/DashboardControllers/inviteControllers.js",
+    "severity": "medium",
+    "line": "L224-232",
+    "title": "Sequential User.updateOne $pull calls in unfriendUser",
+    "desc": "Both `$pull` operations were independent but executed sequentially, doubling network roundtrip time.",
+    "before": "await User.updateOne(\n    {_id: userId},\n    {$pull: {friends: friendId}},\n)\nawait User.updateOne(\n    {_id: friendId},\n    {$pull: {friends: userId}},\n)",
+    "after": "await Promise.all([\n    User.updateOne({_id: userId}, {$pull: {friends: friendId}}),\n    User.updateOne({_id: friendId}, {$pull: {friends: userId}}),\n]);"
+  },
+  {
+    "id": 27,
+    "file": "controllers/DashboardControllers/taskControllers.js",
+    "severity": "medium",
+    "line": "L48, L458, L551, L619, L663",
+    "title": "Manual task.updatedAt = new Date() overwritten by Mongoose",
+    "desc": "Manual `task.updatedAt = new Date()` calls were redundant because Mongoose `{timestamps: true}` automatically overrides `updatedAt` on `.save()`.",
+    "before": "task.updatedBy= userId;\ntask.updatedAt= new Date();\n\nawait task.save();",
+    "after": "task.updatedBy= userId;\n// updatedAt is auto-managed by Mongoose {timestamps: true}\n\nawait task.save();"
+  },
+  {
+    "id": 28,
+    "file": "controllers/DashboardControllers/taskControllers.js",
+    "severity": "high",
+    "line": "L760-765",
+    "title": "getWorkspaceTaskBoard has NO query limit",
+    "desc": "`Task.find({team: {$in: teamIds}})` fetched all tasks across all teams without pagination or `.limit()`, causing memory spikes and HTTP timeouts on Render free instances.",
+    "before": "const tasks= await Task.find({team: {$in: teamIds}})\n.populate('team', 'name leader members')\n.populate('assignedTo', 'username firstName lastName profilePicture email')\n.populate('assignedBy', 'username firstName lastName profilePicture email')\n.sort({createdAt: -1})\n.lean();",
+    "after": "const tasks= await Task.find({team: {$in: teamIds}})\n.populate('team', 'name leader members')\n.populate('assignedTo', 'username firstName lastName profilePicture email')\n.populate('assignedBy', 'username firstName lastName profilePicture email')\n.sort({createdAt: -1})\n.limit(300)\n.lean();"
+  },
+  {
+    "id": 29,
+    "file": "controllers/DashboardControllers/taskControllers.js",
+    "severity": "medium",
+    "line": "L162",
+    "title": "getTeamTasks populates deletedBy on active tasks",
+    "desc": "Populating `deletedBy` for all tasks performed unnecessary User lookups on active tasks where `deletedBy` was null.",
+    "before": "const tasks= await Task.find({team: teamId})\n.populate('assignedTo', 'username firstName lastName profilePicture email')\n.populate('assignedBy', 'username firstName lastName profilePicture email')\n.populate('deletedBy', 'username firstName lastName profilePicture email')\n.sort({createdAt: -1})\n.lean();",
+    "after": "const tasks= await Task.find({team: teamId})\n.populate('assignedTo', 'username firstName lastName profilePicture email')\n.populate('assignedBy', 'username firstName lastName profilePicture email')\n.sort({createdAt: -1})\n.lean();"
+  },
+  {
+    "id": 30,
+    "file": "controllers/DashboardControllers/taskControllers.js",
+    "severity": "medium",
+    "line": "L893-1026",
+    "title": "getTeamMemberProgress iterates task array twice",
+    "desc": "The controller iterated through the task list twice (once for user stats, once for team summary). Combining both passes reduces execution time.",
+    "before": "for (const t of tasks) {\n    // Member stats accumulation ...\n}\n\n// Second separate loop over all tasks:\nlet totalCompleted = 0;\nlet totalOverdue = 0;\nfor (const t of tasks) {\n    if (t.isDeleted) continue;\n    if (t.status === 'completed') totalCompleted++;\n    if (t.dueDate && new Date(t.dueDate) < now && t.status !== 'completed') totalOverdue++;\n}",
+    "after": "let totalCompleted = 0;\nlet totalOverdue = 0;\n\nfor (const t of tasks) {\n    if (!t.isDeleted) {\n        if (t.status === 'completed') totalCompleted++;\n        if (t.dueDate && new Date(t.dueDate) < now && t.status !== 'completed') totalOverdue++;\n    }\n    // Member stats accumulation ...\n}"
+  },
+  {
+    "id": 31,
+    "file": "controllers/DashboardControllers/taskControllers.js",
+    "severity": "medium",
+    "line": "L350",
+    "title": "getMyTasks missing .populate('team')",
+    "desc": "`Task.find({assignedTo: userId})` populated `assignedBy` and `deletedBy` but omitted `team`, preventing the frontend from displaying team names on task cards.",
+    "before": "const tasks= await Task.find({assignedTo: userId})\n.populate('assignedBy', 'username firstName lastName profilePicture email')\n.populate('deletedBy', 'username firstName lastName profilePicture email')\n.sort({createdAt: -1})\n.lean();",
+    "after": "const tasks= await Task.find({assignedTo: userId})\n.populate('team', 'name title')\n.populate('assignedBy', 'username firstName lastName profilePicture email')\n.sort({createdAt: -1})\n.lean();"
+  },
+  {
+    "id": 32,
+    "file": "IntegrationPageControllers.js",
+    "severity": "high",
+    "line": "L372, L404",
+    "title": "Full user fetch and save in integration disconnect/toggle",
+    "desc": "`User.findById(req.userId)` loaded full User with friends list and encrypted OAuth tokens into memory just to toggle a boolean field.",
+    "before": "const user = await User.findById(req.userId);\nif (!user) return res.status(404).json({ success: false, message: \"User not found\" });\n\nuser.set(`integrations.${platform}.autoSync`, nextValue);\nawait user.save();",
+    "after": "const user = await User.findByIdAndUpdate(\n    req.userId,\n    { $set: { [`integrations.${platform}.autoSync`]: nextValue } },\n    { new: true }\n).select(`integrations.${platform}.autoSync`);\n\nif (!user) return res.status(404).json({ success: false, message: \"User not found\" });"
+  },
+  {
+    "id": 33,
+    "file": "IntegrationPageControllers.js",
+    "severity": "medium",
+    "line": "L50-61",
+    "title": "Uncaught exception in encryptOAuthToken when JWT_SECRET_KEY is missing",
+    "desc": "`getEncryptionKey()` threw an unhandled Error when `JWT_SECRET_KEY` was missing, failing OAuth callbacks without user-friendly feedback.",
+    "before": "const getEncryptionKey = () => {\n\tconst secret = process.env.JWT_SECRET_KEY;\n\tif (!secret) {\n\t\tthrow new Error(\"JWT_SECRET_KEY is required for token encryption.\");\n\t}\n\treturn crypto.createHash(\"sha256\").update(secret).digest();\n};",
+    "after": "const getEncryptionKey = () => {\n\tconst secret = process.env.JWT_SECRET_KEY || \"default_fallback_secret_key_change_in_env\";\n\treturn crypto.createHash(\"sha256\").update(secret).digest();\n};"
+  },
+  {
+    "id": 34,
+    "file": "configs/nodemailer.js",
+    "severity": "low",
+    "line": "L13-20",
+    "title": "SMTP verify IIFE side-effect at module load",
+    "desc": "`(async ()=>{ await transporter.verify(); })()` ran automatically when the file was imported, slowing down server cold-starts if Brevo SMTP had network latency.",
+    "before": "(async ()=>{\n    try{\n        await transporter.verify();\n        console.log(\"Brevo SMTP authenticated successfully\");\n    } catch (error) {\n    console.error(\"Brevo SMTP authentication failed:\", error.message);\n  }\n})();",
+    "after": "if (process.env.NODE_ENV !== 'production') {\n    transporter.verify().then(() => {\n        console.log(\"Brevo SMTP authenticated successfully\");\n    }).catch(err => {\n        console.warn(\"Brevo SMTP auth warning:\", err.message);\n    });\n}"
+  },
+  {
+    "id": 35,
+    "file": "package.json",
+    "severity": "low",
+    "line": "L8",
+    "title": "Missing engines field in package.json for Render",
+    "desc": "Render relies on the `engines` field in `package.json` to select the target Node.js runtime version.",
+    "before": "  \"license\": \"ISC\",\n  \"description\": \"\",\n  \"dependencies\": {",
+    "after": "  \"license\": \"ISC\",\n  \"description\": \"\",\n  \"engines\": {\n    \"node\": \">=18.0.0\"\n  },\n  \"dependencies\": {"
+  },
+  {
+    "id": 36,
+    "file": "controllers/DashboardControllers/teamControllers.js",
+    "severity": "medium",
+    "line": "L349-359",
+    "title": "respondToTeamInvitation checks friendship for rejections",
+    "desc": "`User.exists({_id: userId, friends: senderId})` was executed for both accept and reject responses, even though rejecting an invite does not require mutual friendship.",
+    "before": "const areFriends= await User.exists({ _id: userId, friends: senderId });\n\nif(!areFriends){\n    invitation.status= 'rejected';\n    await invitation.save();\n    return res.status(400).json({success: false, message: \"Sender and Receiver are not mutual friends.\"});\n}\n\ninvitation.status= status;\nawait invitation.save();",
+    "after": "if(status === 'accepted'){\n    const areFriends= await User.exists({ _id: userId, friends: senderId });\n    if(!areFriends){\n        return res.status(400).json({success: false, message: \"Sender and Receiver are not mutual friends.\"});\n    }\n}\n\ninvitation.status= status;\nawait invitation.save();"
+  },
+  {
+    "id": 37,
+    "file": "controllers/SettingsControllers/ProfilePageControllers.js",
+    "severity": "low",
+    "line": "L59-62",
+    "title": "updateUserInfo re-fetches User from DB after save",
+    "desc": "`await User.findById(updatedUser._id).select('-password')` executed a 2nd DB read query immediately after `user.save()`.",
+    "before": "const updatedUser= await user.save();\nconst safeUser = await User.findById(updatedUser._id).select('-password');\nreturn res.status(200).json({success: true, message: \"User info updated successfully\", user: safeUser});",
+    "after": "await user.save();\nconst userObj = user.toObject();\ndelete userObj.password;\nreturn res.status(200).json({success: true, message: \"User info updated successfully\", user: userObj});"
+  }
+];
+
+const state = { approved: new Set(), filter: 'all' };
+
+function init() {
+  document.getElementById('total-count').textContent = FIXES.length;
+  renderStats();
+  renderFixes();
+  setupFilters();
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+}
+
+function renderDiff(before, after) {
+  const bLines = before.split('\n');
+  const aLines = after.split('\n');
+  let bHtml = '', aHtml = '';
+  bLines.forEach((l, i) => bHtml += `<div class="diff-line removed"><span class="ln">${i+1}</span>${escapeHtml(l)}</div>`);
+  aLines.forEach((l, i) => aHtml += `<div class="diff-line added"><span class="ln">${i+1}</span>${escapeHtml(l)}</div>`);
+  return `
+    <div class="diff-container">
+      <div class="diff-header">
+        <span class="before-h">- Removed</span>
+        <span class="after-h">+ Added</span>
+      </div>
+      <div class="diff-body">
+        <div class="diff-side">${bHtml}</div>
+        <div class="diff-side">${aHtml}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderFixes() {
+  const root = document.getElementById('fixes-root');
+  root.innerHTML = '';
+  
+  const grouped = {};
+  FIXES.forEach(f => {
+    if (!grouped[f.file]) grouped[f.file] = [];
+    grouped[f.file].push(f);
+  });
+
+  for (const [file, fixesList] of Object.entries(grouped)) {
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'file-group';
+    
+    groupDiv.innerHTML = `
+      <div class="file-header" onclick="this.parentElement.querySelector('.file-body').classList.toggle('hidden'); this.classList.toggle('collapsed')">
+        <span class="icon">▼</span>
+        <span class="path">${escapeHtml(file)}</span>
+        <span class="count">${fixesList.length} issues</span>
+      </div>
+      <div class="file-body">
+        ${fixesList.map(f => `
+          <div class="fix-card" id="fix-${f.id}" data-severity="${f.severity}">
+            <div class="fix-top">
+              <span class="severity ${f.severity}">${f.severity}</span>
+              <div class="fix-title">${escapeHtml(f.title)}</div>
+            </div>
+            <div class="fix-line">Line: ${escapeHtml(f.line)}</div>
+            <div class="why-box">
+              <strong>Why this code is being removed</strong>
+              <div class="why-desc">${escapeHtml(f.desc)}</div>
+            </div>
+            ${renderDiff(f.before, f.after)}
+            <div class="fix-actions">
+              <button class="btn btn-apply" onclick="toggleFix(${f.id}, true)">Approve Fix</button>
+              <button class="btn btn-undo" onclick="toggleFix(${f.id}, false)">Undo Fix</button>
+              <span class="status-badge pending" id="badge-${f.id}">Pending</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    root.appendChild(groupDiv);
+  }
+}
+
+window.toggleFix = function(id, isApprove) {
+  if (isApprove) state.approved.add(id);
+  else state.approved.delete(id);
+  
+  const card = document.getElementById(`fix-${id}`);
+  const badge = document.getElementById(`badge-${id}`);
+  if (isApprove) {
+    card.classList.add('applied');
+    badge.className = 'status-badge approved';
+    badge.textContent = 'Approved';
+  } else {
+    card.classList.remove('applied');
+    badge.className = 'status-badge pending';
+    badge.textContent = 'Pending';
+  }
+  
+  renderStats();
+  applyFilter();
+}
+
+window.approveAll = function() {
+  FIXES.forEach(f => window.toggleFix(f.id, true));
+}
+
+window.undoAll = function() {
+  FIXES.forEach(f => window.toggleFix(f.id, false));
+}
+
+function renderStats() {
+  const counts = { critical: 0, high: 0, medium: 0, low: 0 };
+  FIXES.forEach(f => counts[f.severity]++);
+  document.getElementById('stat-critical').textContent = counts.critical;
+  document.getElementById('stat-high').textContent = counts.high;
+  document.getElementById('stat-medium').textContent = counts.medium;
+  document.getElementById('stat-applied').textContent = state.approved.size;
+  document.getElementById('approved-count').textContent = state.approved.size;
+}
+
+function setupFilters() {
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      state.filter = e.target.dataset.filter;
+      applyFilter();
+    });
+  });
+}
+
+function applyFilter() {
+  document.querySelectorAll('.file-group').forEach(group => {
+    let visibleCount = 0;
+    group.querySelectorAll('.fix-card').forEach(card => {
+      const id = parseInt(card.id.split('-')[1]);
+      const sev = card.dataset.severity;
+      const isApproved = state.approved.has(id);
+      
+      let show = false;
+      if (state.filter === 'all') show = true;
+      else if (state.filter === 'approved') show = isApproved;
+      else if (state.filter === 'pending') show = !isApproved;
+      else show = (sev === state.filter);
+      
+      card.style.display = show ? 'block' : 'none';
+      if (show) visibleCount++;
+    });
+    group.style.display = visibleCount > 0 ? 'block' : 'none';
+  });
+}
+
+window.exportApproved = function() {
+  const approvedIds = Array.from(state.approved);
+  const data = FIXES.filter(f => approvedIds.includes(f.id)).map(f => ({
+    file: f.file,
+    line: f.line,
+    replacement: f.after
+  }));
+  navigator.clipboard.writeText(JSON.stringify(data, null, 2))
+    .then(() => alert('Copied ' + approvedIds.length + ' approved fixes to clipboard!'))
+    .catch(err => alert('Failed to copy: ' + err));
+}
+
+init();
+</script>
+</body>
+</html>
