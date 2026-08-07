@@ -69,8 +69,9 @@ const createPullRequest= async (req, res) => {
             text: emailTemplate.html.replace(/<[^>]+>/g, ''),
         }
 
-        await transporter.sendMail(mailOptions);
-
+        transporter.sendMail(mailOptions).catch(err => {
+            console.error('Error sending PR email:', err.message);
+        });
         res.status(201).json({success: true, message: 'Pull request submitted successfully'});
 
     } catch (error) {
@@ -114,7 +115,7 @@ const reviewPullRequest= async (req, res) => {
             reviewedAt: new Date(),
         });
 
-        const task= await Task.findById(pullRequest.task._id).select('leader members');
+        const task= await Task.findById(pullRequest.task._id);
 
         if(task){
             if(status === 'accepted'){
@@ -123,7 +124,6 @@ const reviewPullRequest= async (req, res) => {
             } else if(status === 'rejected'){
                 task.status= 'in-progress';
             }
-            task.updatedAt= new Date();
             await task.save();
         }
 
