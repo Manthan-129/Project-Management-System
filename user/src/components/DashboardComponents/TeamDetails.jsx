@@ -277,8 +277,10 @@ const TeamDetails = () => {
     setIsCreatingTask(true);
     try {
       const { data } = await api.post(
-        `/tasks/create/${teamId}/${taskForm.assignedTo}`,
+        '/tasks/create',
         {
+          teamId,
+          assignedTo: taskForm.assignedTo,
           title: taskForm.title.trim(),
           description: taskForm.description.trim(),
           priority: capitalizePriority(taskForm.priority),
@@ -333,7 +335,7 @@ const TeamDetails = () => {
       onConfirm: async () => {
         setIsUpdatingTask(true);
         try {
-          const { data } = await api.put(`/tasks/${taskId}`, {}, { headers: authHeaders });
+          const { data } = await api.delete(`/tasks/delete/${taskId}`, { headers: authHeaders });
           if (!data?.success) {
             toast.error(data?.message || 'Failed to delete task');
             return;
@@ -442,8 +444,9 @@ const TeamDetails = () => {
     setIsSubmittingPR(true);
     try {
       const { data } = await api.post(
-        `/pull-requests/create/${selectedTaskForPR}`,
+        '/pull-requests/create',
         {
+          taskId: selectedTaskForPR,
           githubPRLink: prForm.githubPRLink.trim(),
           message: prForm.message.trim(),
         },
@@ -469,7 +472,7 @@ const TeamDetails = () => {
   const handleReviewPR = async (prId, status) => {
     setIsReviewingPR(true);
     try {
-      const { data } = await api.post(
+      const { data } = await api.put(
         `/pull-requests/review/${prId}`,
         { status, reviewNote },
         { headers: authHeaders }

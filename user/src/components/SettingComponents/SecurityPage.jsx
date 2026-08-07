@@ -8,7 +8,7 @@ import OTP from '../AuthComponents/OTP'
 import api from '../../api/axiosInstance.js'
 
 const SecurityPage = () => {
-    const { authHeaders, logout } = useContext(AppContext)
+    const { user, authHeaders, logout } = useContext(AppContext)
 
     const [isFetchingStatus, setIsFetchingStatus] = useState(false)
     const [isChangingPassword, setIsChangingPassword] = useState(false)
@@ -22,7 +22,7 @@ const SecurityPage = () => {
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false)
 
-    const [twoFAEnabled, setTwoFAEnabled] = useState(false)
+    const [twoFAEnabled, setTwoFAEnabled] = useState(Boolean(user?.twoFactorEnabled))
     const [show2FASetup, setShow2FASetup] = useState(false)
     const [twoFAMode, setTwoFAMode] = useState('enable')
 
@@ -32,30 +32,11 @@ const SecurityPage = () => {
         return error?.response?.data?.message || fallbackMessage
     }
 
-    const fetchTwoFactorStatus = async () => {
-        try {
-            setIsFetchingStatus(true)
-            const { data } = await api.get('/settings/2fa-status', {
-                headers: authHeaders,
-            })
-
-            if (data?.success) {
-                setTwoFAEnabled(Boolean(data.twoFactorEnabled))
-            }
-        } catch (error) {
-            if (error?.response?.status === 401) {
-                await logout()
-                return
-            }
-            toast.error(getErrorMessage(error, 'Failed to fetch 2FA status'))
-        } finally {
-            setIsFetchingStatus(false)
-        }
-    }
-
     useEffect(() => {
-        fetchTwoFactorStatus()
-    }, [authHeaders])
+        if (user) {
+            setTwoFAEnabled(Boolean(user.twoFactorEnabled))
+        }
+    }, [user])
 
     const handleChangePassword = async (data) => {
         try {
@@ -93,7 +74,7 @@ const SecurityPage = () => {
     const handleEnableOrDisable2FA = async () => {
         try {
             setIsRequestingTwoFAOtp(true)
-            const endpoint = twoFAEnabled ? '/settings/2fa-disable' : '/settings/2fa-setup'
+            const endpoint = twoFAEnabled ? '/settings/2fa/disable-request' : '/settings/2fa/setup'
             const { data } = await api.post(
                 endpoint,
                 {},
@@ -126,7 +107,7 @@ const SecurityPage = () => {
 
         try {
             setIsVerifyingTwoFA(true)
-            const endpoint = twoFAMode === 'enable' ? '/settings/2fa-verify-enable' : '/settings/2fa-verify-disable'
+            const endpoint = twoFAMode === 'enable' ? '/settings/2fa/enable' : '/settings/2fa/disable'
             const { data } = await api.post(
                 endpoint,
                 { otp },

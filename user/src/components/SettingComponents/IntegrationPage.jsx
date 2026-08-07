@@ -125,7 +125,7 @@ const IntegrationPage = () => {
         try {
             setActiveRequest(`toggle-${platform}`);
             const { data } = await api.post(
-                `/settings/integrations/${platform}/toggle-sync`,
+                `/settings/integrations/${platform}/auto-sync`,
                 { autoSync: nextValue },
                 { headers: authHeaders }
             );

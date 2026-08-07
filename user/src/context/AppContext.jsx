@@ -123,7 +123,7 @@ export const AppContextProvider = (props) => {
                 headers['Content-Type'] = 'multipart/form-data';
             }
 
-            const { data } = await api.patch('/settings/update-user-info', profileData, { headers });
+            const { data } = await api.put('/settings/update-profile', profileData, { headers });
 
             if (data?.success && data?.user) {
                 setUser(data.user);
@@ -147,7 +147,7 @@ export const AppContextProvider = (props) => {
         if (!token) return;
 
         try {
-            const { data } = await api.get('/notifications', {
+            const { data } = await api.get('/notifications/my-notifications', {
                 headers: authHeaders,
             });
 

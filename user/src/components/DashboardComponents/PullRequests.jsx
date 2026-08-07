@@ -168,8 +168,8 @@ const PullRequests = () => {
             <div key= {pr._id} className={`dd-section-card border-l-4 ${statusBorderAccent(pr.status)}`}>
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-1">
-                  <h4 className="text-base font-bold text-slate-900">{pr.task.title}</h4>
-                  <p className="text-sm text-slate-500">{pr.team.name}</p>
+                  <h4 className="text-base font-bold text-slate-900">{pr.task?.title || 'Task'}</h4>
+                  <p className="text-sm text-slate-500">{pr.team?.name || 'Team'}</p>
                 </div>
                 <span className={`flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-lg border ${statusColor(pr.status)}`}>
                     {statusIcon(pr.status)}
@@ -190,7 +190,7 @@ const PullRequests = () => {
               {pr.reviewedBy && (
                 <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
                   <CheckCircle2 size={12} />
-                  Reviewed by <span>{pr.reviewedBy.firstName} {pr.reviewedBy.lastName}</span>
+                  Reviewed by <span>{pr.reviewedBy?.firstName || 'Reviewer'} {pr.reviewedBy?.lastName || ''}</span>
                 </p>
               )}
             </div>

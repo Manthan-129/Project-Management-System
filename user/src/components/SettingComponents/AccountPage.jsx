@@ -75,7 +75,7 @@ const AccountPage = () => {
             }
 
             const { data } = await api.post(
-                '/settings/update-email-otp-request',
+                '/settings/update-email/request-otp',
                 { newEmail: trimmedNewEmail },
                 { headers: authHeaders }
             );
@@ -129,7 +129,7 @@ const AccountPage = () => {
         try{
             setIsVerifyingOtp(true);
             const { data } = await api.post(
-                '/settings/verify-update-email-otp',
+                '/settings/update-email/verify-otp',
                 {
                     password,
                     newEmail: trimmedNewEmail,

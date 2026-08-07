@@ -133,8 +133,8 @@ const Friends = () => {
     const respondRequest= async (inviteId, status)=>{
         setIsResponding(true);
         try{
-            const { data } = await api.post(
-                `/invites/invitations/respond-request/${inviteId}`,
+            const { data } = await api.put(
+                `/invites/invitations/respond/${inviteId}`,
                 { status },
                 { headers: authHeaders }
             );

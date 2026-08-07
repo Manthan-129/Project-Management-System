@@ -98,7 +98,7 @@ const ForgetPassword = () => {
             setLoading(true)
 
             const email = data.email.trim().toLowerCase()
-            const { data: response } = await api.post('/auth/forget-password-otp-request', { email })
+            const { data: response } = await api.post('/auth/forget-password/send-otp', { email })
 
             if (response?.success) {
                 setPendingEmail(email)
@@ -136,7 +136,7 @@ const ForgetPassword = () => {
         try {
             setLoading(true)
 
-            const { data: response } = await api.post('/auth/verify-change-pass-otp', {
+            const { data: response } = await api.post('/auth/forget-password/verify-otp', {
                 email: pendingEmail,
                 otp,
                 newPass: data.newPassword,

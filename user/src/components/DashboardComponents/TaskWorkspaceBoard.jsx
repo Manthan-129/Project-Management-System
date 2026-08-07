@@ -223,18 +223,18 @@ const TaskWorkspaceBoard = () => {
                                         </div>
 
                                         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                                            <span className="inline-flex items-center gap-1"><FolderKanban size={11} />{task.team.name}</span>
+                                            <span className="inline-flex items-center gap-1"><FolderKanban size={11} />{task.team?.name || task.team?.title || 'Team'}</span>
 
                                             <span className="inline-flex items-center gap-1"><CalendarDays size={11} />{formatDueDate(task.dueDate)}</span>
                                         </div>
 
                                         <div className="mt-2 flex items-center justify-between gap-2 text-xs">
                                             {tab === 'assignedTaskToMe' ? (
-                                                <p className="text-slate-600"><span>By: {task.assignedBy.firstName}</span></p>
+                                                <p className="text-slate-600"><span>By: {task.assignedBy?.firstName || 'User'}</span></p>
                                             )
                                         :
                                         (
-                                            <p className="text-slate-600"><span>To: {task.assignedTo.firstName}</span></p>
+                                            <p className="text-slate-600"><span>To: {task.assignedTo?.firstName || 'User'}</span></p>
                                         )}
                                         
                                         {daysLeft !== null && (
