@@ -25,25 +25,20 @@ const updatePrivacySettings= async (req, res)=>{
         const settings= req.body;
 
         if(!settings || typeof settings !== "object"){
-            return res.status(404).json({success: false, message: "Privacy settings data is required and must be an object"});
+            return res.status(400).json({success: false, message: "Privacy settings data is required and must be an object"});
         }
-
         const {profileVisibility, showEmail, showOnlineStatus, showInSearch}= settings;
-
         if(profileVisibility === undefined && showEmail === undefined && showOnlineStatus === undefined && showInSearch === undefined){
-            return res.status(404).json({success: false, message: "At least one privacy setting is required"});
+            return res.status(400).json({success: false, message: "At least one privacy setting is required"});
         }
-
         const allowedVisibilities= ["public", "team-only", "private"];
-
         if(profileVisibility !== undefined && !allowedVisibilities.includes(profileVisibility)){
-            return res.status(404).json({success: false, message: "Invalid profile visibility option"});
+            return res.status(400).json({success: false, message: "Invalid profile visibility option"});
         }
-
         if((showEmail !== undefined && typeof showEmail !== "boolean") || 
         (showOnlineStatus !== undefined && typeof showOnlineStatus !== "boolean") || 
         (showInSearch !== undefined && typeof showInSearch !== "boolean")){
-            return res.status(404).json({success: false, message: "Boolean fields must be true/false"});
+            return res.status(400).json({success: false, message: "Boolean fields must be true/false"});
         }
 
         const updateFields= {};
