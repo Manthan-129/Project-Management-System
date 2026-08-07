@@ -109,7 +109,8 @@ const LoginPage = () => {
 
             toast.error(response?.message || 'Login failed');
         } catch (error) {
-            toast.error(error?.response?.data?.message || 'Unable to login right now');
+            const errorMsg = error?.response?.data?.message || (error?.message?.includes('Network Error') ? 'Network / CORS Error: Backend server is unreachable. Please verify backend URL and CORS configuration.' : 'Unable to login right now');
+            toast.error(errorMsg);
         } finally {
             setLoading(false);
         }
