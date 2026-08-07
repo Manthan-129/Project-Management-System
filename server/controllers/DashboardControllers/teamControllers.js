@@ -157,18 +157,16 @@ const sendTeamInvitation= async (req, res) => {
             return res.status(409).json({success: false, message: "User is already a member of the team"})
         }
         
-        const sender= await User.findById(userId).select('_id firstName lastName username');;
-
-        const isFriend = await User.exists({
-            _id: userId,
-            friends: receiver._id
-        });
+        // Parallelize 3 independent queries
+        const [sender, isFriend, existingInvitation] = await Promise.all([
+            User.findById(userId).select('_id firstName lastName username').lean(),
+            User.exists({ _id: userId, friends: receiver._id }),
+            TeamInvitation.findOne({team: teamId, receiver: receiver._id, status: 'pending'}).lean(),
+        ]);
 
         if(!isFriend){
             return res.status(400).json({success: false, message: "Sender and Receiver are not mutual friends. You have to be friends before sending him the team invitations."});
         }
-
-        const existingInvitation= await TeamInvitation.findOne({team: teamId, receiver: receiver._id, status: 'pending'});
 
         if(existingInvitation){
             return res.status(409).json({success: false, message: "An invitation has already been sent to this user"})
@@ -210,8 +208,9 @@ const sendTeamInvitation= async (req, res) => {
             text: teamInvitationData.html.replace(/<[^>]+>/g, ''),
         }
 
-        await transporter.sendMail(mailOptions);
-
+        transporter.sendMail(mailOptions).catch(err => {
+            console.log('Error sending team invitation email:', err.message);
+        });
         return res.status(201).json({success: true, message: "Team invitation sent successfully", invitation});
         
     }catch(error){
