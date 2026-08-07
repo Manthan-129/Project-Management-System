@@ -17,7 +17,7 @@ const LandingPage = () => {
         <Hero />
         <Stats />
         <Feature />
-        <HowItWorks />
+        <HowItWorks />  
         <KanbanPreview />
         <TeamCollaboration />
         <ProgressTracking />
