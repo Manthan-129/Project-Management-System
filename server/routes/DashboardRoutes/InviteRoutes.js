@@ -12,7 +12,6 @@ inviteRouter.get('/invitations/received', getMyInvitationsReceived);
 inviteRouter.get('/invitations/sent', getMyInvitationsSent);
 inviteRouter.post('/invitations/respond-request/:inviteId', respondToFriendRequest);
 inviteRouter.delete('/invitations/cancel-request/:inviteId', cancelSentFriendRequest);
-inviteRouter.post('/invitations/cancel-request/:inviteId', cancelSentFriendRequest);
 inviteRouter.post('/unfriend/:friendId', unfriendUser);
 inviteRouter.get('/friends', allFriends);
 
