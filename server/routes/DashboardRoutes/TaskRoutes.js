@@ -13,7 +13,7 @@ taskRouter.get('/my-tasks-in-team/:teamId', getMyTasksInTeam);
 taskRouter.get('/my-tasks', getMyTasks);
 taskRouter.patch('/update-status/:taskId', updateTaskStatus);
 taskRouter.put('/update/:taskId', updateTask);
-taskRouter.put('/:taskId', deleteTask);
+taskRouter.patch('/delete/:taskId', deleteTask);
 taskRouter.patch('/restore/:taskId', restoreTask);
 taskRouter.get('/workspace-board', getWorkspaceTaskBoard);
 taskRouter.get('/team-member-progress/:teamId', getTeamMemberProgress);
