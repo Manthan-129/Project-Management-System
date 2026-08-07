@@ -56,12 +56,10 @@ const updateUserInfo= async (req, res)=>{
         if(portfolioUrl && validator.isURL(portfolioUrl)) user.portfolioUrl= portfolioUrl;
         if(linkedinUrl && validator.isURL(linkedinUrl)) user.linkedinUrl= linkedinUrl;
 
-        console.log("Received file in updateUserInfo:", imageFile ? imageFile.originalname : "No file uploaded");
-        const updatedUser= await user.save();
-        const updateduser= await User.findById(updatedUser._id);
-
-        console.log("Received file in updateUserInfo:", imageFile ? imageFile.originalname : "No file uploaded");
-        return res.status(200).json({success: true, message: "User info updated successfully", user: updateduser});
+         const updatedUser= await user.save();
+        // Refetch without password (save() returns doc with selected fields)
+        const safeUser = await User.findById(updatedUser._id).select('-password');
+        return res.status(200).json({success: true, message: "User info updated successfully", user: safeUser});
 
     }catch(error){
         return res.status(500).json({success: false, message: "Error in updating user info"});
