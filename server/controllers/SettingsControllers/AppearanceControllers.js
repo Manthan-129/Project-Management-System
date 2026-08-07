@@ -45,22 +45,18 @@ const updateAppearanceSettings= async (req, res)=>{
             return res.status(400).json({success: false, message: "Invalid sidebar position value"});
         }
 
-        const user= await User.findById(userId);
-        
+        const updateFields = {};
+        if (theme) updateFields['appearanceSettings.theme'] = theme;
+        if (sidebarPosition) updateFields['appearanceSettings.sidebarPosition'] = sidebarPosition;
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateFields },
+            { new: true, runValidators: true }
+        ).select('appearanceSettings');
         if(!user){
             return res.status(404).json({success: false, message: "User not found"});
         }
-
-        if(theme){
-            user.appearanceSettings.theme= theme;
-        }
-        if(sidebarPosition){
-            user.appearanceSettings.sidebarPosition= sidebarPosition;
-        }
-
-        await user.save();
-
-        return res.status(200).json({success: true, message: "Appearance settings updated successfully"});
+        return res.status(200).json({success: true, message: "Appearance settings updated successfully", appearanceSettings: user.appearanceSettings});
     }catch(error){
         return res.status(500).json({success: false, message: "Error while updating appearance settings"});
 
