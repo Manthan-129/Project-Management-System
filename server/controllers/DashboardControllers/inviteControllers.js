@@ -24,7 +24,7 @@ const sendRequestToMakeFriend= async (req, res) => {
             return res.status(404).json({success: false, message: 'User not found'});
         }
 
-        if(receiver._id.toString() === userId){
+        if(receiver._id.toString() === userIdStr){
             return res.status(400).json({success: false, message: 'You cannot send a friend request to yourself'});
         }
 
@@ -32,19 +32,20 @@ const sendRequestToMakeFriend= async (req, res) => {
         if(friends){
             return res.status(400).json({success: false, message: 'You are already friends with this user'});
         }
-        
-        const existingInvite= await Invite.findOne({
-            sender: userId,
-            receiver: receiver._id,
-            status: 'pending',
-        }).lean();
 
+        const [existingInvite, pendingRequestFromReceiver, recentRejection] = await Promise.all([
+            Invite.findOne({ sender: userId, receiver: receiver._id, status: 'pending' }).lean(),
+            Invite.findOne({ sender: receiver._id, receiver: userId, status: 'pending' }),
+            Invite.findOne({
+                sender: userId, receiver: receiver._id, status: 'rejected',
+                updatedAt: { $gte: new Date(Date.now() - 7*24*60*60*1000) }
+            }).lean(),
+        ]);
+        
         if(existingInvite){
             return res.status(400).json({success: false, message: 'Friend request already sent'});
         }
         
-
-        const pendingRequestFromReceiver= await Invite.findOne({sender: receiver._id, receiver: userId, status: 'pending'});
 
         if(pendingRequestFromReceiver){
             pendingRequestFromReceiver.status= 'accepted';
@@ -63,13 +64,6 @@ const sendRequestToMakeFriend= async (req, res) => {
             return res.status(200).json({success: true, message: "Friend request accepted successfully", invite: pendingRequestFromReceiver});
 
         }
-
-        const recentRejection= await Invite.findOne({
-            sender: userId,
-            receiver: receiver._id,
-            status: 'rejected',
-            updatedAt: {$gte: new Date(Date.now() - 7*24*60*60*1000)}
-        }).lean();
 
         if(recentRejection){
             return res.status(400).json({success: false, message: 'You cannot send another friend request to this user for 7 days since your last request was rejected'});
