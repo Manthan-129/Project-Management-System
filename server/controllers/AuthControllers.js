@@ -143,14 +143,15 @@ const loginUser= async (req, res)=>{
     try{
         const {username, email, password, loginCredential}= req.body;
 
-        let resolvedEmail = email;
-        let resolvedUsername = username;
+        let resolvedEmail = email ? email.trim().toLowerCase() : '';
+        let resolvedUsername = username ? username.trim() : '';
 
         if(loginCredential && !resolvedEmail && !resolvedUsername){
-            if(loginCredential.includes('@')){
-                resolvedEmail = loginCredential;
+            const trimmedCred = loginCredential.trim();
+            if(trimmedCred.includes('@')){
+                resolvedEmail = trimmedCred.toLowerCase();
             }else{
-                resolvedUsername = loginCredential;
+                resolvedUsername = trimmedCred;
             }
         }
 

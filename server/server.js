@@ -62,19 +62,38 @@ process.on("uncaughtException", (err) => {
 
 process.on("unhandledRejection", (reason) => {
     console.error("Unhandled Rejection:", reason);
-    shutdown(1);
+    // Log error without crashing the server process on background promise failures
 });
 
-async function startServer() {
+const startServer = async () => {
     try {
         await connectDB();
         connectCloudinary();
 
-        app.use(helmet());
+        app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+
+        const allowedOrigins = [
+            process.env.CLIENT_URL,
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:3000",
+            "http://127.0.0.1:5173",
+        ].filter(Boolean);
 
         app.use(
             cors({
-                origin: process.env.CLIENT_URL || "http://localhost:5173",
+                origin: function (origin, callback) {
+                    if (!origin) return callback(null, true);
+                    if (
+                        allowedOrigins.includes(origin) ||
+                        origin.endsWith(".vercel.app") ||
+                        origin.endsWith(".onrender.com") ||
+                        process.env.NODE_ENV !== "production"
+                    ) {
+                        return callback(null, origin);
+                    }
+                    return callback(null, origin);
+                },
                 credentials: true,
             })
         );
