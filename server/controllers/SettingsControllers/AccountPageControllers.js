@@ -1,5 +1,12 @@
 require('dotenv').config();
 
+const Team = require('../../models/Team');
+const Task = require('../../models/Task');
+const PullRequest = require('../../models/PullRequest');
+const Notification = require('../../models/Notification');
+const Invite = require('../../models/Invite');
+const TeamInvitation = require('../../models/TeamInvitation');
+
 const User = require('../../models/User');
 const OTP= require('../../models/OTP');
 const bcrypt= require('bcrypt');
@@ -46,15 +53,18 @@ const updateUserEmailOTPRequest= async (req, res)=>{
             expiresAt: new Date(Date.now() + 5*60*1000),
         });
 
+        const tmpl = updateEmailTemplate(otp, 5);
         const mailOptions= {
             from: `"Support" <${process.env.SENDER_EMAIL}>`,
             to: newEmail,
-            subject: updateEmailTemplate(otp,5).subject,
-            text: updateEmailTemplate(otp,5).html.replace(/<[^>]+>/g, ''),
-            html: updateEmailTemplate(otp,5).html, 
+            subject: tmpl.subject,
+            text: tmpl.html.replace(/<[^>]+>/g, ''),
+            html: tmpl.html, 
         }
 
-        await transporter.sendMail(mailOptions);
+        transporter.sendMail(mailOptions).catch(err => {
+            console.error("Error sending email update OTP:", err.message);
+        });
 
         return res.status(200).json({success: true, message: "OTP sent to new email for verification"});
 
@@ -180,6 +190,27 @@ const deleteUserAccount= async (req, res)=>{
             return res.status(401).json({success: false, message: "Incorrect password. Cannot delete account."});
         }
 
+        const ledTeams = await Team.find({ leader: userId }).select('_id').lean();
+
+        const ledTeamIds = ledTeams.map(t => t._id);
+        if (ledTeamIds.length > 0) {
+            await Task.deleteMany({ team: { $in: ledTeamIds } });
+            await PullRequest.deleteMany({ team: { $in: ledTeamIds } });
+            await TeamInvitation.deleteMany({ team: { $in: ledTeamIds } });
+            await Team.deleteMany({ _id: { $in: ledTeamIds } });
+        }
+
+        await Team.updateMany({ 'members.user': userId }, { $pull: { members: { user: userId } }, $inc: { memberCount: -1 } });
+
+        await User.updateMany({ friends: userId }, { $pull: { friends: userId } });
+
+        await Invite.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
+
+        await TeamInvitation.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
+
+        await Notification.deleteMany({ $or: [{ recipient: userId }, { actor: userId }] });
+
+        await PullRequest.deleteMany({ sender: userId });
         await User.findByIdAndDelete(userId);
 
         return res.status(200).json({success: true, message: "Account deleted successfully"});

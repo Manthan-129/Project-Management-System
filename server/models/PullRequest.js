@@ -10,8 +10,7 @@ const pullRequestSchema= new mongoose.Schema({
     reviewedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     reviewNote: {type: String, default: '', trim: true},
     reviewedAt: {type: Date},
-    createdAt: {type: Date, default: Date.now},
-})
+}, {timestamps: true});
 pullRequestSchema.index({ task: 1, sender: 1, status: 1 });
 pullRequestSchema.index({ team: 1, status: 1, createdAt: -1 });
 pullRequestSchema.index({ sender: 1, createdAt: -1 });

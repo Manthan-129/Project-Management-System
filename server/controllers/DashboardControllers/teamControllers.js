@@ -1,6 +1,9 @@
 const Team= require('../../models/Team')
 const User= require('../../models/User')
 const Task= require('../../models/Task')
+const PullRequest = require('../../models/PullRequest');
+const Notification = require('../../models/Notification');
+
 const TeamInvitation= require('../../models/TeamInvitation')
 const { transporter } = require('../../configs/nodemailer')
 const { createNotification } = require('../../utils/notificationService.js')
@@ -121,7 +124,7 @@ const sendTeamInvitation= async (req, res) => {
 
         const {username, message}= req.body;
 
-        const trimmedUsername= username.trim();
+        const trimmedUsername= username?.trim();
         const trimmedMessage= message ? message.trim() : '';
 
         if(!trimmedUsername){
@@ -192,12 +195,20 @@ const sendTeamInvitation= async (req, res) => {
             metadata: { teamId: team._id, teamName: team.name, invitationId: invitation._id },
         });
 
+        const populatedTeam = await Team.findById(teamId)
+            .select('members')
+            .populate('members.user', 'firstName lastName username')
+            .lean();
+        const memberNames = (populatedTeam?.members || []).map(m => ({
+            name: (m.user?.firstName || '') + ' ' + (m.user?.lastName || ''),
+            username: m.user?.username,
+        }));
         const teamInvitationData= teamInvitationTemplate({
             senderName: sender.firstName + ' ' + sender.lastName,
             senderUsername: sender.username,
             teamName: team.name,
             teamDescription: team.description,
-            members: team.members.map(m => m.user),
+            members: memberNames,
             customMessage: trimmedMessage
         });
 
@@ -346,18 +357,12 @@ const respondToTeamInvitation= async (req, res) => {
         
         const senderId= invitation.sender;
 
-        const areFriends= await User.exists({
-            _id: userId,
-            friends: senderId
-        })
-
-        if(!areFriends){
-            invitation.status= 'rejected';
-            await invitation.save();
-
-            return res.status(400).json({success: false, message: "Sender and Receiver are not mutual friends. You have to be friends before responding to team invitations."});
+        if(status === 'accepted'){
+            const areFriends= await User.exists({ _id: userId, friends: senderId });
+            if(!areFriends){
+                return res.status(400).json({success: false, message: "Sender and Receiver are not mutual friends."});
+            }
         }
-
         invitation.status= status;
         await invitation.save();
 
@@ -455,9 +460,8 @@ const allMemberOfTeam= async (req, res) => {
             return res.status(404).json({success: false, message: 'Team not found' });
         }
 
-        const member= team.members.find(m => m.user._id.toString() === userIdStr) || team.leader._id.toString() === userIdStr;
-
-        if(!member){
+       const isMember = team.members.some(m => m.user._id.toString() === userIdStr) || team.leader._id.toString() === userIdStr;
+        if(!isMember){
             return res.status(403).json({success: false, message: 'Access denied' });
         }
 
@@ -601,8 +605,12 @@ const deleteTeam= async (req, res) => {
             return res.status(400).json({success: false, message: 'Failed to delete the team'});
         }
 
-        await TeamInvitation.deleteMany({team: teamId});
-        await Task.deleteMany({team: teamId});
+        await Promise.all([
+            TeamInvitation.deleteMany({team: teamId}),
+            Task.deleteMany({team: teamId}),
+            PullRequest.deleteMany({team: teamId}),
+            Notification.deleteMany({'metadata.teamId': teamId}),
+        ]);
 
         return res.status(200).json({success: true, message: 'Team deleted successfully'});
 

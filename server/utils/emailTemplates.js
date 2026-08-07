@@ -1,3 +1,5 @@
+const escapeHtml = (str) => String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
 const forgetPasswordTemplate= (otp, expiry)=>({
     subject: "DevDash - Password Reset Verification",
     html: `
@@ -249,16 +251,16 @@ const updateTaskTemplate = ({
       <h3>Task Update Notification</h3>
 
       <p>
-        The task <strong>"${title}"</strong> has been updated by
-        <strong>${assignedBy}</strong>.
+        The task <strong>"${escapeHtml(title)}"</strong> has been updated by
+        <strong>${escapeHtml(assignedBy)}</strong>.
       </p>
 
       <p><strong>Updated Task Details:</strong></p>
 
       <ul>
-        ${description ? `<li><strong>Description:</strong> ${description}</li>` : ''}
-        ${status ? `<li><strong>Status:</strong> ${status}</li>` : ''}
-        ${priority ? `<li><strong>Priority:</strong> ${priority}</li>` : ''}
+        ${description ? `<li><strong>Description:</strong> ${escapeHtml(description)}</li>` : ''}
+        ${status ? `<li><strong>Status:</strong> ${escapeHtml(status)}</li>` : ''}
+        ${priority ? `<li><strong>Priority:</strong> ${escapeHtml(priority)}</li>` : ''}
         ${dueDate ? `<li><strong>Due Date:</strong> ${new Date(dueDate).toDateString()}</li>` : ''}
       </ul>
 
@@ -299,22 +301,22 @@ const teamInvitationTemplate = ({
 
       <p>
         You have received a team invitation from
-        <strong>${senderName}</strong> (@${senderUsername}).
+        <strong>${escapeHtml(senderName)}</strong> (@${escapeHtml(senderUsername)}).
       </p>
 
       <p>
-        <strong>Team Name:</strong> ${teamName}
+        <strong>Team Name:</strong> ${escapeHtml(teamName)}
       </p>
 
       ${
         teamTitle
-          ? `<p><strong>Team Title:</strong> ${teamTitle}</p>`
+          ? `<p><strong>Team Title:</strong> ${escapeHtml(teamTitle)}</p>`
           : ''
       }
 
       ${
         teamDescription
-          ? `<p><strong>Team Description:</strong><br/>${teamDescription}</p>`
+          ? `<p><strong>Team Description:</strong><br/>${escapeHtml(teamDescription)}</p>`
           : ''
       }
 
@@ -323,7 +325,7 @@ const teamInvitationTemplate = ({
           ? `
             <p><strong>Current Members:</strong></p>
             <p style="margin-left: 10px;">
-              ${members.map(m => m.name || m.username).join(', ')}
+              ${members.map(m => escapeHtml(m.name || m.username)).join(', ')}
             </p>
           `
           : ''
@@ -332,9 +334,9 @@ const teamInvitationTemplate = ({
       ${
         customMessage
           ? `
-            <p><strong>Message from ${senderName}:</strong></p>
+            <p><strong>Message from ${escapeHtml(senderName)}:</strong></p>
             <p style="font-style: italic; color: #555;">
-              "${customMessage}"
+              "${escapeHtml(customMessage)}"
             </p>
           `
           : ''
@@ -368,15 +370,15 @@ const taskAssignmentTemplate= ({title, description, status, priority, dueDate, a
   
         <p>
           You have been assigned a new task by
-          <strong>${assignedBy}</strong>.
+          <strong>${escapeHtml(assignedBy)}</strong>.
         </p>
   
         <p><strong>Task Details:</strong></p>
   
         <ul>
-          ${description ? `<li><strong>Description:</strong> ${description}</li>` : ''}
-          ${status ? `<li><strong>Status:</strong> ${status}</li>` : ''}
-          ${priority ? `<li><strong>Priority:</strong> ${priority}</li>` : ''}
+          ${description ? `<li><strong>Description:</strong> ${escapeHtml(description)}</li>` : ''}
+          ${status ? `<li><strong>Status:</strong> ${escapeHtml(status)}</li>` : ''}
+          ${priority ? `<li><strong>Priority:</strong> ${escapeHtml(priority)}</li>` : ''}
           ${dueDate ? `<li><strong>Due Date:</strong> ${new Date(dueDate).toDateString()}</li>` : ''}
         </ul>
   
@@ -404,9 +406,9 @@ const pullRequestTemplate= ({taskTitle, senderName, githubPRLink, message})=> ({
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; color: #333;">
         <h3>New Pull Request</h3>
-        <p><strong>${senderName}</strong> has submitted a pull request for the task <strong>"${taskTitle}"</strong>.</p>
-        <p><strong>GitHub PR Link:</strong> <a href="${githubPRLink}" style="color: #2563eb;">${githubPRLink}</a></p>
-        ${message ? `<p><strong>Message:</strong> ${message}</p>` : ''}
+        <p><strong>${escapeHtml(senderName)}</strong> has submitted a pull request for the task <strong>"${escapeHtml(taskTitle)}"</strong>.</p>
+        <p><strong>GitHub PR Link:</strong> <a href="${escapeHtml(githubPRLink)}" style="color: #2563eb;">${escapeHtml(githubPRLink)}</a></p>
+        ${message ? `<p><strong>Message:</strong> ${escapeHtml(message)}</p>` : ''}
         <p style="margin-top: 20px;">Please review the pull request on GitHub and update the status in DevDash.</p>
         <p style="font-size: 13px; color: #777;">This is an automated notification.</p>
         <hr style="border: none; border-top: 1px solid #eee;" />
@@ -420,8 +422,8 @@ const pullRequestReviewTemplate= ({taskTitle, reviewerName, status, reviewNote})
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; color: #333;">
         <h3>Pull Request ${status === 'accepted' ? 'Accepted' : 'Rejected'}</h3>
-        <p>Your pull request for <strong>"${taskTitle}"</strong> has been <strong>${status}</strong> by <strong>${reviewerName}</strong>.</p>
-        ${reviewNote ? `<p><strong>Review Note:</strong> ${reviewNote}</p>` : ''}
+        <p>Your pull request for <strong>"${escapeHtml(taskTitle)}"</strong> has been <strong>${escapeHtml(status)}</strong> by <strong>${escapeHtml(reviewerName)}</strong>.</p>
+        ${reviewNote ? `<p><strong>Review Note:</strong> ${escapeHtml(reviewNote)}</p>` : ''}
         ${status === 'rejected' ? '<p>Please make the required changes and submit a new pull request.</p>' : '<p>Great work! The task has been marked as completed.</p>'}
         <p style="font-size: 13px; color: #777;">This is an automated notification.</p>
         <hr style="border: none; border-top: 1px solid #eee;" />

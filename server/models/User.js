@@ -93,7 +93,6 @@ const UserSchema= new mongoose.Schema({
     username: {type: String, required: true, unique: true},
     bio: {type: String, default: ""},
     profilePicture: {type: String, default: ""},
-    date: {type: Date, default: Date.now},
     githubUrl: {type: String, default: "", validate: {validator: isValidGitHubUrl, message: "Please provide a valid GitHub URL (https://github.com/<username>)."}},
     linkedinUrl: {type: String, default: "", validate: {validator: isValidLinkedInUrl, message: "Please provide a valid LinkedIn URL (https://www.linkedin.com/in/<id>)."}},
     portfolioUrl: {type: String, default: "", validate: {validator: isValidPortfolioUrl, message: "Please provide a valid portfolio URL using HTTPS."}},
@@ -162,5 +161,7 @@ const UserSchema= new mongoose.Schema({
     }]
 
 }, {timestamps: true});
+
+UserSchema.index({ friends: 1 });
 
 module.exports= mongoose.models.User || mongoose.model("User", UserSchema);

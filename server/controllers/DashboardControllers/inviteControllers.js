@@ -144,14 +144,16 @@ const respondToFriendRequest= async (req, res) => {
         await invitation.save();
 
         if(status === 'accepted'){
-            await User.updateOne(
-                {_id: invitation.sender._id},
-                {$addToSet: {friends: invitation.receiver._id}},
-            )
-            await User.updateOne(
-                {_id: invitation.receiver._id},
-                {$addToSet: {friends: invitation.sender._id}},
-            )
+            await Promise.all([
+                User.updateOne(
+                    {_id: invitation.sender._id},
+                    {$addToSet: {friends: invitation.receiver._id}},
+                ),
+                User.updateOne(
+                    {_id: invitation.receiver._id},
+                    {$addToSet: {friends: invitation.sender._id}},
+                ),
+            ]);
         }
 
         return res.status(200).json({success: true, message: `Invitation ${status} successfully`});
@@ -208,10 +210,11 @@ const unfriendUser= async (req, res) => {
 
         const {friendId}= req.params;
 
-        const user= await User.findById(userId).select('_id friends');
-        const friend= await User.findById(friendId).select('_id');
-
-        if(!friend){
+        const [user, friendExists] = await Promise.all([
+            User.findById(userId).select('friends').lean(),
+            User.exists({_id: friendId}),
+        ]);
+        if(!friendExists){
             return res.status(404).json({success: false, message: 'User not found'});
         }
 
@@ -221,15 +224,10 @@ const unfriendUser= async (req, res) => {
             return res.status(400).json({success: false, message: 'This user is not in your friends list'});
         }
 
-        await User.updateOne(
-            {_id: userId},
-            {$pull: {friends: friendId}},
-        )
-
-        await User.updateOne(
-            {_id: friendId},
-            {$pull: {friends: userId}},
-        )
+        await Promise.all([
+            User.updateOne({_id: userId}, {$pull: {friends: friendId}}),
+            User.updateOne({_id: friendId}, {$pull: {friends: userId}}),
+        ]);
         
         return res.status(200).json({success: true, message: "Unfriended successfully"});
 

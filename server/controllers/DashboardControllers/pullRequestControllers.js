@@ -20,7 +20,7 @@ const createPullRequest= async (req, res) => {
 
         if(!task) return res.status(404).json({success: false, message: 'Task not found'});
 
-        if(task.assignedTo._id.toString() !== userId){
+        if(task.assignedTo._id.toString() !== userId.toString()){
             return res.status(403).json({success: false, message: "Only the assigned user can submit a pull request for this task"});
         }
 
@@ -45,8 +45,6 @@ const createPullRequest= async (req, res) => {
         await newPR.save();
 
         task.status= 'in-review';
-        task.updatedAt = new Date();
-
         await task.save();
         
         await newPR.populate([
@@ -98,7 +96,8 @@ const reviewPullRequest= async (req, res) => {
 
         if(!team) return res.status(404).json({success: false, message: 'Team not found'});
 
-        const isLeaderOrAdmin= team.leader._id.toString() === userId || team.members.some(m => m.user.toString() === userId && m.role === 'admin');
+        const userIdStr = userId.toString();
+        const isLeaderOrAdmin= team.leader._id.toString() === userIdStr || team.members.some(m => m.user.toString() === userIdStr && m.role === 'admin');
 
         if(!isLeaderOrAdmin){
             return res.status(403).json({success: false, message: "Only the team leader or admins can review pull requests"});
@@ -127,30 +126,28 @@ const reviewPullRequest= async (req, res) => {
             await task.save();
         }
 
+        const senderEmail = pullRequest.sender.email;
         await pullRequest.populate([
             { path: 'sender', select: 'firstName lastName username profilePicture' },
             { path: 'reviewedBy', select: 'firstName lastName username profilePicture' },
             { path: 'task', select: 'title description status priority' },
         ]);
-
-        // Send email to PR sender about the review result
-        const reviewerInfo= await User.findById(userId).select('firstName lastName');
-
-        const emailTemplate= pullRequestReviewTemplate({
+        const reviewerInfo = await User.findById(userId).select('firstName lastName').lean();
+        const emailTemplate = pullRequestReviewTemplate({
             taskTitle: pullRequest.task.title,
-            reviewerName: reviewerInfo.firstName + ' ' + reviewerInfo.lastName,
+            reviewerName: `${reviewerInfo?.firstName || 'Team'} ${reviewerInfo?.lastName || ''}`.trim(),
             status,
-            reviewNote: reviewNote || '',
+            reviewNote: reviewNote?.trim() || '',
         });
-
         const mailOptions= {
             from: `"Support" <${process.env.SENDER_EMAIL}>`,
-            to: pullRequest.sender.email,
+            to: senderEmail,
             subject: emailTemplate.subject,
             text: emailTemplate.html.replace(/<[^>]+>/g, ''),
-        }
-
-        await transporter.sendMail(mailOptions);
+        };
+        transporter.sendMail(mailOptions).catch(err => {
+            console.error('Error sending PR review email:', err.message);
+        });
 
         return res.status(200).json({success: true, message: 'Pull request reviewed successfully', pullRequest});
 
@@ -170,11 +167,12 @@ const getTeamPullRequests= async (req, res) => {
             return res.status(400).json({success: false, message: "Status filter must be either 'pending', 'accepted', or 'rejected'"});
         }
 
-        const team= await Team.findById(teamId);
+        const team= await Team.findById(teamId).select('leader members').lean();
 
         if(!team) return res.status(404).json({success: false, message: 'Team not found'});
 
-        const isMember= team.members.some(m => m.user.toString() === userId) || team.leader.toString() === userId;
+        const userIdStr = userId.toString();
+        const isMember= team.members.some(m => m.user.toString() === userIdStr) || team.leader.toString() === userIdStr;
 
         if(!isMember){
             return res.status(403).json({success: false, message: "Only team members can view pull requests"});
@@ -205,31 +203,29 @@ const getMyPullRequests= async (req, res) => {
             return res.status(400).json({success: false, message: "Status filter must be either 'pending', 'accepted', or 'rejected'"});
         }
 
-        const pullRequests= await PullRequest.find({sender: userId})
-        .populate('sender', 'firstName lastName username profilePicture')
-        .populate('reviewedBy', 'firstName lastName username profilePicture')
-        .populate('task', 'title description status priority dueDate')
-        .populate('team', 'name title')
-        .sort({createdAt: -1})
-        .lean();
-
-        const stats= {
-            total: 0,
-            pending: 0,
-            accepted: 0,
-            rejected: 0,
+        const query = { sender: userId };
+        if (status && status !== 'all-status') {
+            query.status = status;
+        }
+        const [pullRequests, allUserPRs] = await Promise.all([
+            PullRequest.find(query)
+                .populate([
+                    { path: 'task', select: 'title description status priority dueDate' },
+                    { path: 'sender', select: 'firstName lastName username profilePicture' },
+                    { path: 'reviewedBy', select: 'firstName lastName username profilePicture' },
+                ])
+                .sort({ createdAt: -1 })
+                .lean(),
+            PullRequest.find({ sender: userId }).select('status').lean(),
+        ]);
+        const stats = { total: allUserPRs.length, pending: 0, accepted: 0, rejected: 0 };
+        for (const pr of allUserPRs) {
+            if (stats[pr.status] !== undefined) stats[pr.status]++;
         }
 
-        for(const pr of pullRequests){
-            stats.total++;
-            if(pr.status === 'pending') stats.pending++;
-            else if(pr.status === 'accepted') stats.accepted++;
-            else if(pr.status === 'rejected') stats.rejected++;
-        }
+        const filteredPRs = status && status !== 'all-status' ? pullRequests.filter(pr => pr.status === status) : pullRequests;
 
-        const filteredPRs= status && status !== 'all-status' ? pullRequests.filter(pr => pr.status === status) : pullRequests;
-
-        return res.status(200).json({success: true, pullRequests: filteredPRs, stats});
+        return res.status(200).json({ success: true, pullRequests: filteredPRs, stats });
 
     }catch(error){
         console.error("Error fetching my pull requests:", error);

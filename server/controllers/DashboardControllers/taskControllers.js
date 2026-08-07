@@ -159,7 +159,6 @@ const getTeamTasks= async (req, res) => {
         const tasks= await Task.find({team: teamId})
         .populate('assignedTo', 'username firstName lastName profilePicture email')
         .populate('assignedBy', 'username firstName lastName profilePicture email')
-        .populate('deletedBy', 'username firstName lastName profilePicture email')
         .sort({createdAt: -1})
         .lean();
 
@@ -348,8 +347,8 @@ const getMyTasks= async (req, res)=> {
         const userId= req.userId;
 
         const tasks= await Task.find({assignedTo: userId})
+        .populate('team', 'name title')
         .populate('assignedBy', 'username firstName lastName profilePicture email')
-        .populate('deletedBy', 'username firstName lastName profilePicture email')
         .sort({createdAt: -1})
         .lean();
 
@@ -455,7 +454,6 @@ const updateTaskStatus = async (req, res) => {
 
         task.status= status;
 
-        task.updatedAt= new Date();
         if(status === 'completed'){
             task.completedAt= new Date();
         }
@@ -549,7 +547,6 @@ const updateTask= async (req, res) => {
         }
 
         task.updatedBy= userId;
-        task.updatedAt= new Date();
 
         await task.save();
 
@@ -617,7 +614,6 @@ const restoreTask= async (req, res) => {
         task.deletedAt= null;
         task.deletedBy= null;
         task.updatedBy= userId;
-        task.updatedAt= new Date();
         task.status= 'todo';
         await task.save();
 
@@ -661,7 +657,6 @@ const deleteTask= async (req, res) => {
         task.deletedAt= new Date();
         task.deletedBy= userId;
         task.updatedBy= userId;
-        task.updatedAt= new Date();
         await task.save();
         
         const recipients = new Set([
@@ -762,6 +757,7 @@ const getWorkspaceTaskBoard= async (req, res) => {
         .populate('assignedTo', 'username firstName lastName profilePicture email')
         .populate('assignedBy', 'username firstName lastName profilePicture email')
         .sort({createdAt: -1})
+        .limit(300)
         .lean();
 
         const uid = userId.toString();
@@ -890,7 +886,15 @@ const getTeamMemberProgress = async (req, res) => {
             });
         }
 
+        let totalCompleted = 0;
+        let totalOverdue = 0;
+
         for (const t of tasks) {
+
+            if (!t.isDeleted) {
+                if (t.status === 'completed') totalCompleted++;
+                if (t.dueDate && new Date(t.dueDate) < now && t.status !== 'completed') totalOverdue++;
+            }
             if (!t.assignedTo) continue;
 
             const uid = t.assignedTo.toString();
@@ -1003,24 +1007,6 @@ const getTeamMemberProgress = async (req, res) => {
                 b.stats.completionRate - a.stats.completionRate ||
                 b.stats.total - a.stats.total
         );
-
-        let totalCompleted = 0;
-        let totalOverdue = 0;
-
-        for (const t of tasks) {
-            if (t.isDeleted) continue;
-
-            if (t.status === 'completed') totalCompleted++;
-
-            if (
-                t.dueDate &&
-                new Date(t.dueDate) < now &&
-                t.status !== 'completed' &&
-                !t.isDeleted
-            ) {
-                totalOverdue++;
-            }
-        }
 
         const totalTasks = tasks.length;
         const totalActive = tasks.filter(t => !t.isDeleted).length;

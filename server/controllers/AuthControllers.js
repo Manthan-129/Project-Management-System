@@ -37,7 +37,7 @@ const sendRegistrationOTP= async (req, res)=>{
     try{
         const {email, username}= req.body;
         
-        if(!email && !username){
+        if(!email || !username){
             return res.status(400).json({success: false, message: "Email and username are required"});
         }
         // Validate email and username
@@ -75,8 +75,9 @@ const sendRegistrationOTP= async (req, res)=>{
             html: tmpl.html,
         }
 
-        await transporter.sendMail(mailOptions);
-
+        transporter.sendMail(mailOptions).catch(err => {
+            console.error("Error sending OTP email:", err.message);
+        });
         return res.status(200).json({success: true, message: "OTP sent to email successfully"});
 
     }catch(error){
@@ -196,12 +197,14 @@ const loginUser= async (req, res)=>{
 
             const mailTemplate= twoFactorTemplate(loginOtp, 5, 'login verification');
 
-            await transporter.sendMail({
+            transporter.sendMail({
                 from: process.env.SENDER_EMAIL,
                 to: user.email,
                 subject: mailTemplate.subject,
                 text: mailTemplate.html.replace(/<[^>]+>/g, ''),
                 html: mailTemplate.html,
+            }).catch(err => {
+                console.error("Error sending 2FA login email:", err.message);
             });
 
             return res.status(200).json({
@@ -331,9 +334,10 @@ const forgetPasswordOTPRequest= async (req, res)=>{
             html: tmpl.html,
         }
 
-        await transporter.sendMail(mailOptions);
-
-        return res.status(200).json({success: true, message: "OTP sent to email for password reset"})
+        transporter.sendMail(mailOptions).catch(err => {
+            console.error("Error sending OTP email:", err.message);
+        });
+        return res.status(200).json({success: true, message: "OTP sent to email successfully"});
 
     }catch(error){
         return res.status(500).json({success: false, message: "Error in Forget Password OTP Request"});

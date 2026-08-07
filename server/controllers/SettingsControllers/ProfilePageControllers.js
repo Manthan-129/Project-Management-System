@@ -39,9 +39,8 @@ const updateUserInfo= async (req, res)=>{
             resource_type: "image",
             transformation: [{width: 500, height: 500, crop: "fill"}]
         })
-
-        console.log("Cloudinary Upload Result:", imageUpload.secure_url);
-
+        const fs = require('fs');
+        fs.unlink(imageFile.path, () => {});
         user.profilePicture= imageUpload.secure_url;
         }
 
@@ -56,10 +55,10 @@ const updateUserInfo= async (req, res)=>{
         if(portfolioUrl && validator.isURL(portfolioUrl)) user.portfolioUrl= portfolioUrl;
         if(linkedinUrl && validator.isURL(linkedinUrl)) user.linkedinUrl= linkedinUrl;
 
-         const updatedUser= await user.save();
-        // Refetch without password (save() returns doc with selected fields)
-        const safeUser = await User.findById(updatedUser._id).select('-password');
-        return res.status(200).json({success: true, message: "User info updated successfully", user: safeUser});
+        await user.save();
+        const userObj = user.toObject();
+        delete userObj.password;
+        return res.status(200).json({success: true, message: "User info updated successfully", user: userObj});
 
     }catch(error){
         return res.status(500).json({success: false, message: "Error in updating user info"});

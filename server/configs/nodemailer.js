@@ -10,13 +10,12 @@ const transporter= nodemailer.createTransport({
     }
 });
 
-(async ()=>{
-    try{
-        await transporter.verify();
+if (process.env.NODE_ENV !== 'production') {
+    transporter.verify().then(() => {
         console.log("Brevo SMTP authenticated successfully");
-    } catch (error) {
-    console.error("Brevo SMTP authentication failed:", error.message);
-  }
-})();
+    }).catch(err => {
+        console.warn("Brevo SMTP auth warning:", err.message);
+    });
+}
 
 module.exports= { transporter };

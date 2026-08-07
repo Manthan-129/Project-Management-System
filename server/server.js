@@ -7,8 +7,8 @@ const compression = require("compression");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 
-const { connectDB } = require("./config/db");
-const { connectCloudinary } = require("./config/cloudinary");
+const { connectDB } = require("./configs/db");
+const { connectCloudinary } = require("./configs/cloudinary");
 
 const { authRouter } = require("./routes/AuthRoutes");
 const settingsRouter = require("./routes/SettingsRoutes");

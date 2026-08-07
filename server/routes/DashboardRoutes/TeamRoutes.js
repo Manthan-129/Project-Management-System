@@ -10,12 +10,12 @@ teamRouter.use(authMiddleware);
 
 teamRouter.post('/create', createTeam);
 teamRouter.get('/my-teams', getMyTeams);
-teamRouter.get('/:teamId', getTeamDetails);
-teamRouter.post('/invitations/send/:teamId', sendTeamInvitation);
 teamRouter.get('/invitations/received', getReceivedTeamInvitations);
 teamRouter.get('/invitations/sent-by-me', getSentInvitationsByMe);
 teamRouter.get('/invitations/sent-by-team', getSentInvitationsByTeam);
+teamRouter.post('/invitations/send/:teamId', sendTeamInvitation);
 teamRouter.put('/invitations/respond/:invitationId', respondToTeamInvitation);
+teamRouter.get('/:teamId', getTeamDetails);
 teamRouter.patch('/change-role/:teamId/:memberId', makeUserAdminOrMember);
 teamRouter.get('/all-members/:teamId', allMemberOfTeam);
 teamRouter.delete('/remove-member/:teamId/:memberId', removeTeamMember);

@@ -69,8 +69,7 @@ const getTwoFactorStatus= async (req, res)=>{
 const setupTwoFactorAuthentication= async (req, res)=>{
     try{
         const userId= req.userId;
-        const user= await User.findById(userId);
-
+        const user= await User.findById(userId).select('email twoFactorEnabled').lean();
         if(!user){
             return res.status(404).json({success: false, message: "User not found"});
         }
@@ -94,13 +93,13 @@ const setupTwoFactorAuthentication= async (req, res)=>{
 
         const template = twoFactorTemplateEnable(otp, TWO_FACTOR_OTP_EXPIRY_MINUTES);
 
-        await transporter.sendMail({
+        transporter.sendMail({
             from: `"Security" <${process.env.SENDER_EMAIL}>`,
             to: user.email,
             subject: template.subject,
             text: template.html.replace(/<[^>]+>/g, ''),
             html: template.html,
-        });
+        }).catch(err => console.error("Error sending 2FA setup email:", err.message));
 
         return res.status(200).json({success: true, message: "OTP sent to email for 2FA setup"});
 
@@ -186,13 +185,13 @@ const disableTwoFactorAuthentication= async (req, res)=>{
 
         const template = twoFactorTemplateDisable(otp, TWO_FACTOR_OTP_EXPIRY_MINUTES);
 
-        await transporter.sendMail({
+        transporter.sendMail({
             from: `"Security" <${process.env.SENDER_EMAIL}>`,
             to: user.email,
             subject: template.subject,
             text: template.html.replace(/<[^>]+>/g, ''),
             html: template.html,
-        })
+        }).catch(err => console.error("Error sending 2FA disable email:", err.message));
 
         return res.status(200).json({success: true, message: "OTP sent to email for 2FA disable"});
 
