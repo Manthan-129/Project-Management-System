@@ -112,44 +112,54 @@ const getUserProfile = async (req, res) => {
             }
         }
 
-        const workShowcase = await Promise.all(userTeams.map(async (team) => {
-            // Determine Role
+        // Bulk-fetch all data in 2 queries instead of 2*N
+        const teamIds = userTeams.map(t => t._id);
+        const [allCompletedTasks, allAcceptedPRs] = await Promise.all([
+            Task.find({
+                team: { $in: teamIds },
+                assignedTo: targetUser._id,
+                status: 'completed'
+            }).select("title team").lean(),
+            PullRequest.find({
+                team: { $in: teamIds },
+                sender: targetUser._id,
+                status: 'accepted'
+            }).select("githubPRLink team").lean(),
+        ]);
+        // Group by team ID
+        const tasksByTeam = {};
+        for (const t of allCompletedTasks) {
+            const tid = t.team.toString();
+            if (!tasksByTeam[tid]) tasksByTeam[tid] = [];
+            tasksByTeam[tid].push(t.title);
+        }
+        const prsByTeam = {};
+        for (const pr of allAcceptedPRs) {
+            const tid = pr.team.toString();
+            if (!prsByTeam[tid]) prsByTeam[tid] = [];
+            prsByTeam[tid].push(pr.githubPRLink);
+        }
+        const workShowcase = userTeams.map((team) => {
             let roleStr = "Member";
             if (team.leader.toString() === targetUser._id.toString()) {
                 roleStr = "Team Leader";
             } else {
                 const membership = team.members.find(m => m.user.toString() === targetUser._id.toString());
-                if (membership && membership.role === 'admin') {
-                    roleStr = "Admin";
-                }
+                if (membership && membership.role === 'admin') roleStr = "Admin";
             }
-
-            // Fetch completed tasks mapped to outcomes
-            const completedTasks = await Task.find({
-                team: team._id,
-                assignedTo: targetUser._id,
-                status: 'completed'
-            }).select("title").lean();
-
-            // Fetch approved PRs mapped to links
-            const acceptedPRs = await PullRequest.find({
-                team: team._id,
-                sender: targetUser._id,
-                status: 'accepted'
-            }).select("githubPRLink").lean();
-
+            const tid = team._id.toString();
             return {
-                _id: team._id.toString(),
+                _id: tid,
                 title: team.name, 
                 summary: team.description || team.title || `Contribution to ${team.name}`, 
                 role: roleStr,
                 details: [`Participated as a core ${roleStr.toLowerCase()}`], 
                 techStack: [], 
-                outcomes: completedTasks.map(t => t.title),
-                prLinks: acceptedPRs.map(pr => pr.githubPRLink), 
+                outcomes: tasksByTeam[tid] || [],
+                prLinks: prsByTeam[tid] || [], 
                 createdAt: team.createdAt
             };
-        }));
+        });
 
         const profileData = {
             _id: targetUser._id,
