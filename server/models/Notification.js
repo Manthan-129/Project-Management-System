@@ -6,9 +6,12 @@ const notificationSchema= new mongoose.Schema({
     type: {type: String, enum: ['task-added', 'task-removed', 'task-assigned-to-me', 'team-invitation', 'friend-request-received'], required: true},
     title: {type: String, required: true},
     message: {type: String, required: true},
-    isRead: {type: Boolean, default: false, index: true},
+    isRead: {type: Boolean, default: false},
     createdAt: {type: Date, default: Date.now},
     metadata: {type: mongoose.Schema.Types.Mixed, default: {}},
 })
 
+// Compound indexes for common query patterns
+notificationSchema.index({ recipient: 1, createdAt: -1 });
+notificationSchema.index({ recipient: 1, isRead: 1, createdAt: -1 });
 module.exports= mongoose.models.Notification || mongoose.model('Notification', notificationSchema);
