@@ -12,5 +12,7 @@ const pullRequestSchema= new mongoose.Schema({
     reviewedAt: {type: Date},
     createdAt: {type: Date, default: Date.now},
 })
-
+pullRequestSchema.index({ task: 1, sender: 1, status: 1 });
+pullRequestSchema.index({ team: 1, status: 1, createdAt: -1 });
+pullRequestSchema.index({ sender: 1, createdAt: -1 });
 module.exports= mongoose.models.PullRequest || mongoose.model('PullRequest', pullRequestSchema);
