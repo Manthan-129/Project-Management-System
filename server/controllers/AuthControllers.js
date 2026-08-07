@@ -66,12 +66,13 @@ const sendRegistrationOTP= async (req, res)=>{
             expiresAt: new Date(Date.now() + 5*60*1000), // OTP valid for 5 minutes
         });
 
+        const tmpl = registrationTemplate(otp, 5);
         const mailOptions= {
             from: process.env.SENDER_EMAIL,
             to: email,
-            subject: registrationTemplate(otp, 5).subject,
-            text: registrationTemplate(otp, 5).html.replace(/<[^>]+>/g, ''), // Plain text version
-            html: registrationTemplate(otp, 5).html,
+            subject: tmpl.subject,
+            text: tmpl.html.replace(/<[^>]+>/g, ''),
+            html: tmpl.html,
         }
 
         await transporter.sendMail(mailOptions);
@@ -321,12 +322,13 @@ const forgetPasswordOTPRequest= async (req, res)=>{
             expiresAt: new Date(Date.now() + 5*60*1000),
         })
 
+        const tmpl = forgetPasswordTemplate(otp, 5);
         const mailOptions= {
             from: `"Support" <${process.env.SENDER_EMAIL}>`,
             to: email,
-            subject: forgetPasswordTemplate(otp, 5).subject,
-            text: forgetPasswordTemplate(otp, 5).html.replace(/<[^>]+>/g, ''),
-            html: forgetPasswordTemplate(otp,5).html,
+            subject: tmpl.subject,
+            text: tmpl.html.replace(/<[^>]+>/g, ''),
+            html: tmpl.html,
         }
 
         await transporter.sendMail(mailOptions);
