@@ -45,13 +45,12 @@ const sendRegistrationOTP= async (req, res)=>{
             return res.status(400).json({success: false, message: "Please enter a valid email address"});
         }
 
-        const existingUserByEmail= await User.findOne({email});
-        if(existingUserByEmail){
-            return res.status(400).json({success: false, message: "Email is already registered"});
-        }
-        const existingUserByUsername= await User.findOne({username});
-        if(existingUserByUsername){
-            return res.status(400).json({success: false, message: "Username is already taken"});
+        const existingUser= await User.findOne({ $or: [{ email }, { username }] }).select('email username').lean();
+        if(existingUser){
+            const msg = existingUser.email === email
+                ? "Email is already registered"
+                : "Username is already taken";
+            return res.status(400).json({success: false, message: msg});
         }
 
         // Generate OTP and send email
