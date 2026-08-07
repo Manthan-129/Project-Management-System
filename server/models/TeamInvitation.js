@@ -6,7 +6,6 @@ const teamInvitationSchema= new mongoose.Schema({
     receiver: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
     message: {type: String, default: ''},
     status: {type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending'},
-    createdAt: {type: Date, default: Date.now},
     respondedAt: {type: Date},
 }, {timestamps: true});
 
