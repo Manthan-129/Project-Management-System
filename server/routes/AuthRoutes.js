@@ -16,10 +16,14 @@ const {authMiddleware}= require('../middlewares/authMiddlewares')
 
 authRouter.post('/login', loginUser);
 authRouter.post('/verify-login-2fa', verifyLoginTwoFactor);
-authRouter.post('/send-registration-otp', sendRegistrationOTP)
-authRouter.post('/verify-registration-otp', verifyRegistrationOTP)
-authRouter.get('/user-info', authMiddleware, userInfo)
-authRouter.post('/forget-password-otp-request', forgetPasswordOTPRequest)
-authRouter.post('/verify-change-pass-otp', verifyForgetPasswordOTPAndUpdate)
+authRouter.post('/verify-2fa', verifyLoginTwoFactor);
+authRouter.post('/send-registration-otp', sendRegistrationOTP);
+authRouter.post('/send-otp', sendRegistrationOTP);
+authRouter.post('/verify-registration-otp', verifyRegistrationOTP);
+authRouter.get('/user-info', authMiddleware, userInfo);
+authRouter.post('/forget-password-otp-request', forgetPasswordOTPRequest);
+authRouter.post('/forget-password/send-otp', forgetPasswordOTPRequest);
+authRouter.post('/verify-change-pass-otp', verifyForgetPasswordOTPAndUpdate);
+authRouter.post('/forget-password/verify-otp', verifyForgetPasswordOTPAndUpdate);
 
 module.exports= {authRouter};

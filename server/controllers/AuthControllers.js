@@ -35,11 +35,15 @@ const createTwoFactorToken = (id)=>{
 // Register a new user
 const sendRegistrationOTP= async (req, res)=>{
     try{
-        const {email, username}= req.body;
+        const rawEmail = req.body.email;
+        const rawUsername = req.body.username;
         
-        if(!email || !username){
+        if(!rawEmail || !rawUsername){
             return res.status(400).json({success: false, message: "Email and username are required"});
         }
+
+        const email = rawEmail.trim().toLowerCase();
+        const username = rawUsername.trim();
         // Validate email and username
         if(!validator.isEmail(email)){
             return res.status(400).json({success: false, message: "Please enter a valid email address"});
@@ -68,7 +72,7 @@ const sendRegistrationOTP= async (req, res)=>{
 
         const tmpl = registrationTemplate(otp, 5);
         const mailOptions= {
-            from: process.env.SENDER_EMAIL,
+            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
             to: email,
             subject: tmpl.subject,
             text: tmpl.html.replace(/<[^>]+>/g, ''),
@@ -90,11 +94,16 @@ const sendRegistrationOTP= async (req, res)=>{
 
 const verifyRegistrationOTP= async (req, res)=>{
     try{
-        const {email, username, password, otp, firstName, lastName}=  req.body;
+        const {password, otp, firstName, lastName}= req.body;
+        const rawEmail = req.body.email;
+        const rawUsername = req.body.username;
 
-        if(!email || !username || !password || !otp || !firstName || !lastName){
+        if(!rawEmail || !rawUsername || !password || !otp || !firstName || !lastName){
             return res.status(400).json({success: false, message: "All fields are required"});
         }
+
+        const email = rawEmail.trim().toLowerCase();
+        const username = rawUsername.trim();
 
         if(!validator.isEmail(email)){
             return res.status(400).json({success: false, message: "Please enter a valid email address"});
@@ -199,7 +208,7 @@ const loginUser= async (req, res)=>{
             const mailTemplate= twoFactorTemplate(loginOtp, 5, 'login verification');
 
             transporter.sendMail({
-                from: process.env.SENDER_EMAIL,
+                from: `"DevDash Security" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
                 to: user.email,
                 subject: mailTemplate.subject,
                 text: mailTemplate.html.replace(/<[^>]+>/g, ''),
@@ -302,10 +311,12 @@ const userInfo= async (req, res)=>{
 
 const forgetPasswordOTPRequest= async (req, res)=>{
     try{
-        const {email}= req.body;
-        if(!email){
+        const rawEmail = req.body.email;
+        if(!rawEmail){
             return res.status(400).json({success: false, message: "Email is required"});
         }
+
+        const email = rawEmail.trim().toLowerCase();
         if(!validator.isEmail(email)){
             return res.status(400).json({success: false, message: "Invalid email address"});
         }
@@ -328,7 +339,7 @@ const forgetPasswordOTPRequest= async (req, res)=>{
 
         const tmpl = forgetPasswordTemplate(otp, 5);
         const mailOptions= {
-            from: `"Support" <${process.env.SENDER_EMAIL}>`,
+            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
             to: email,
             subject: tmpl.subject,
             text: tmpl.html.replace(/<[^>]+>/g, ''),
@@ -347,10 +358,13 @@ const forgetPasswordOTPRequest= async (req, res)=>{
 
 const verifyForgetPasswordOTPAndUpdate= async (req, res)=>{
     try{
-        const {otp, newPass, email}= req.body;
-        if(!email || !newPass || !otp){
+        const {otp, newPass}= req.body;
+        const rawEmail = req.body.email;
+        if(!rawEmail || !newPass || !otp){
             return res.status(400).json({message: "All fields are required", success: false});
         }
+
+        const email = rawEmail.trim().toLowerCase();
 
         if(newPass.length < 6){
             return res.status(400).json({success: false, message: "Password must be at least 6 characters"});

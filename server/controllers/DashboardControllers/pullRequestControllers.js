@@ -8,7 +8,7 @@ const { pullRequestTemplate, pullRequestReviewTemplate } = require('../../utils/
 const createPullRequest= async (req, res) => {
     try{
         const userId= req.userId;
-        const {taskId}= req.params;
+        const taskId = req.body.taskId || req.body.task || req.params.taskId;
         const {githubPRLink, message}= req.body;
         
         const trimmedLink= githubPRLink?.trim();
@@ -61,7 +61,7 @@ const createPullRequest= async (req, res) => {
         })
 
         const mailOptions= {
-            from: `"Support" <${process.env.SENDER_EMAIL}>`,
+            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
             to: team.leader.email,
             subject: emailTemplate.subject,
             text: emailTemplate.html.replace(/<[^>]+>/g, ''),
@@ -140,7 +140,7 @@ const reviewPullRequest= async (req, res) => {
             reviewNote: reviewNote?.trim() || '',
         });
         const mailOptions= {
-            from: `"Support" <${process.env.SENDER_EMAIL}>`,
+            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
             to: senderEmail,
             subject: emailTemplate.subject,
             text: emailTemplate.html.replace(/<[^>]+>/g, ''),

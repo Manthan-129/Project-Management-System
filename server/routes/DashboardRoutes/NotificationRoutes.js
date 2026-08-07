@@ -8,6 +8,7 @@ const {getMyNotifications, markNotificationRead, markAllNotificationsRead}= requ
 notificationRouter.use(authMiddleware);
 
 notificationRouter.get('/', getMyNotifications);
+notificationRouter.get('/my-notifications', getMyNotifications);
 notificationRouter.put('/mark-read/:notificationId', markNotificationRead);
 notificationRouter.put('/mark-all-read', markAllNotificationsRead);
 

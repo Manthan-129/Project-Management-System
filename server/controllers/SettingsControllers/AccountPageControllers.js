@@ -19,11 +19,13 @@ const UPDATE_EMAIL_PURPOSE= process.env.UPDATE_EMAIL_PURPOSE || 'update-email';
 const updateUserEmailOTPRequest= async (req, res)=>{
     try{
         const userId= req.userId;
-        const {newEmail}= req.body;
+        const rawEmail = req.body.newEmail;
         
-        if(!newEmail){
+        if(!rawEmail){
             return res.status(400).json({success: false, message: "New email is required"});
         }
+
+        const newEmail = rawEmail.trim().toLowerCase();
 
         if(!validator.isEmail(newEmail)){
             return res.status(400).json({success: false, message: "Invalid email address"});
@@ -55,7 +57,7 @@ const updateUserEmailOTPRequest= async (req, res)=>{
 
         const tmpl = updateEmailTemplate(otp, 5);
         const mailOptions= {
-            from: `"Support" <${process.env.SENDER_EMAIL}>`,
+            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
             to: newEmail,
             subject: tmpl.subject,
             text: tmpl.html.replace(/<[^>]+>/g, ''),
@@ -76,15 +78,17 @@ const updateUserEmailOTPRequest= async (req, res)=>{
 const verifyUpdateUserEmailOTP= async (req, res)=>{
     try{
         const userId= req.userId;
-        const {password, newEmail, otp}= req.body;
+        const {password, otp}= req.body;
+        const rawEmail = req.body.newEmail;
         
         if(!password){
             return res.status(400).json({success: false, message: "Password is required for verifying email update"});
         }
         
-        if(!newEmail || !otp){
+        if(!rawEmail || !otp){
             return res.status(400).json({success: false, message: "New email and OTP are required"});
         }
+        const newEmail = rawEmail.trim().toLowerCase();
         if(!validator.isEmail(newEmail)){
             return res.status(400).json({success: false, message: "Invalid email address"});
         }

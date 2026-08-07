@@ -3,7 +3,11 @@ const mongoose = require('mongoose');
 
 const connectDB= async ()=>{
     try{
-        await mongoose.connect(process.env.MONGO_URL, {
+        const mongoUri = process.env.MONGO_URL || process.env.MONGO_URI;
+        if (!mongoUri) {
+            throw new Error('MongoDB connection string (MONGO_URL or MONGO_URI) is missing in environment variables.');
+        }
+        await mongoose.connect(mongoUri, {
             maxPoolSize: 10,
             socketTimeoutMS: 45000,
             connectTimeoutMS: 10000,

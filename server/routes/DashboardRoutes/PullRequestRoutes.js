@@ -7,7 +7,9 @@ const {createPullRequest, reviewPullRequest, getTeamPullRequests, getMyPullReque
 
 pullRequestRouter.use(authMiddleware);
 
+pullRequestRouter.post('/create', createPullRequest);
 pullRequestRouter.post('/create/:taskId', createPullRequest);
+pullRequestRouter.put('/review/:pullRequestId', reviewPullRequest);
 pullRequestRouter.post('/review/:pullRequestId', reviewPullRequest);
 pullRequestRouter.get('/team/:teamId', getTeamPullRequests);
 pullRequestRouter.get('/my-pull-requests', getMyPullRequests);

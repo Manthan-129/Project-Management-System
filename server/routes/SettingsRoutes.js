@@ -34,11 +34,16 @@ const {authMiddleware}= require('../middlewares/authMiddlewares');
 const { uploader }= require('../middlewares/multer');
 
 // ProfilePage.jsx file
+settingsRouter.put('/update-profile', authMiddleware, uploader.single('profilePicture'), updateUserInfo);
+settingsRouter.patch('/update-profile', authMiddleware, uploader.single('profilePicture'), updateUserInfo);
 settingsRouter.patch('/update-user-info', authMiddleware, uploader.single('profilePicture'), updateUserInfo);
+settingsRouter.put('/update-user-info', authMiddleware, uploader.single('profilePicture'), updateUserInfo);
 settingsRouter.get('/profile/:username', authMiddleware, getUserProfile);
 
 // AccountPage.jsx file
+settingsRouter.post('/update-email/request-otp', authMiddleware, updateUserEmailOTPRequest);
 settingsRouter.post('/update-email-otp-request', authMiddleware, updateUserEmailOTPRequest);
+settingsRouter.post('/update-email/verify-otp', authMiddleware, verifyUpdateUserEmailOTP);
 settingsRouter.post('/verify-update-email-otp', authMiddleware, verifyUpdateUserEmailOTP);
 settingsRouter.post('/deactivate-account', authMiddleware, deactivateUserAccount);
 settingsRouter.delete('/delete-account', authMiddleware, deleteUserAccount);
@@ -55,9 +60,13 @@ settingsRouter.put('/update-appearance-settings', authMiddleware, updateAppearan
 settingsRouter.patch('/change-password', authMiddleware, changePasswordOfUser);
 settingsRouter.get('/2fa-status', authMiddleware, getTwoFactorStatus);
 settingsRouter.post('/2fa-setup', authMiddleware, setupTwoFactorAuthentication);
+settingsRouter.post('/2fa/setup', authMiddleware, setupTwoFactorAuthentication);
 settingsRouter.post('/2fa-verify-enable', authMiddleware, verifyAndEnableTwoFactorAuthentication);
+settingsRouter.post('/2fa/enable', authMiddleware, verifyAndEnableTwoFactorAuthentication);
 settingsRouter.post('/2fa-disable', authMiddleware, disableTwoFactorAuthentication);
+settingsRouter.post('/2fa/disable-request', authMiddleware, disableTwoFactorAuthentication);
 settingsRouter.post('/2fa-verify-disable', authMiddleware, verifyAndDisableTwoFactorAuthentication);
+settingsRouter.post('/2fa/disable', authMiddleware, verifyAndDisableTwoFactorAuthentication);
 
 // IntegrationPage.jsx file
 settingsRouter.get('/integrations/status', authMiddleware, getIntegrationStatus);
@@ -65,6 +74,7 @@ settingsRouter.get('/integrations/:platform/connect', authMiddleware, initiateIn
 settingsRouter.get('/integrations/:platform/callback', handleIntegrationCallback);
 settingsRouter.post('/integrations/:platform/disconnect', authMiddleware, disconnectIntegration);
 settingsRouter.post('/integrations/:platform/toggle-sync', authMiddleware, toggleIntegrationAutoSync);
+settingsRouter.post('/integrations/:platform/auto-sync', authMiddleware, toggleIntegrationAutoSync);
 
 // NotificationPage.jsx file
 settingsRouter.get('/get-notification-settings', authMiddleware, getNotificationSettings);

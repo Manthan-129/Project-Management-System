@@ -11,9 +11,10 @@ const createTask= async (req, res) => {
 
         const userIdStr= userId.toString();
 
-        const {assignedTo, teamId}= req.params;
+        const teamId = req.body.teamId || req.body.team || req.params.teamId;
+        const assignedTo = req.body.assignedTo || req.params.assignedTo;
 
-        const assignedToStr= assignedTo.toString();
+        const assignedToStr = assignedTo ? assignedTo.toString() : '';
 
         const {title, description, priority, dueDate}= req.body;
 
@@ -25,7 +26,7 @@ const createTask= async (req, res) => {
             return res.status(400).json({success: false, message: 'Invalid priority value' });
         }
 
-        const trimmedTitle= title.trim();
+        const trimmedTitle= title ? title.trim() : '';
 
         if(trimmedTitle.length < 3 || trimmedTitle.length > 50){
             return res.status(400).json({success: false, message: 'Title must be between 3 and 50 characters' });
@@ -116,7 +117,7 @@ const createTask= async (req, res) => {
                 : 'Team Member'
         })
         const mailOptions= {
-            from: `"Support" <${process.env.SENDER_EMAIL}>`,
+            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
             to: newTask.assignedTo.email,
             subject: taskAssignmentNotification.subject,
             text: taskAssignmentNotification.html.replace(/<[^>]+>/g, ''),
@@ -550,21 +551,25 @@ const updateTask= async (req, res) => {
 
         await task.save();
 
-        await task.populate('assignedTo', 'firstName lastName username profilePicture email').populate('assignedBy', 'firstName lastName username profilePicture').populate('updatedBy', 'firstName lastName username profilePicture');
+        const populatedTask = await task.populate([
+            { path: 'assignedTo', select: 'firstName lastName username profilePicture email' },
+            { path: 'assignedBy', select: 'firstName lastName username profilePicture' },
+            { path: 'updatedBy', select: 'firstName lastName username profilePicture' }
+        ]);
 
         try{
             const emailTemplate= updateTaskTemplate({
-                title: task.title,
-                description: task.description,
-                status: task.status,
-                priority: task.priority,
-                dueDate: task.dueDate,
-                assignedBy: task.assignedBy.firstName + ' ' + task.assignedBy.lastName,
+                title: populatedTask.title,
+                description: populatedTask.description,
+                status: populatedTask.status,
+                priority: populatedTask.priority,
+                dueDate: populatedTask.dueDate,
+                assignedBy: populatedTask.assignedBy.firstName + ' ' + populatedTask.assignedBy.lastName,
             })
 
             const mailOptions= {
-                from: `"Support" <${process.env.SENDER_EMAIL}>`,
-                to: task.assignedTo.email,
+                from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
+                to: populatedTask.assignedTo.email,
                 subject: emailTemplate.subject,
                 text: emailTemplate.html.replace(/<[^>]+>/g, ''),
             }

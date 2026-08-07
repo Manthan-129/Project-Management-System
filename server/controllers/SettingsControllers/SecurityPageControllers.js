@@ -94,7 +94,7 @@ const setupTwoFactorAuthentication= async (req, res)=>{
         const template = twoFactorTemplateEnable(otp, TWO_FACTOR_OTP_EXPIRY_MINUTES);
 
         transporter.sendMail({
-            from: `"Security" <${process.env.SENDER_EMAIL}>`,
+            from: `"DevDash Security" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
             to: user.email,
             subject: template.subject,
             text: template.html.replace(/<[^>]+>/g, ''),
@@ -186,7 +186,7 @@ const disableTwoFactorAuthentication= async (req, res)=>{
         const template = twoFactorTemplateDisable(otp, TWO_FACTOR_OTP_EXPIRY_MINUTES);
 
         transporter.sendMail({
-            from: `"Security" <${process.env.SENDER_EMAIL}>`,
+            from: `"DevDash Security" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
             to: user.email,
             subject: template.subject,
             text: template.html.replace(/<[^>]+>/g, ''),

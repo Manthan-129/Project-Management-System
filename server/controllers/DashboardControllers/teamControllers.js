@@ -18,8 +18,8 @@ const createTeam= async (req, res) => {
         const userId= req.userId;
         const {name, title, description}= req.body;
         
-        const trimmedName= name.trim();
-        const trimmedTitle= title.trim();
+        const trimmedName= name ? name.trim() : '';
+        const trimmedTitle= title ? title.trim() : '';
         const trimmedDescription= description ? description.trim() : '';
 
         if(!trimmedName || !trimmedTitle){
@@ -213,7 +213,7 @@ const sendTeamInvitation= async (req, res) => {
         });
 
         const mailOptions= {
-            from: `"Support" <${process.env.SENDER_EMAIL}>`,
+            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
             to: receiver.email,
             subject:teamInvitationData.subject,
             text: teamInvitationData.html.replace(/<[^>]+>/g, ''),
