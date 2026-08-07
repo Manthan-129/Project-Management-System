@@ -3,6 +3,8 @@ const express = require('express');
 const cors= require('cors');
 const morgan = require('morgan');
 
+const rateLimit = require('express-rate-limit');
+
 const {authRouter}= require('./routes/AuthRoutes')
 const settingsRouter= require('./routes/SettingsRoutes');
 
@@ -12,20 +14,30 @@ const taskRouter= require('./routes/DashboardRoutes/TaskRoutes.js');
 const pullRequestRouter= require('./routes/DashboardRoutes/PullRequestRoutes.js');
 const notificationRouter = require('./routes/DashboardRoutes/NotificationRoutes.js');
 
-const {connectDB}= require('./configs/db');
-const {connectCloudinary}= require('./configs/cloudinary');
 
-const app= express();
-const PORT= process.env.PORT || 5000;
+// Rate limiter for auth routes
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 20, // 20 requests per window
+    message: { success: false, message: 'Too many requests, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
-// DataBases
-connectCloudinary();
-connectDB();
-// middlewares
-app.use(express.json());
-app.use(express.urlencoded({extended: true}));
-app.use(cors());
-app.use(morgan('dev'));
+// Startup (await DB before listening)
+const startServer = async () => {
+    connectCloudinary();
+    await connectDB();
+    // Security & parsing middlewares
+    app.use(express.json({ limit: '1mb' }));
+    app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+    app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+    app.use(morgan('dev'));
+    // Apply rate limiting to auth routes
+    app.use('/api/auth', authLimiter);
+}
+
+startServer();
 
 // Routes
 app.get('/', (req, res)=>{

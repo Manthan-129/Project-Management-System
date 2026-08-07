@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevDash Backend — Code Review</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a28;--surface3:#222235;
+  --border:#2a2a40;--border2:#3a3a55;
+  --text:#e4e4ef;--text2:#9999b5;--text3:#6666805;
+  --red:#ff4d6a;--red-bg:rgba(255,77,106,.08);--red-border:rgba(255,77,106,.25);
+  --orange:#ff9f43;--orange-bg:rgba(255,159,67,.08);--orange-border:rgba(255,159,67,.25);
+  --yellow:#ffd43b;--yellow-bg:rgba(255,212,59,.08);--yellow-border:rgba(255,212,59,.25);
+  --green:#22c55e;--green-bg:rgba(34,197,94,.08);--green-border:rgba(34,197,94,.25);
+  --blue:#3b82f6;--blue-bg:rgba(59,130,246,.08);--blue-border:rgba(59,130,246,.25);
+  --purple:#a855f7;
+  --accent:#6366f1;--accent-glow:rgba(99,102,241,.3);
+  --diff-add-bg:rgba(34,197,94,.12);--diff-add-border:rgba(34,197,94,.3);
+  --diff-del-bg:rgba(255,77,106,.12);--diff-del-border:rgba(255,77,106,.3);
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-height:1.6;overflow-x:hidden}
+.container{max-width:1100px;margin:0 auto;padding:20px 24px 80px}
+
+/* HEADER */
+.header{text-align:center;padding:48px 0 32px;position:relative}
+.header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:300px;
+  background:radial-gradient(ellipse,rgba(99,102,241,.15),transparent 70%);pointer-events:none}
+.header h1{font-size:32px;font-weight:800;background:linear-gradient(135deg,#e4e4ef,#6366f1);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;position:relative}
+.header p{color:var(--text2);font-size:15px}
+
+/* STATS BAR */
+.stats-bar{display:flex;gap:12px;justify-content:center;margin:24px 0 36px;flex-wrap:wrap}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 22px;
+  display:flex;align-items:center;gap:10px;min-width:140px;justify-content:center}
+.stat .num{font-size:24px;font-weight:800}
+.stat .label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.stat.critical .num{color:var(--red)} .stat.high .num{color:var(--orange)}
+.stat.medium .num{color:var(--yellow)} .stat.applied .num{color:var(--green)}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;margin-bottom:28px;justify-content:center;flex-wrap:wrap}
+.filter-btn{background:var(--surface);border:1px solid var(--border);color:var(--text2);padding:8px 16px;
+  border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s}
+.filter-btn:hover{border-color:var(--accent);color:var(--text)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* FILE GROUP */
+.file-group{margin-bottom:32px}
+.file-header{display:flex;align-items:center;gap:12px;padding:14px 18px;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px 12px 0 0;
+  cursor:pointer;user-select:none;position:sticky;top:0;z-index:10}
+.file-header:hover{background:var(--surface2)}
+.file-header .icon{font-size:18px;transition:transform .2s}
+.file-header.collapsed .icon{transform:rotate(-90deg)}
+.file-header .path{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--blue);font-weight:500}
+.file-header .count{margin-left:auto;background:var(--surface3);padding:3px 10px;border-radius:20px;
+  font-size:12px;color:var(--text2);font-weight:600}
+.file-body{border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;overflow:hidden}
+.file-body.hidden{display:none}
+
+/* FIX CARD */
+.fix-card{padding:20px;border-bottom:1px solid var(--border);transition:background .2s}
+.fix-card:last-child{border-bottom:none}
+.fix-card:hover{background:rgba(99,102,241,.03)}
+.fix-card.applied{background:var(--green-bg)}
+.fix-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.severity{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;white-space:nowrap;flex-shrink:0}
+.severity.critical{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.severity.high{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border)}
+.severity.medium{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border)}
+.severity.low{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.severity.info{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border)}
+.fix-title{font-weight:600;font-size:14px;flex:1}
+.fix-desc{color:var(--text2);font-size:13px;margin-bottom:14px;line-height:1.7}
+.fix-line{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);margin-bottom:8px}
+
+/* DIFF VIEW */
+.diff-container{border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:12px}
+.diff-header{display:flex;background:var(--surface3);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.diff-header span{flex:1;padding:8px 14px;color:var(--text2)}
+.diff-header span:first-child{border-right:1px solid var(--border)}
+.diff-header .before-h{color:var(--red)} .diff-header .after-h{color:var(--green)}
+.diff-body{display:flex}
+.diff-side{flex:1;overflow-x:auto}
+.diff-side:first-child{border-right:1px solid var(--border)}
+.diff-line{padding:2px 14px;white-space:pre;min-height:20px;line-height:20px;position:relative}
+.diff-line.removed{background:var(--diff-del-bg);color:var(--red)}
+.diff-line.added{background:var(--diff-add-bg);color:var(--green)}
+.diff-line.context{color:var(--text2);opacity:.6}
+.diff-line .ln{display:inline-block;width:30px;text-align:right;margin-right:12px;color:var(--text3);opacity:.5;user-select:none}
+
+/* ACTION BUTTON */
+.fix-actions{display:flex;align-items:center;gap:10px}
+.btn{padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;
+  transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-apply{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 2px 12px rgba(34,197,94,.3)}
+.btn-apply:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(34,197,94,.4)}
+.btn-undo{background:var(--surface3);color:var(--text2);border:1px solid var(--border)}
+.btn-undo:hover{border-color:var(--red);color:var(--red)}
+.btn-apply-all{background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;padding:12px 28px;font-size:14px;
+  box-shadow:0 4px 20px var(--accent-glow);border-radius:10px;border:none;cursor:pointer;font-weight:700}
+.btn-apply-all:hover{transform:translateY(-2px);box-shadow:0 6px 30px var(--accent-glow)}
+.status-badge{font-size:12px;font-weight:600;padding:4px 12px;border-radius:6px}
+.status-badge.pending{color:var(--text3);background:var(--surface3)}
+.status-badge.approved{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
+
+/* FLOATING BAR */
+.floating-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(18,18,26,.95);backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:center;gap:20px;z-index:100}
+.floating-bar .summary{color:var(--text2);font-size:13px}
+.floating-bar .summary strong{color:var(--green)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border2)}
+
+@media(max-width:768px){
+  .diff-body{flex-direction:column}
+  .diff-side:first-child{border-right:none;border-bottom:1px solid var(--border)}
+  .stats-bar{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🔬 DevDash Backend — Code Review</h1>
+    <p>Interactive fix review — toggle each fix on/off before applying</p>
+  </div>
+  <div class="stats-bar">
+    <div class="stat critical"><div><div class="num" id="stat-critical">0</div><div class="label">Critical</div></div></div>
+    <div class="stat high"><div><div class="num" id="stat-high">0</div><div class="label">High</div></div></div>
+    <div class="stat medium"><div><div class="num" id="stat-medium">0</div><div class="label">Medium</div></div></div>
+    <div class="stat applied"><div><div class="num" id="stat-applied">0</div><div class="label">Approved</div></div></div>
+  </div>
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="critical">🔴 Critical</button>
+    <button class="filter-btn" data-filter="high">🟠 High</button>
+    <button class="filter-btn" data-filter="medium">🟡 Medium</button>
+    <button class="filter-btn" data-filter="low">🟢 Low</button>
+    <button class="filter-btn" data-filter="approved">✅ Approved</button>
+    <button class="filter-btn" data-filter="pending">⏳ Pending</button>
+  </div>
+  <div id="fixes-root"></div>
+</div>
+<div class="floating-bar">
+  <span class="summary"><strong id="approved-count">0</strong> of <span id="total-count">0</span> fixes approved</span>
+  <button class="btn btn-apply" onclick="approveAll()">✅ Approve All</button>
+  <button class="btn btn-undo" onclick="undoAll()">↩ Undo All</button>
+  <button class="btn btn-apply-all" onclick="exportApproved()">📋 Copy Approved List</button>
+</div>
+
+<script>
+const FIXES = [
+// ============= configs/db.js =============
+{
+  file: "configs/db.js", severity: "medium", line: "L6",
+  title: "connectDB is not awaited — server starts before DB is ready",
+  desc: "Server starts listening before MongoDB connection is established. Requests arriving before the pool is ready will fail.",
+  before: `const connectDB= async ()=>{
+    try{
+        await mongoose.connect(process.env.MONGO_URL);
+        console.log("MongoDB connected successfully!!");
+    }catch(error){
+        console.log("Error connecting to MongoDB: ", error);
+        process.exit(1);
+    }
+}`,
+  after: `const connectDB= async ()=>{
+    try{
+        await mongoose.connect(process.env.MONGO_URL, {
+            maxPoolSize: 10,
+            socketTimeoutMS: 45000,
+            connectTimeoutMS: 10000,
+        });
+        mongoose.connection.on('error', (err) => {
+            console.error('MongoDB connection error:', err);
+        });
+        mongoose.connection.on('disconnected', () => {
+            console.warn('MongoDB disconnected. Attempting reconnect...');
+        });
+        console.log("MongoDB connected successfully!!");
+    }catch(error){
+        console.log("Error connecting to MongoDB: ", error);
+        process.exit(1);
+    }
+}`
+},
+
+// ============= models/Notification.js =============
+{
+  file: "models/Notification.js", severity: "critical", line: "L12–14",
+  title: "Missing recipient index — every notification query is a full collection scan",
+  desc: "getMyNotifications queries by {recipient: userId} with no index. As notifications grow (every task create/delete generates N per team), this becomes the slowest query in the entire app.",
+  before: `const notificationSchema= new mongoose.Schema({
+    recipient: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+    actor: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    type: {type: String, enum: ['task-added', 'task-removed', 'task-assigned-to-me', 'team-invitation', 'friend-request-received'], required: true},
+    title: {type: String, required: true},
+    message: {type: String, required: true},
+    isRead: {type: Boolean, default: false, index: true},
+    createdAt: {type: Date, default: Date.now},
+    metadata: {type: mongoose.Schema.Types.Mixed, default: {}},
+})
+
+module.exports= mongoose.models.Notification || mongoose.model('Notification', notificationSchema);`,
+  after: `const notificationSchema= new mongoose.Schema({
+    recipient: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+    actor: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    type: {type: String, enum: ['task-added', 'task-removed', 'task-assigned-to-me', 'team-invitation', 'friend-request-received'], required: true},
+    title: {type: String, required: true},
+    message: {type: String, required: true},
+    isRead: {type: Boolean, default: false},
+    createdAt: {type: Date, default: Date.now},
+    metadata: {type: mongoose.Schema.Types.Mixed, default: {}},
+})
+
+// Compound indexes for common query patterns
+notificationSchema.index({ recipient: 1, createdAt: -1 });
+notificationSchema.index({ recipient: 1, isRead: 1, createdAt: -1 });
+
+module.exports= mongoose.models.Notification || mongoose.model('Notification', notificationSchema);`
+},
+
+// ============= models/PullRequest.js =============
+{
+  file: "models/PullRequest.js", severity: "critical", line: "L14–16",
+  title: "ZERO indexes on PullRequest — every query is a full collection scan",
+  desc: "Queries filter by {task,sender,status}, {team,status}, and {sender} — all are full collection scans that degrade linearly with data growth.",
+  before: `    reviewedAt: {type: Date},
+    createdAt: {type: Date, default: Date.now},
+})
+
+module.exports= mongoose.models.PullRequest || mongoose.model('PullRequest', pullRequestSchema);`,
+  after: `    reviewedAt: {type: Date},
+    createdAt: {type: Date, default: Date.now},
+})
+
+pullRequestSchema.index({ task: 1, sender: 1, status: 1 });
+pullRequestSchema.index({ team: 1, status: 1, createdAt: -1 });
+pullRequestSchema.index({ sender: 1, createdAt: -1 });
+
+module.exports= mongoose.models.PullRequest || mongoose.model('PullRequest', pullRequestSchema);`
+},
+
+// ============= models/Task.js =============
+{
+  file: "models/Task.js", severity: "high", line: "L12, L18–19",
+  title: "Duplicate timestamps conflict — manual updatedAt is silently overwritten by Mongoose",
+  desc: "Manual createdAt/updatedAt fields coexist with {timestamps: true}. Mongoose auto-manages both, so your manual task.updatedAt = new Date() in controllers is immediately overwritten on .save().",
+  before: `    assignedTo: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+    assignedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+    status: {type: String, enum: ['todo', 'in-progress', 'in-review', 'completed'], default: 'todo'},
+    team: {type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true},
+    createdAt: {type: Date, default: Date.now},
+    completedAt: {type: Date},
+    isDeleted: {type: Boolean, default: false},
+    deletedAt: {type: Date},
+    deletedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    updatedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    updatedAt: {type: Date, default: Date.now},
+}, {timestamps: true});`,
+  after: `    assignedTo: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+    assignedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+    status: {type: String, enum: ['todo', 'in-progress', 'in-review', 'completed'], default: 'todo'},
+    team: {type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true},
+    // createdAt & updatedAt are auto-managed by {timestamps: true}
+    completedAt: {type: Date},
+    isDeleted: {type: Boolean, default: false, index: true},
+    deletedAt: {type: Date},
+    deletedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    updatedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+}, {timestamps: true});`
+},
+
+// ============= models/Team.js =============
+{
+  file: "models/Team.js", severity: "high", line: "L17–18",
+  title: "Duplicate timestamps conflict in Team schema (same issue as Task)",
+  desc: "Manual createdAt field + {timestamps: true} causes conflict. Remove manual createdAt.",
+  before: `    memberCount: {type: Number, default: 1},
+    createdAt: {type: Date, default: Date.now},
+}, {timestamps: true});`,
+  after: `    memberCount: {type: Number, default: 1},
+    // createdAt & updatedAt are auto-managed by {timestamps: true}
+}, {timestamps: true});`
+},
+
+// ============= models/OTP.js =============
+{
+  file: "models/OTP.js", severity: "medium", line: "L8–9",
+  title: "Missing compound index on {email, purpose} — OTP lookups are collection scans",
+  desc: "Every OTP verification query uses {email, purpose} but there's no index for this combination.",
+  before: `}, {timestamps: true});
+
+module.exports= mongoose.models.OTP || mongoose.model("OTP", OTPSchema);`,
+  after: `}, {timestamps: true});
+
+OTPSchema.index({ email: 1, purpose: 1, createdAt: -1 });
+
+module.exports= mongoose.models.OTP || mongoose.model("OTP", OTPSchema);`
+},
+
+// ============= middlewares/authMiddlewares.js =============
+{
+  file: "middlewares/authMiddlewares.js", severity: "critical", line: "L1–35",
+  title: "Auth middleware fetches FULL User document on every single request — #1 latency bottleneck",
+  desc: "User.findById(userId) with no .select() loads entire document (friends[], integrations, settings, etc.) on EVERY authenticated API call. Also has unused import, typo, and returns 500 for JWT errors instead of 401.",
+  before: `const express= require('express');
+const jwt= require('jsonwebtoken');
+const User = require('../models/User');
+
+const authMiddleware= async (req, res, next)=>{
+    try{
+        const authHeader= req.headers.authorization;
+        if(!authHeader || !authHeader.startsWith('Bearer ')){
+            return res.status(401).json({message: "Authorization failed", success: false});
+        }
+
+        const token= authHeader.split(' ')[1];
+        if(!token){
+            return res.status(401).json({success: false, message: "Token missing"})
+        }
+
+        // Verify Token
+        const decoded= jwt.verify(token, process.env.JWT_SECRET_KEY)
+        req.userId= decoded.id;
+
+        const userId= req.userId;
+        const user = await User.findById(userId);
+
+        if(!user){
+            return res.status(401).json({success: false, message: "User not found"});
+        }
+
+        if(!user.isActive){
+            return res.status(403).json({success: false, message: "Account is deactivated. Please reactivate/login to continue."});
+        }
+
+        return next();
+    }catch(error){
+        return res.status(500).json({success: false, message: "Error int he Auth Middlewares"})
+    }
+}
+
+module.exports= {authMiddleware};`,
+  after: `const jwt= require('jsonwebtoken');
+const User = require('../models/User');
+
+const authMiddleware= async (req, res, next)=>{
+    try{
+        const authHeader= req.headers.authorization;
+        if(!authHeader || !authHeader.startsWith('Bearer ')){
+            return res.status(401).json({message: "Authorization failed", success: false});
+        }
+
+        const token= authHeader.split(' ')[1];
+        if(!token){
+            return res.status(401).json({success: false, message: "Token missing"})
+        }
+
+        // Verify Token
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        } catch (jwtError) {
+            const msg = jwtError.name === 'TokenExpiredError'
+                ? 'Token has expired'
+                : 'Invalid token';
+            return res.status(401).json({success: false, message: msg});
+        }
+        req.userId= decoded.id;
+
+        // Only fetch the one field we need — not the entire user document
+        const user = await User.findById(req.userId).select('isActive').lean();
+
+        if(!user){
+            return res.status(401).json({success: false, message: "User not found"});
+        }
+
+        if(!user.isActive){
+            return res.status(403).json({success: false, message: "Account is deactivated. Please reactivate/login to continue."});
+        }
+
+        return next();
+    }catch(error){
+        return res.status(500).json({success: false, message: "Error in the Auth Middleware"})
+    }
+}
+
+module.exports= {authMiddleware};`
+},
+
+// ============= middlewares/multer.js =============
+{
+  file: "middlewares/multer.js", severity: "high", line: "L1–7",
+  title: "No file size limit or type filter — users can upload arbitrary files of any size",
+  desc: "Anyone can upload multi-GB files of any type (.exe, .sh, .php). This can crash the server or be exploited for malicious uploads.",
+  before: `const multer= require('multer');
+
+const storage=  multer.diskStorage({});
+
+const uploader= multer({storage});
+
+module.exports= {uploader};`,
+  after: `const multer= require('multer');
+
+const storage=  multer.diskStorage({});
+
+const uploader= multer({
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed'), false);
+        }
+    }
+});
+
+module.exports= {uploader};`
+},
+
+// ============= server.js =============
+{
+  file: "server.js", severity: "critical", line: "L18–28",
+  title: "Wide-open CORS, no rate limiting, no helmet, no JSON size limit, DB not awaited",
+  desc: "cors() allows ALL origins. express-rate-limit is installed but never used. No helmet for security headers. express.json() accepts infinite payloads. connectDB() is not awaited. All combined, these are major security and stability gaps.",
+  before: `const app= express();
+const PORT= process.env.PORT || 5000;
+
+// DataBases
+connectCloudinary();
+connectDB();
+// middlewares
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+app.use(cors());
+app.use(morgan('dev'));`,
+  after: `const rateLimit = require('express-rate-limit');
+
+const app= express();
+const PORT= process.env.PORT || 5000;
+
+// Rate limiter for auth routes
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 20, // 20 requests per window
+    message: { success: false, message: 'Too many requests, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Startup (await DB before listening)
+const startServer = async () => {
+    connectCloudinary();
+    await connectDB();
+
+    // Security & parsing middlewares
+    app.use(express.json({ limit: '1mb' }));
+    app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+    app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+    app.use(morgan('dev'));
+
+    // Apply rate limiting to auth routes
+    app.use('/api/auth', authLimiter);`
+},
+
+// ============= AuthControllers.js (sendRegistrationOTP) =============
+{
+  file: "controllers/AuthControllers.js", severity: "high", line: "L48–55",
+  title: "Two sequential queries to check existing user — combine into one",
+  desc: "Separate User.findOne({email}) then User.findOne({username}) is 2 round-trips. Combine with $or for one query.",
+  before: `        const existingUserByEmail= await User.findOne({email});
+        if(existingUserByEmail){
+            return res.status(400).json({success: false, message: "Email is already registered"});
+        }
+        const existingUserByUsername= await User.findOne({username});
+        if(existingUserByUsername){
+            return res.status(400).json({success: false, message: "Username is already taken"});
+        }`,
+  after: `        const existingUser= await User.findOne({ $or: [{ email }, { username }] }).select('email username').lean();
+        if(existingUser){
+            const msg = existingUser.email === email
+                ? "Email is already registered"
+                : "Username is already taken";
+            return res.status(400).json({success: false, message: msg});
+        }`
+},
+
+// ============= AuthControllers.js (template called 3x) =============
+{
+  file: "controllers/AuthControllers.js", severity: "high", line: "L70–76",
+  title: "registrationTemplate() called 3 times — generates HTML template 3x redundantly",
+  desc: "The same template function with same args is called on L73, L74, L75 generating the HTML 3 times. Store the result in a variable.",
+  before: `        const mailOptions= {
+            from: process.env.SENDER_EMAIL,
+            to: email,
+            subject: registrationTemplate(otp, 5).subject,
+            text: registrationTemplate(otp, 5).html.replace(/<[^>]+>/g, ''), // Plain text version
+            html: registrationTemplate(otp, 5).html,
+        }`,
+  after: `        const tmpl = registrationTemplate(otp, 5);
+        const mailOptions= {
+            from: process.env.SENDER_EMAIL,
+            to: email,
+            subject: tmpl.subject,
+            text: tmpl.html.replace(/<[^>]+>/g, ''),
+            html: tmpl.html,
+        }`
+},
+
+// ============= AuthControllers.js (forgetPassword template 3x) =============
+{
+  file: "controllers/AuthControllers.js", severity: "high", line: "L325–331",
+  title: "forgetPasswordTemplate() called 3 times — same redundancy issue",
+  desc: "Template function with same args called 3 times to build the mail options.",
+  before: `        const mailOptions= {
+            from: \`"Support" <\${process.env.SENDER_EMAIL}>\`,
+            to: email,
+            subject: forgetPasswordTemplate(otp, 5).subject,
+            text: forgetPasswordTemplate(otp, 5).html.replace(/<[^>]+>/g, ''),
+            html: forgetPasswordTemplate(otp,5).html,
+        }`,
+  after: `        const tmpl = forgetPasswordTemplate(otp, 5);
+        const mailOptions= {
+            from: \`"Support" <\${process.env.SENDER_EMAIL}>\`,
+            to: email,
+            subject: tmpl.subject,
+            text: tmpl.html.replace(/<[^>]+>/g, ''),
+            html: tmpl.html,
+        }`
+},
+
+// ============= taskControllers.js (notification self-send bug) =============
+{
+  file: "controllers/DashboardControllers/taskControllers.js", severity: "high", line: "L89–90",
+  title: "BUG: Creator receives their own 'task added' notification — ObjectId vs String comparison",
+  desc: "userId is an ObjectId, recipientId is a string from .toString(). Using !== compares by reference (never equal for different types), so the filter never removes the creator. Users get notifications about their own actions.",
+  before: `            const taskAddedNotifications = Array.from(teamMemberRecipients)
+                .filter((recipientId) => recipientId !== userId)
+                .map((recipientId) => ({`,
+  after: `            const userIdStr = userId.toString();
+            const taskAddedNotifications = Array.from(teamMemberRecipients)
+                .filter((recipientId) => recipientId !== userIdStr)
+                .map((recipientId) => ({`
+},
+
+// ============= taskControllers.js (deleteTask self-send bug) =============
+{
+  file: "controllers/DashboardControllers/taskControllers.js", severity: "high", line: "L667–668",
+  title: "BUG: Same self-notification bug in deleteTask — user gets their own 'task removed' notification",
+  desc: "Same ObjectId vs String comparison issue as createTask.",
+  before: `        const removalNotifications = Array.from(recipients)
+            .filter((recipientId) => recipientId !== userId)
+            .map((recipientId) => ({`,
+  after: `        const userIdStr = userId.toString();
+        const removalNotifications = Array.from(recipients)
+            .filter((recipientId) => recipientId !== userIdStr)
+            .map((recipientId) => ({`
+},
+
+// ============= taskControllers.js (createTask email blocks response) =============
+{
+  file: "controllers/DashboardControllers/taskControllers.js", severity: "high", line: "L124",
+  title: "Email sending blocks API response — adds 200–2000ms latency",
+  desc: "await transporter.sendMail() waits for SMTP to complete before returning the response. If SMTP is slow, the user waits. Fire-and-forget instead.",
+  before: `        await transporter.sendMail(mailOptions);
+        }catch(error){
+            console.log('Error sending task assignment email:', error.message);
+        }`,
+  after: `        transporter.sendMail(mailOptions).catch(err => {
+            console.log('Error sending task assignment email:', err.message);
+        });
+        }catch(error){
+            console.log('Error preparing task assignment email:', error.message);
+        }`
+},
+
+// ============= taskControllers.js (updateTask email blocks) =============
+{
+  file: "controllers/DashboardControllers/taskControllers.js", severity: "high", line: "L572",
+  title: "Email sending blocks API response in updateTask — same latency issue",
+  desc: "await transporter.sendMail() blocks response during task update.",
+  before: `            await transporter.sendMail(mailOptions);
+        }catch(error){
+            console.log('Error sending task update email:', error.message);
+        }`,
+  after: `            transporter.sendMail(mailOptions).catch(err => {
+                console.log('Error sending task update email:', err.message);
+            });
+        }catch(error){
+            console.log('Error preparing task update email:', error.message);
+        }`
+},
+
+// ============= taskControllers.js (workspace board continue bugs) =============
+{
+  file: "controllers/DashboardControllers/taskControllers.js", severity: "critical", line: "L761–804",
+  title: "BUG: 3 continue statements break multi-category task classification",
+  desc: "When a task isAssignedToMe && isDeleted, the 'continue' skips assignedByMeAsLeader/Admin checks. A deleted task assigned TO me AND BY me (as leader) only appears in assignedToMe.deleted, never in assignedByMeAsLeader.deleted. Fix: remove continue statements, use independent if blocks.",
+  before: `        for(const t of tasks){
+            const isAssignedToMe= t.assignedTo._id.toString() === userId.toString();
+
+            if(isAssignedToMe){
+                if(t.isDeleted){
+                    assignedToMe.deleted.push(t);
+                    assignedToMe.stats.byStatus.deleted++;
+                    continue;
+                }
+                if (assignedToMe[t.status]) {
+                    assignedToMe[t.status].push(t);
+                    assignedToMe.stats.byStatus[t.status]++;
+                }
+            }
+
+            const isAssignedByMe= t.assignedBy._id.toString() === userId.toString();
+
+            const isTeamLeader = t.team.leader.toString() === userId.toString();
+
+            if(isAssignedByMe && isTeamLeader){
+                if(t.isDeleted){
+                    assignedByMeAsLeader.deleted.push(t);
+                    assignedByMeAsLeader.stats.byStatus.deleted++;
+                    continue;
+                }
+                assignedByMeAsLeader[t.status].push(t);
+                assignedByMeAsLeader.stats.byStatus[t.status] ++;
+            }
+
+            const member = t.team.members.find(
+                m => m.user.toString() === userId.toString()
+            );
+            const isTeamAdmin = member?.role === 'admin';
+
+            if(isAssignedByMe && !isTeamLeader && isTeamAdmin ){
+                if(t.isDeleted){
+                    assignedByMeAsAdmin.deleted.push(t);
+                    assignedByMeAsAdmin.stats.byStatus.deleted++;
+                    continue;
+                }
+                assignedByMeAsAdmin[t.status].push(t);
+                assignedByMeAsAdmin.stats.byStatus[t.status] ++;
+            }
+        }`,
+  after: `        const uid = userId.toString();
+        for(const t of tasks){
+            const isAssignedToMe = t.assignedTo._id.toString() === uid;
+            const isAssignedByMe = t.assignedBy._id.toString() === uid;
+            const isTeamLeader = t.team.leader.toString() === uid;
+            const member = t.team.members.find(m => m.user.toString() === uid);
+            const isTeamAdmin = member?.role === 'admin';
+
+            // Each category is independent — no 'continue' to skip others
+            if(isAssignedToMe){
+                if(t.isDeleted){
+                    assignedToMe.deleted.push(t);
+                    assignedToMe.stats.byStatus.deleted++;
+                } else if (assignedToMe[t.status]) {
+                    assignedToMe[t.status].push(t);
+                    assignedToMe.stats.byStatus[t.status]++;
+                }
+            }
+
+            if(isAssignedByMe && isTeamLeader){
+                if(t.isDeleted){
+                    assignedByMeAsLeader.deleted.push(t);
+                    assignedByMeAsLeader.stats.byStatus.deleted++;
+                } else {
+                    assignedByMeAsLeader[t.status].push(t);
+                    assignedByMeAsLeader.stats.byStatus[t.status]++;
+                }
+            }
+
+            if(isAssignedByMe && !isTeamLeader && isTeamAdmin){
+                if(t.isDeleted){
+                    assignedByMeAsAdmin.deleted.push(t);
+                    assignedByMeAsAdmin.stats.byStatus.deleted++;
+                } else {
+                    assignedByMeAsAdmin[t.status].push(t);
+                    assignedByMeAsAdmin.stats.byStatus[t.status]++;
+                }
+            }
+        }`
+},
+
+// ============= teamControllers.js (sendTeamInvitation sequential queries) =============
+{
+  file: "controllers/DashboardControllers/teamControllers.js", severity: "high", line: "L147–171",
+  title: "sendTeamInvitation: 4 sequential DB queries that can be parallelized",
+  desc: "After finding the team, receiver lookup, sender lookup, friendship check, and existing invite check all run sequentially. 3 of these are independent and can run in parallel.",
+  before: `        const receiver= await User.findOne({username: trimmedUsername}).
+        select('_id email');
+
+        if(!receiver){
+            return res.status(404).json({success: false, message: "Receiver not found"});
+        }
+
+        const receiverAlreadyAdded= team.members.some(m => m.user.toString() === receiver._id.toString()) || team.leader.toString() === receiver._id.toString(); 
+
+        if(receiverAlreadyAdded){
+            return res.status(409).json({success: false, message: "User is already a member of the team"})
+        }
+        
+        const sender= await User.findById(userId).select('_id firstName lastName username');;
+
+        const isFriend = await User.exists({
+            _id: userId,
+            friends: receiver._id
+        });
+
+        if(!isFriend){
+            return res.status(400).json({success: false, message: "Sender and Receiver are not mutual friends. You have to be friends before sending him the team invitations."});
+        }
+
+        const existingInvitation= await TeamInvitation.findOne({team: teamId, receiver: receiver._id, status: 'pending'});`,
+  after: `        const receiver= await User.findOne({username: trimmedUsername}).
+        select('_id email');
+
+        if(!receiver){
+            return res.status(404).json({success: false, message: "Receiver not found"});
+        }
+
+        const receiverAlreadyAdded= team.members.some(m => m.user.toString() === receiver._id.toString()) || team.leader.toString() === receiver._id.toString(); 
+
+        if(receiverAlreadyAdded){
+            return res.status(409).json({success: false, message: "User is already a member of the team"})
+        }
+
+        // Parallelize 3 independent queries
+        const [sender, isFriend, existingInvitation] = await Promise.all([
+            User.findById(userId).select('_id firstName lastName username').lean(),
+            User.exists({ _id: userId, friends: receiver._id }),
+            TeamInvitation.findOne({team: teamId, receiver: receiver._id, status: 'pending'}).lean(),
+        ]);
+
+        if(!isFriend){
+            return res.status(400).json({success: false, message: "Sender and Receiver are not mutual friends. You have to be friends before sending him the team invitations."});
+        }`
+},
+
+// ============= teamControllers.js (sendMail blocks) =============
+{
+  file: "controllers/DashboardControllers/teamControllers.js", severity: "high", line: "L213",
+  title: "Email sending blocks response in sendTeamInvitation",
+  desc: "await transporter.sendMail() adds 200–2000ms to every team invitation.",
+  before: `        await transporter.sendMail(mailOptions);
+
+        return res.status(201).json({success: true, message: "Team invitation sent successfully", invitation});`,
+  after: `        transporter.sendMail(mailOptions).catch(err => {
+            console.log('Error sending team invitation email:', err.message);
+        });
+
+        return res.status(201).json({success: true, message: "Team invitation sent successfully", invitation});`
+},
+
+// ============= inviteControllers.js (self-send bug) =============
+{
+  file: "controllers/DashboardControllers/inviteControllers.js", severity: "high", line: "L27",
+  title: "BUG: Self-friend-request check is broken — ObjectId vs String comparison",
+  desc: "receiver._id.toString() === userId compares a String to an ObjectId. This always returns false, meaning a user CAN send a friend request to themselves.",
+  before: `        if(receiver._id.toString() === userId){
+            return res.status(400).json({success: false, message: 'You cannot send a friend request to yourself'});
+        }`,
+  after: `        if(receiver._id.toString() === userIdStr){
+            return res.status(400).json({success: false, message: 'You cannot send a friend request to yourself'});
+        }`
+},
+
+// ============= inviteControllers.js (sequential queries) =============
+{
+  file: "controllers/DashboardControllers/inviteControllers.js", severity: "high", line: "L36–72",
+  title: "sendRequestToMakeFriend: 3 sequential invite queries that can be parallelized",
+  desc: "existingInvite, pendingRequestFromReceiver, and recentRejection are all independent lookups. Run them in parallel.",
+  before: `        const existingInvite= await Invite.findOne({
+            sender: userId,
+            receiver: receiver._id,
+            status: 'pending',
+        }).lean();
+
+        if(existingInvite){
+            return res.status(400).json({success: false, message: 'Friend request already sent'});
+        }
+        
+
+        const pendingRequestFromReceiver= await Invite.findOne({sender: receiver._id, receiver: userId, status: 'pending'});
+
+        if(pendingRequestFromReceiver){`,
+  after: `        const [existingInvite, pendingRequestFromReceiver, recentRejection] = await Promise.all([
+            Invite.findOne({ sender: userId, receiver: receiver._id, status: 'pending' }).lean(),
+            Invite.findOne({ sender: receiver._id, receiver: userId, status: 'pending' }),
+            Invite.findOne({
+                sender: userId, receiver: receiver._id, status: 'rejected',
+                updatedAt: { $gte: new Date(Date.now() - 7*24*60*60*1000) }
+            }).lean(),
+        ]);
+
+        if(existingInvite){
+            return res.status(400).json({success: false, message: 'Friend request already sent'});
+        }
+
+        if(pendingRequestFromReceiver){`
+},
+
+// ============= pullRequestControllers.js (wrong select fields) =============
+{
+  file: "controllers/DashboardControllers/pullRequestControllers.js", severity: "critical", line: "L117",
+  title: "BUG: Task.findById().select('leader members') — these are NOT Task fields",
+  desc: "'leader' and 'members' belong to Team, not Task. Mongoose ignores unknown select fields, returning a partial Task document. Works by accident but is semantically wrong and fragile.",
+  before: `        const task= await Task.findById(pullRequest.task._id).select('leader members');
+
+        if(task){
+            if(status === 'accepted'){
+                task.status= 'completed';
+                task.completedAt= new Date();
+            } else if(status === 'rejected'){
+                task.status= 'in-progress';
+            }
+            task.updatedAt= new Date();
+            await task.save();
+        }`,
+  after: `        const task= await Task.findById(pullRequest.task._id);
+
+        if(task){
+            if(status === 'accepted'){
+                task.status= 'completed';
+                task.completedAt= new Date();
+            } else if(status === 'rejected'){
+                task.status= 'in-progress';
+            }
+            await task.save();
+        }`
+},
+
+// ============= pullRequestControllers.js (email blocks response) =============
+{
+  file: "controllers/DashboardControllers/pullRequestControllers.js", severity: "high", line: "L72, L153",
+  title: "Email sending blocks response in createPullRequest and reviewPullRequest",
+  desc: "Both PR creation and PR review await the SMTP send, adding 200–2000ms to these critical flows.",
+  before: `        await transporter.sendMail(mailOptions);
+
+        res.status(201).json({success: true, message: 'Pull request submitted successfully'});`,
+  after: `        transporter.sendMail(mailOptions).catch(err => {
+            console.error('Error sending PR email:', err.message);
+        });
+
+        res.status(201).json({success: true, message: 'Pull request submitted successfully'});`
+},
+
+// ============= notificationControllers.js (two DB calls) =============
+{
+  file: "controllers/DashboardControllers/notificationControllers.js", severity: "high", line: "L7–13",
+  title: "getMyNotifications: Two separate DB round-trips — combine into one",
+  desc: "Notification.find() then Notification.countDocuments() are 2 round-trips. Use Promise.all for parallel execution.",
+  before: `        const notifications= await Notification.find({ recipient: userId })
+        .populate('actor', 'firstName lastName username profilePicture')
+        .sort({createdAt: -1})
+        .limit(100)
+        .lean();
+
+        const unreadCount= await Notification.countDocuments({ recipient: userId, isRead: false });`,
+  after: `        const [notifications, unreadCount] = await Promise.all([
+            Notification.find({ recipient: userId })
+                .populate('actor', 'firstName lastName username profilePicture')
+                .sort({createdAt: -1})
+                .limit(100)
+                .lean(),
+            Notification.countDocuments({ recipient: userId, isRead: false }),
+        ]);`
+},
+
+// ============= ProfilePageControllers.js (N+1) =============
+{
+  file: "controllers/SettingsControllers/ProfilePageControllers.js", severity: "critical", line: "L115–152",
+  title: "N+1 Query: 2 DB queries per team in getUserProfile — 20 teams = 40 queries",
+  desc: "For each team, Task.find() and PullRequest.find() fire separately. Fix: batch all team IDs into 2 bulk queries.",
+  before: `        const workShowcase = await Promise.all(userTeams.map(async (team) => {
+            // Determine Role
+            let roleStr = "Member";
+            if (team.leader.toString() === targetUser._id.toString()) {
+                roleStr = "Team Leader";
+            } else {
+                const membership = team.members.find(m => m.user.toString() === targetUser._id.toString());
+                if (membership && membership.role === 'admin') {
+                    roleStr = "Admin";
+                }
+            }
+
+            // Fetch completed tasks mapped to outcomes
+            const completedTasks = await Task.find({
+                team: team._id,
+                assignedTo: targetUser._id,
+                status: 'completed'
+            }).select("title").lean();
+
+            // Fetch approved PRs mapped to links
+            const acceptedPRs = await PullRequest.find({
+                team: team._id,
+                sender: targetUser._id,
+                status: 'accepted'
+            }).select("githubPRLink").lean();
+
+            return {
+                _id: team._id.toString(),
+                title: team.name, 
+                summary: team.description || team.title || \`Contribution to \${team.name}\`, 
+                role: roleStr,
+                details: [\`Participated as a core \${roleStr.toLowerCase()}\`], 
+                techStack: [], 
+                outcomes: completedTasks.map(t => t.title),
+                prLinks: acceptedPRs.map(pr => pr.githubPRLink), 
+                createdAt: team.createdAt
+            };
+        }));`,
+  after: `        // Bulk-fetch all data in 2 queries instead of 2*N
+        const teamIds = userTeams.map(t => t._id);
+        const [allCompletedTasks, allAcceptedPRs] = await Promise.all([
+            Task.find({
+                team: { $in: teamIds },
+                assignedTo: targetUser._id,
+                status: 'completed'
+            }).select("title team").lean(),
+            PullRequest.find({
+                team: { $in: teamIds },
+                sender: targetUser._id,
+                status: 'accepted'
+            }).select("githubPRLink team").lean(),
+        ]);
+
+        // Group by team ID
+        const tasksByTeam = {};
+        for (const t of allCompletedTasks) {
+            const tid = t.team.toString();
+            if (!tasksByTeam[tid]) tasksByTeam[tid] = [];
+            tasksByTeam[tid].push(t.title);
+        }
+        const prsByTeam = {};
+        for (const pr of allAcceptedPRs) {
+            const tid = pr.team.toString();
+            if (!prsByTeam[tid]) prsByTeam[tid] = [];
+            prsByTeam[tid].push(pr.githubPRLink);
+        }
+
+        const workShowcase = userTeams.map((team) => {
+            let roleStr = "Member";
+            if (team.leader.toString() === targetUser._id.toString()) {
+                roleStr = "Team Leader";
+            } else {
+                const membership = team.members.find(m => m.user.toString() === targetUser._id.toString());
+                if (membership && membership.role === 'admin') roleStr = "Admin";
+            }
+
+            const tid = team._id.toString();
+            return {
+                _id: tid,
+                title: team.name, 
+                summary: team.description || team.title || \`Contribution to \${team.name}\`, 
+                role: roleStr,
+                details: [\`Participated as a core \${roleStr.toLowerCase()}\`], 
+                techStack: [], 
+                outcomes: tasksByTeam[tid] || [],
+                prLinks: prsByTeam[tid] || [], 
+                createdAt: team.createdAt
+            };
+        });`
+},
+
+// ============= ProfilePageControllers.js (double DB read) =============
+{
+  file: "controllers/SettingsControllers/ProfilePageControllers.js", severity: "high", line: "L60–64",
+  title: "updateUserInfo: Saves user then immediately re-fetches — wasteful double DB read",
+  desc: "user.save() already returns the updated doc. The second User.findById() is unnecessary. Also remove debug console.logs.",
+  before: `        console.log("Received file in updateUserInfo:", imageFile ? imageFile.originalname : "No file uploaded");
+        const updatedUser= await user.save();
+        const updateduser= await User.findById(updatedUser._id);
+
+        console.log("Received file in updateUserInfo:", imageFile ? imageFile.originalname : "No file uploaded");
+        return res.status(200).json({success: true, message: "User info updated successfully", user: updateduser});`,
+  after: `        const updatedUser= await user.save();
+        // Refetch without password (save() returns doc with selected fields)
+        const safeUser = await User.findById(updatedUser._id).select('-password');
+
+        return res.status(200).json({success: true, message: "User info updated successfully", user: safeUser});`
+},
+
+// ============= PrivacyPageControllers.js (wrong status codes) =============
+{
+  file: "controllers/SettingsControllers/PrivacyPageControllers.js", severity: "medium", line: "L28–46",
+  title: "Validation errors return 404 (Not Found) instead of 400 (Bad Request)",
+  desc: "Four validation checks return status 404 which semantically means 'resource not found'. These should be 400 'bad request'.",
+  before: `        if(!settings || typeof settings !== "object"){
+            return res.status(404).json({success: false, message: "Privacy settings data is required and must be an object"});
+        }
+
+        const {profileVisibility, showEmail, showOnlineStatus, showInSearch}= settings;
+
+        if(profileVisibility === undefined && showEmail === undefined && showOnlineStatus === undefined && showInSearch === undefined){
+            return res.status(404).json({success: false, message: "At least one privacy setting is required"});
+        }
+
+        const allowedVisibilities= ["public", "team-only", "private"];
+
+        if(profileVisibility !== undefined && !allowedVisibilities.includes(profileVisibility)){
+            return res.status(404).json({success: false, message: "Invalid profile visibility option"});
+        }
+
+        if((showEmail !== undefined && typeof showEmail !== "boolean") || 
+        (showOnlineStatus !== undefined && typeof showOnlineStatus !== "boolean") || 
+        (showInSearch !== undefined && typeof showInSearch !== "boolean")){
+            return res.status(404).json({success: false, message: "Boolean fields must be true/false"});
+        }`,
+  after: `        if(!settings || typeof settings !== "object"){
+            return res.status(400).json({success: false, message: "Privacy settings data is required and must be an object"});
+        }
+
+        const {profileVisibility, showEmail, showOnlineStatus, showInSearch}= settings;
+
+        if(profileVisibility === undefined && showEmail === undefined && showOnlineStatus === undefined && showInSearch === undefined){
+            return res.status(400).json({success: false, message: "At least one privacy setting is required"});
+        }
+
+        const allowedVisibilities= ["public", "team-only", "private"];
+
+        if(profileVisibility !== undefined && !allowedVisibilities.includes(profileVisibility)){
+            return res.status(400).json({success: false, message: "Invalid profile visibility option"});
+        }
+
+        if((showEmail !== undefined && typeof showEmail !== "boolean") || 
+        (showOnlineStatus !== undefined && typeof showOnlineStatus !== "boolean") || 
+        (showInSearch !== undefined && typeof showInSearch !== "boolean")){
+            return res.status(400).json({success: false, message: "Boolean fields must be true/false"});
+        }`
+},
+
+// ============= InviteRoutes.js (duplicate route) =============
+{
+  file: "routes/DashboardRoutes/InviteRoutes.js", severity: "medium", line: "L14–15",
+  title: "Duplicate route: cancelSentFriendRequest bound to both DELETE and POST",
+  desc: "Same handler mounted on the same path with two different methods. One is redundant.",
+  before: `inviteRouter.delete('/invitations/cancel-request/:inviteId', cancelSentFriendRequest);
+inviteRouter.post('/invitations/cancel-request/:inviteId', cancelSentFriendRequest);`,
+  after: `inviteRouter.delete('/invitations/cancel-request/:inviteId', cancelSentFriendRequest);
+// Removed duplicate POST route for same handler`
+},
+
+// ============= TaskRoutes.js (wrong HTTP method) =============
+{
+  file: "routes/DashboardRoutes/TaskRoutes.js", severity: "medium", line: "L16",
+  title: "deleteTask uses PUT method — semantically wrong, should be DELETE or PATCH",
+  desc: "taskRouter.put('/:taskId', deleteTask) — PUT is for full resource replacement. Soft-delete should use PATCH or a dedicated route.",
+  before: `taskRouter.put('/:taskId', deleteTask);`,
+  after: `taskRouter.patch('/delete/:taskId', deleteTask);`
+},
+
+// ============= AppearanceControllers.js (2 DB ops instead of 1) =============
+{
+  file: "controllers/SettingsControllers/AppearanceControllers.js", severity: "medium", line: "L48–61",
+  title: "updateAppearanceSettings: find → modify → save (2 ops) instead of findByIdAndUpdate (1 op)",
+  desc: "Fetches entire user, mutates in JS, then saves. Use findByIdAndUpdate with $set for a single atomic operation.",
+  before: `        const user= await User.findById(userId);
+        
+        if(!user){
+            return res.status(404).json({success: false, message: "User not found"});
+        }
+
+        if(theme){
+            user.appearanceSettings.theme= theme;
+        }
+        if(sidebarPosition){
+            user.appearanceSettings.sidebarPosition= sidebarPosition;
+        }
+
+        await user.save();
+
+        return res.status(200).json({success: true, message: "Appearance settings updated successfully"});`,
+  after: `        const updateFields = {};
+        if (theme) updateFields['appearanceSettings.theme'] = theme;
+        if (sidebarPosition) updateFields['appearanceSettings.sidebarPosition'] = sidebarPosition;
+
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateFields },
+            { new: true, runValidators: true }
+        ).select('appearanceSettings');
+
+        if(!user){
+            return res.status(404).json({success: false, message: "User not found"});
+        }
+
+        return res.status(200).json({success: true, message: "Appearance settings updated successfully", appearanceSettings: user.appearanceSettings});`
+},
+];
+
+// ========== STATE ==========
+const state = FIXES.map((f, i) => ({ ...f, id: i, approved: false }));
+
+function getStats() {
+  const c = { critical: 0, high: 0, medium: 0, low: 0, info: 0, approved: 0 };
+  state.forEach(f => { c[f.severity]++; if (f.approved) c.approved++; });
+  return c;
+}
+
+function updateStats() {
+  const s = getStats();
+  document.getElementById('stat-critical').textContent = s.critical;
+  document.getElementById('stat-high').textContent = s.high;
+  document.getElementById('stat-medium').textContent = s.medium;
+  document.getElementById('stat-applied').textContent = s.approved;
+  document.getElementById('approved-count').textContent = s.approved;
+  document.getElementById('total-count').textContent = state.length;
+}
+
+function toggleApproval(id) {
+  state[id].approved = !state[id].approved;
+  const card = document.querySelector(`[data-fix-id="${id}"]`);
+  card.classList.toggle('applied', state[id].approved);
+  const btn = card.querySelector('.action-btn');
+  if (state[id].approved) {
+    btn.className = 'btn btn-undo action-btn';
+    btn.innerHTML = '↩ Undo';
+  } else {
+    btn.className = 'btn btn-apply action-btn';
+    btn.innerHTML = '✅ Apply Fix';
+  }
+  const badge = card.querySelector('.status-badge');
+  badge.className = 'status-badge ' + (state[id].approved ? 'approved' : 'pending');
+  badge.textContent = state[id].approved ? '✅ Approved' : '⏳ Pending';
+  updateStats();
+}
+
+function approveAll() { state.forEach((f, i) => { if (!f.approved) toggleApproval(i); }); }
+function undoAll() { state.forEach((f, i) => { if (f.approved) toggleApproval(i); }); }
+
+function exportApproved() {
+  const list = state.filter(f => f.approved).map(f => `[${f.severity.toUpperCase()}] ${f.file} — ${f.title}`).join('\n');
+  navigator.clipboard.writeText(list || 'No fixes approved yet.');
+  const btn = document.querySelector('.btn-apply-all');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '✅ Copied!';
+  setTimeout(() => btn.innerHTML = orig, 1500);
+}
+
+function buildDiff(before, after) {
+  const bLines = before.split('\n');
+  const aLines = after.split('\n');
+  let leftHTML = '', rightHTML = '';
+  const maxLen = Math.max(bLines.length, aLines.length);
+  for (let i = 0; i < maxLen; i++) {
+    const bLine = bLines[i];
+    const aLine = aLines[i];
+    const bExists = i < bLines.length;
+    const aExists = i < aLines.length;
+    const same = bExists && aExists && bLine === aLine;
+    if (same) {
+      leftHTML += `<div class="diff-line context"><span class="ln">${i+1}</span>${escHtml(bLine)}</div>`;
+      rightHTML += `<div class="diff-line context"><span class="ln">${i+1}</span>${escHtml(aLine)}</div>`;
+    } else {
+      leftHTML += bExists
+        ? `<div class="diff-line removed"><span class="ln">${i+1}</span>${escHtml(bLine)}</div>`
+        : `<div class="diff-line"><span class="ln"></span></div>`;
+      rightHTML += aExists
+        ? `<div class="diff-line added"><span class="ln">${i+1}</span>${escHtml(aLine)}</div>`
+        : `<div class="diff-line"><span class="ln"></span></div>`;
+    }
+  }
+  return `<div class="diff-container">
+    <div class="diff-header"><span class="before-h">❌ Before (Problem)</span><span class="after-h">✅ After (Fix)</span></div>
+    <div class="diff-body"><div class="diff-side">${leftHTML}</div><div class="diff-side">${rightHTML}</div></div>
+  </div>`;
+}
+
+function escHtml(s) {
+  if (s === undefined) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function render() {
+  const groups = {};
+  state.forEach(f => { if (!groups[f.file]) groups[f.file] = []; groups[f.file].push(f); });
+  let html = '';
+  for (const [file, fixes] of Object.entries(groups)) {
+    html += `<div class="file-group" data-file="${file}">
+      <div class="file-header" onclick="this.classList.toggle('collapsed');this.nextElementSibling.classList.toggle('hidden')">
+        <span class="icon">▼</span>
+        <span class="path">${file}</span>
+        <span class="count">${fixes.length} issue${fixes.length>1?'s':''}</span>
+      </div>
+      <div class="file-body">`;
+    fixes.forEach(f => {
+      html += `<div class="fix-card" data-fix-id="${f.id}" data-severity="${f.severity}">
+        <div class="fix-top">
+          <span class="severity ${f.severity}">${f.severity}</span>
+          <span class="fix-title">${escHtml(f.title)}</span>
+          <span class="status-badge pending">⏳ Pending</span>
+        </div>
+        <div class="fix-desc">${escHtml(f.desc)}</div>
+        <div class="fix-line">📍 ${escHtml(f.file)} : ${f.line}</div>
+        ${buildDiff(f.before, f.after)}
+        <div class="fix-actions">
+          <button class="btn btn-apply action-btn" onclick="toggleApproval(${f.id})">✅ Apply Fix</button>
+        </div>
+      </div>`;
+    });
+    html += '</div></div>';
+  }
+  document.getElementById('fixes-root').innerHTML = html;
+  updateStats();
+}
+
+// FILTERING
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('.fix-card').forEach(card => {
+      const sev = card.dataset.severity;
+      const isApproved = card.classList.contains('applied');
+      let show = true;
+      if (filter === 'approved') show = isApproved;
+      else if (filter === 'pending') show = !isApproved;
+      else if (filter !== 'all') show = sev === filter;
+      card.style.display = show ? '' : 'none';
+    });
+    // Show/hide file groups that have no visible cards
+    document.querySelectorAll('.file-group').forEach(g => {
+      const visible = g.querySelectorAll('.fix-card:not([style*="display: none"])');
+      g.style.display = visible.length > 0 ? '' : 'none';
+    });
+  });
+});
+
+render();
+</script>
+</body>
+</html>
