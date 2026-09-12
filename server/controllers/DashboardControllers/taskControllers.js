@@ -1,60 +1,69 @@
 const Team = require('../../models/Team');
-const Task= require('../../models/Task');
-const User= require('../../models/User');
+const Task = require('../../models/Task');
+const User = require('../../models/User');
+const PullRequest = require('../../models/PullRequest');
+const Notification = require('../../models/Notification');
+const { runInTransaction } = require('../../utils/transactionHelper');
 const { enqueueEmail } = require('../../queues/emailQueue');
 const { SOCKET_EVENTS, emitToTeam, emitToUser } = require('../../configs/socket');
-const {updateTaskTemplate, taskAssignmentTemplate}= require('../../utils/emailTemplates');
+const { updateTaskTemplate, taskAssignmentTemplate } = require('../../utils/emailTemplates');
 const { createNotification, createNotifications } = require('../../utils/notificationService.js');
 
-const createTask= async (req, res) => {
-    try{
-        const userId= req.userId;
+const createTask = async (req, res) => {
+    try {
+        const userId = req.userId;
 
-        const userIdStr= userId.toString();
+        const userIdStr = userId.toString();
 
         const teamId = req.body.teamId || req.body.team || req.params.teamId;
         const assignedTo = req.body.assignedTo || req.params.assignedTo;
 
         const assignedToStr = assignedTo ? assignedTo.toString() : '';
 
-        const {title, description, priority, dueDate}= req.body;
+        const { title, description, priority, dueDate } = req.body;
 
-        if(!title || !assignedTo || !teamId){
-            return res.status(400).json({success: false, message: 'Title, assignedTo and teamId are required' });
+        if (!title || !assignedTo || !teamId) {
+            return res.status(400).json({ success: false, message: 'Title, assignedTo and teamId are required' });
         }
 
-        if(!['Low', 'Medium', 'High'].includes(priority)){
-            return res.status(400).json({success: false, message: 'Invalid priority value' });
+        if (!['Low', 'Medium', 'High'].includes(priority)) {
+            return res.status(400).json({ success: false, message: 'Invalid priority value' });
         }
 
-        const trimmedTitle= title ? title.trim() : '';
+        const trimmedTitle = title ? title.trim() : '';
 
-        if(trimmedTitle.length < 3 || trimmedTitle.length > 50){
-            return res.status(400).json({success: false, message: 'Title must be between 3 and 50 characters' });
+        if (trimmedTitle.length < 3 || trimmedTitle.length > 50) {
+            return res.status(400).json({
+                success: false,
+                message: 'Title must be between 3 and 50 characters',
+            });
         }
 
-        const team= await Team.findById(teamId).select('leader members name ').lean();
+        const team = await Team.findById(teamId).select('name leader members').lean();
 
-        if(!team){
-            return res.status(404).json({success: false, message: 'Team not found' });
+        if (!team) {
+            return res.status(404).json({ success: false, message: 'Team not found' });
         }
 
-        const isLeader=  team.leader.toString() === userIdStr;
-        const isAdmin= team.members.some(m => m.user.toString() === userIdStr && m.role === 'admin');
+        const isLeader = team.leader.toString() === userIdStr;
+        const isAdmin = team.members.some(
+            (member) => member.user.toString() === userIdStr && member.role === 'admin'
+        );
 
-        if(!isAdmin && !isLeader){
-            return res.status(403).json({success: false, message: 'Only team leader or admins can create tasks' });
+        if (!isAdmin && !isLeader) {
+            return res.status(403).json({ success: false, message: 'Only team leader and admins can create tasks' });
         }
 
-        const isReceiverLeader= team.leader.toString() === assignedToStr;
-        const isReceiverMember= team.members.some(m => m.user.toString() === assignedToStr);
+        const isAssignedToLeader = team.leader.toString() === assignedToStr;
+        const isAssignedToMember = team.members.some(
+            (member) => member.user.toString() === assignedToStr
+        );
 
-        if (!isLeader && isAdmin && isReceiverLeader) {
-            return res.status(400).json({ success: false, message: 'Admins cannot assign tasks to the team leader' });
-        }
-
-        if(!isReceiverMember){
-            return res.status(400).json({success: false, message: 'Assigned user must be a member of the team' });
+        if (!isAssignedToMember && !isAssignedToLeader) {
+            return res.status(400).json({
+                success: false,
+                message: 'Assigned user must be a member or leader of the team',
+            });
         }
 
         const taskDueDate = dueDate ? new Date(dueDate) : undefined;
@@ -62,33 +71,28 @@ const createTask= async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid due date format' });
         }
 
-        const newTask = await Task.create({
-            title: trimmedTitle,
-            description: description ? description.trim() : '',
-            priority: priority || 'Medium',
-            dueDate: taskDueDate,
-            assignedTo,
-            assignedBy: userId,
-            team: teamId,
-        });
+        let newTask;
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
 
-        await newTask.populate([
-            { path: 'assignedTo', select: 'username firstName lastName profilePicture email' },
-            { path: 'assignedBy', select: 'username firstName lastName profilePicture email' }
-        ]);
+            const created = new Task({
+                title: trimmedTitle,
+                description: description ? description.trim() : '',
+                priority: priority || 'Medium',
+                dueDate: taskDueDate,
+                assignedTo,
+                assignedBy: userId,
+                team: teamId,
+            });
 
-        
-        const actorName = (newTask.assignedBy?.firstName && newTask.assignedBy?.lastName) 
-            ? `${newTask.assignedBy.firstName} ${newTask.assignedBy.lastName}`.trim()
-            : 'Someone';
+            await created.save(opts);
+            newTask = created;
 
-        try{
             const teamMemberRecipients = new Set([
                 team.leader.toString(),
                 ...team.members.map((member) => member.user.toString()),
             ]);
 
-            const userIdStr = userId.toString();
             const taskAddedNotifications = Array.from(teamMemberRecipients)
                 .filter((recipientId) => recipientId !== userIdStr)
                 .map((recipientId) => ({
@@ -96,14 +100,23 @@ const createTask= async (req, res) => {
                     actor: userId,
                     type: 'task-added',
                     title: 'Task added',
-                    message: `${actorName} added a new task: ${newTask.title}`,
+                    message: `A new task was added: ${newTask.title}`,
                     metadata: { taskId: newTask._id, teamId: team._id, teamName: team.name },
                 }));
 
-            await createNotifications(taskAddedNotifications);
-        }catch(error){
-            console.log('Error creating task added notifications:', error.message);
-        }
+            if (taskAddedNotifications.length > 0) {
+                await createNotifications(taskAddedNotifications, opts);
+            }
+        });
+
+        await newTask.populate([
+            { path: 'assignedTo', select: 'username firstName lastName profilePicture email' },
+            { path: 'assignedBy', select: 'username firstName lastName profilePicture email' },
+        ]);
+
+        const actorName = (newTask.assignedBy?.firstName && newTask.assignedBy?.lastName)
+            ? `${newTask.assignedBy.firstName} ${newTask.assignedBy.lastName}`.trim()
+            : 'Someone';
 
         try{
             const taskAssignmentNotification = taskAssignmentTemplate({
@@ -455,13 +468,16 @@ const updateTaskStatus = async (req, res) => {
             });
         }
 
-        task.status= status;
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
+            task.status = status;
 
-        if(status === 'completed'){
-            task.completedAt= new Date();
-        }
+            if (status === 'completed') {
+                task.completedAt = new Date();
+            }
 
-        await task.save();
+            await task.save(opts);
+        });
 
         const teamIdStr = (team._id || team).toString();
         emitToTeam(teamIdStr, SOCKET_EVENTS.TASK_STATUS_UPDATED, {
@@ -566,7 +582,37 @@ const updateTask= async (req, res) => {
 
         task.updatedBy= userId;
 
-        await task.save();
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
+            await task.save(opts);
+
+            if (assignmentChanged) {
+                const currentAssignedToId = task.assignedTo ? task.assignedTo.toString() : '';
+                const teamIdStr = (team._id || team).toString();
+
+                if (previousAssignedToId && previousAssignedToId !== currentAssignedToId) {
+                    await createNotification({
+                        recipient: previousAssignedToId,
+                        actor: userId,
+                        type: "task-unassigned",
+                        title: "Task unassigned",
+                        message: `You were unassigned from task: ${task.title}`,
+                        metadata: { taskId: task._id, teamId: teamIdStr, teamName: team.name },
+                    }, opts);
+                }
+
+                if (currentAssignedToId) {
+                    await createNotification({
+                        recipient: currentAssignedToId,
+                        actor: userId,
+                        type: "task-assigned",
+                        title: "Task assigned",
+                        message: `You were assigned task: ${task.title}`,
+                        metadata: { taskId: task._id, teamId: teamIdStr, teamName: team.name },
+                    }, opts);
+                }
+            }
+        });
 
         const populatedTask = await task.populate([
             { path: 'assignedTo', select: 'firstName lastName username profilePicture email' },
@@ -606,9 +652,6 @@ const updateTask= async (req, res) => {
 
         if (assignmentChanged) {
             const currentAssignedToId = populatedTask.assignedTo?._id?.toString() || task.assignedTo.toString();
-            const actorName = populatedTask.updatedBy?.firstName
-                ? `${populatedTask.updatedBy.firstName} ${populatedTask.updatedBy.lastName || ''}`.trim()
-                : "Team member";
 
             if (previousAssignedToId && previousAssignedToId !== currentAssignedToId) {
                 emitToUser(previousAssignedToId, SOCKET_EVENTS.TASK_UNASSIGNED, {
@@ -616,30 +659,12 @@ const updateTask= async (req, res) => {
                     teamId: teamIdStr,
                     task: populatedTask,
                 });
-
-                await createNotification({
-                    recipient: previousAssignedToId,
-                    actor: userId,
-                    type: "task-unassigned",
-                    title: "Task unassigned",
-                    message: `${actorName} unassigned you from task: ${populatedTask.title}`,
-                    metadata: { taskId: task._id, teamId: teamIdStr, teamName: team.name },
-                });
             }
 
             emitToUser(currentAssignedToId, SOCKET_EVENTS.TASK_ASSIGNED, {
                 taskId: task._id,
                 teamId: teamIdStr,
                 task: populatedTask,
-            });
-
-            await createNotification({
-                recipient: currentAssignedToId,
-                actor: userId,
-                type: "task-assigned",
-                title: "Task assigned",
-                message: `${actorName} assigned you task: ${populatedTask.title}`,
-                metadata: { taskId: task._id, teamId: teamIdStr, teamName: team.name },
             });
         }
 
@@ -677,12 +702,15 @@ const restoreTask= async (req, res) => {
             return res.status(400).json({success: false, message: 'Task is not deleted' });
         }
 
-        task.isDeleted= false;
-        task.deletedAt= null;
-        task.deletedBy= null;
-        task.updatedBy= userId;
-        task.status= 'todo';
-        await task.save();
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
+            task.isDeleted = false;
+            task.deletedAt = null;
+            task.deletedBy = null;
+            task.updatedBy = userId;
+            task.status = 'todo';
+            await task.save(opts);
+        });
 
         await task.populate('assignedTo', 'firstName lastName username profilePicture').populate('assignedBy', 'firstName lastName username profilePicture');
 
@@ -727,18 +755,6 @@ const deleteTask= async (req, res) => {
             return res.status(400).json({success: false, message: 'Task is already deleted' });
         }
 
-        task.isDeleted= true;
-        task.deletedAt= new Date();
-        task.deletedBy= userId;
-        task.updatedBy= userId;
-        await task.save();
-
-        await task.populate([
-            { path: 'assignedTo', select: 'username firstName lastName profilePicture email' },
-            { path: 'assignedBy', select: 'username firstName lastName profilePicture email' },
-            { path: 'deletedBy', select: 'username firstName lastName profilePicture email' }
-        ]);
-        
         const recipients = new Set([
             team.leader.toString(),
             ...team.members.map((member) => member.user.toString()),
@@ -756,7 +772,36 @@ const deleteTask= async (req, res) => {
                 metadata: { taskId: task._id, teamId: team._id, teamName: team.name },
             }));
 
-        await createNotifications(removalNotifications);
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
+            task.isDeleted = true;
+            task.deletedAt = new Date();
+            task.deletedBy = userId;
+            task.updatedBy = userId;
+            await task.save(opts);
+
+            // Clean up any pending pull requests for this deleted task
+            await PullRequest.deleteMany({ task: taskId, status: 'pending' }, opts);
+
+            // Clean up unread notifications associated with this task to avoid dead ends
+            await Notification.deleteMany({
+                $or: [
+                    { 'metadata.taskId': taskId },
+                    { 'metadata.taskId': taskId.toString() }
+                ],
+                isRead: false
+            }, opts);
+
+            if (removalNotifications.length > 0) {
+                await createNotifications(removalNotifications, opts);
+            }
+        });
+
+        await task.populate([
+            { path: 'assignedTo', select: 'username firstName lastName profilePicture email' },
+            { path: 'assignedBy', select: 'username firstName lastName profilePicture email' },
+            { path: 'deletedBy', select: 'username firstName lastName profilePicture email' }
+        ]);
 
         const teamIdStr = (team._id || team).toString();
         emitToTeam(teamIdStr, SOCKET_EVENTS.TASK_DELETED, {
@@ -855,7 +900,7 @@ const getWorkspaceTaskBoard= async (req, res) => {
             const isTeamLeader = t.team.leader.toString() === uid;
             const member = t.team.members.find(m => m.user.toString() === uid);
             const isTeamAdmin = member?.role === 'admin';
-            // Each category is independent — no 'continue' to skip others
+            // Each category is independent -- no 'continue' to skip others
             if(isAssignedToMe){
                 if(t.isDeleted){
                     assignedToMe.deleted.push(t);

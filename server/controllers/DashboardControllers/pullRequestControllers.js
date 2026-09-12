@@ -5,6 +5,7 @@ const PullRequest= require('../../models/PullRequest');
 const { enqueueEmail } = require('../../queues/emailQueue');
 const { pullRequestTemplate, pullRequestReviewTemplate } = require('../../utils/emailTemplates');
 const { emitToTeam, emitToUser } = require('../../configs/socket');
+const { runInTransaction } = require('../../utils/transactionHelper');
 
 const createPullRequest= async (req, res) => {
     try{
@@ -41,10 +42,13 @@ const createPullRequest= async (req, res) => {
             githubPRLink: trimmedLink,
             message: trimmedMessage,
         });
-        await newPR.save();
 
-        task.status= 'in-review';
-        await task.save();
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
+            await newPR.save(opts);
+            task.status = 'in-review';
+            await task.save(opts);
+        });
         
         await newPR.populate([
             { path: 'sender', select: 'firstName lastName username profilePicture' },
@@ -114,24 +118,28 @@ const reviewPullRequest= async (req, res) => {
             return res.status(400).json({success: false, message: 'Only pending pull requests can be reviewed'});
         }
 
-        await PullRequest.findByIdAndUpdate(pullRequestId, {
-            status,
-            reviewNote: reviewNote?.trim() || '',
-            reviewedBy: userId,
-            reviewedAt: new Date(),
-        });
-
         const task= await Task.findById(pullRequest.task._id);
 
-        if(task){
-            if(status === 'accepted'){
-                task.status= 'completed';
-                task.completedAt= new Date();
-            } else if(status === 'rejected'){
-                task.status= 'in-progress';
-            }
-            await task.save();
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
+            pullRequest.status = status;
+            pullRequest.reviewNote = reviewNote?.trim() || '';
+            pullRequest.reviewedBy = userId;
+            pullRequest.reviewedAt = new Date();
+            await pullRequest.save(opts);
 
+            if(task){
+                if(status === 'accepted'){
+                    task.status= 'completed';
+                    task.completedAt= new Date();
+                } else if(status === 'rejected'){
+                    task.status= 'in-progress';
+                }
+                await task.save(opts);
+            }
+        });
+
+        if(task){
             await task.populate([
                 { path: 'assignedTo', select: 'username firstName lastName profilePicture email' },
                 { path: 'assignedBy', select: 'username firstName lastName profilePicture email' }

@@ -1,11 +1,11 @@
 const Notification = require("../models/Notification.js");
 const { emitToUser } = require("../configs/socket.js");
 
-const createNotification = async ({ recipient, actor, type, title, message, metadata = {} }) => {
+const createNotification = async ({ recipient, actor, type, title, message, metadata = {} }, options = {}) => {
     if (!recipient || !actor || !type || !title || !message) {
         return null;
     }
-    const doc = await Notification.create({
+    const doc = new Notification({
         recipient,
         actor,
         type,
@@ -13,11 +13,16 @@ const createNotification = async ({ recipient, actor, type, title, message, meta
         message,
         metadata,
     });
+    await doc.save(options);
 
     if (doc) {
-        const populated = await Notification.findById(doc._id)
+        const query = Notification.findById(doc._id)
             .populate("actor", "firstName lastName username profilePicture")
             .lean();
+        if (options?.session) {
+            query.session(options.session);
+        }
+        const populated = await query;
 
         emitToUser(recipient, "notification:received", populated || doc);
     }
@@ -25,7 +30,7 @@ const createNotification = async ({ recipient, actor, type, title, message, meta
     return doc;
 };
 
-const createNotifications = async (notifications = []) => {
+const createNotifications = async (notifications = [], options = {}) => {
     const docs = notifications.filter(
         (item) => item?.recipient && item?.type && item?.title && item?.message
     );
@@ -33,7 +38,7 @@ const createNotifications = async (notifications = []) => {
         return [];
     }
 
-    const createdDocs = await Notification.insertMany(docs, { ordered: false });
+    const createdDocs = await Notification.insertMany(docs, { ordered: false, ...options });
 
     // Emit real-time socket events to each recipient
     for (const doc of createdDocs) {

@@ -524,18 +524,43 @@ const removeTeamMember= async (req, res) => {
             return res.status(403).json({success: false, message: 'Admin cannot remove another admin. Only team leader can remove admins' });
         }
 
-        const result= await Team.updateOne(
-        {
-            _id: teamId,
-            "members.user": memberId
-        },
-        {
-            $pull: { members: { user: memberId } },
-            $inc: { memberCount: -1 }
-        }
-        );
-        
-        if (result.modifiedCount === 0) {
+        let removalSucceeded = false;
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
+
+            const result = await Team.updateOne(
+                {
+                    _id: teamId,
+                    "members.user": memberId
+                },
+                {
+                    $pull: { members: { user: memberId } },
+                    $inc: { memberCount: -1 }
+                },
+                opts
+            );
+
+            if (result.modifiedCount === 0) {
+                return;
+            }
+
+            removalSucceeded = true;
+
+            // Reassign any active tasks assigned to this member within this team to the team leader
+            await Task.updateMany(
+                { team: teamId, assignedTo: memberId, isDeleted: false },
+                { $set: { assignedTo: team.leader, updatedBy: userId } },
+                opts
+            );
+
+            // Cascade clean up pending PRs submitted by this removed member in this team
+            await PullRequest.deleteMany({ team: teamId, sender: memberId, status: 'pending' }, opts);
+
+            // Cascade clean up pending invitations for this user in this team
+            await TeamInvitation.deleteMany({ team: teamId, receiver: memberId, status: 'pending' }, opts);
+        });
+
+        if (!removalSucceeded) {
             return res.status(400).json({
                 success: false,
                 message: 'Failed to remove member'
@@ -576,12 +601,37 @@ const leaveTeam= async (req, res) => {
             return res.status(403).json({success: false, message: 'You are not a member of the team' });
         }
 
-        const result= await Team.updateOne(
-            {_id: teamId, 'members.user': userId},
-            {$pull : {members: {user: userId}}, $inc: {memberCount: -1}}
-        );
+        let leaveSucceeded = false;
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
 
-        if(result.modifiedCount === 0){
+            const result = await Team.updateOne(
+                {_id: teamId, 'members.user': userId},
+                {$pull : {members: {user: userId}}, $inc: {memberCount: -1}},
+                opts
+            );
+
+            if(result.modifiedCount === 0){
+                return;
+            }
+
+            leaveSucceeded = true;
+
+            // Reassign active tasks assigned to this departing member to the team leader
+            await Task.updateMany(
+                { team: teamId, assignedTo: userId, isDeleted: false },
+                { $set: { assignedTo: team.leader, updatedBy: userId } },
+                opts
+            );
+
+            // Cascade clean up pending PRs submitted by this departing user in this team
+            await PullRequest.deleteMany({ team: teamId, sender: userId, status: 'pending' }, opts);
+
+            // Cascade clean up pending invitations
+            await TeamInvitation.deleteMany({ team: teamId, receiver: userId, status: 'pending' }, opts);
+        });
+
+        if(!leaveSucceeded){
             return res.status(400).json({success: false, message: 'Failed to leave the team'});
         }
 
@@ -616,11 +666,37 @@ const deleteTeam= async (req, res) => {
 
         await runInTransaction(async (session) => {
             const opts = session ? { session } : {};
-            await Team.deleteOne({_id: teamId}, opts);
-            await TeamInvitation.deleteMany({team: teamId}, opts);
-            await Task.deleteMany({team: teamId}, opts);
-            await PullRequest.deleteMany({team: teamId}, opts);
-            await Notification.deleteMany({'metadata.teamId': teamId}, opts);
+
+            // 1. Gather all task IDs for deep cascade
+            const teamTasks = await Task.find({ team: teamId }, { _id: 1 }, opts).lean();
+            const taskIds = teamTasks.map((t) => t._id);
+
+            // 2. Cascade delete all pull requests for the team or any of its tasks
+            await PullRequest.deleteMany(
+                { $or: [{ team: teamId }, { task: { $in: taskIds } }] },
+                opts
+            );
+
+            // 3. Cascade delete all invitations for this team
+            await TeamInvitation.deleteMany({ team: teamId }, opts);
+
+            // 4. Cascade delete all tasks belonging to this team
+            await Task.deleteMany({ team: teamId }, opts);
+
+            // 5. Cascade delete all notifications related to this team or its tasks
+            await Notification.deleteMany(
+                {
+                    $or: [
+                        { 'metadata.teamId': teamId },
+                        { 'metadata.teamId': teamId.toString() },
+                        { 'metadata.taskId': { $in: taskIds } },
+                    ],
+                },
+                opts
+            );
+
+            // 6. Delete the team document itself
+            await Team.deleteOne({ _id: teamId }, opts);
         });
 
         emitToTeam(teamId.toString(), "team:deleted", { teamId });

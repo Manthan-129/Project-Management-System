@@ -51,11 +51,10 @@ const sendRequestToMakeFriend = async (req, res) => {
         }
 
         if (pendingRequestFromReceiver) {
-            pendingRequestFromReceiver.status = 'accepted';
-            await pendingRequestFromReceiver.save();
-
             await runInTransaction(async (session) => {
                 const opts = session ? { session } : {};
+                pendingRequestFromReceiver.status = 'accepted';
+                await pendingRequestFromReceiver.save(opts);
                 await User.updateOne({ _id: receiver._id }, { $addToSet: { friends: userId } }, opts);
                 await User.updateOne({ _id: userId }, { $addToSet: { friends: receiver._id } }, opts);
             });
@@ -171,16 +170,18 @@ const respondToFriendRequest = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Invitation not found' });
         }
 
-        invitation.status = status;
-        await invitation.save();
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
+            invitation.status = status;
+            await invitation.save(opts);
 
-        if (status === 'accepted') {
-            await runInTransaction(async (session) => {
-                const opts = session ? { session } : {};
+            if (status === 'accepted') {
                 await User.updateOne({ _id: invitation.sender._id }, { $addToSet: { friends: invitation.receiver._id } }, opts);
                 await User.updateOne({ _id: invitation.receiver._id }, { $addToSet: { friends: invitation.sender._id } }, opts);
-            });
+            }
+        });
 
+        if (status === 'accepted') {
             emitToUser(invitation.sender._id, 'friend:list_updated', {});
             emitToUser(userId, 'friend:list_updated', {});
         }

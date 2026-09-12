@@ -120,10 +120,12 @@ const verifyUpdateUserEmailOTP = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid OTP. Please try again." });
         }
 
-        user.email = newEmail;
-
-        await user.save();
-        await OTP.deleteOne({ _id: otpRecord._id });
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
+            user.email = newEmail;
+            await user.save(opts);
+            await OTP.deleteOne({ _id: otpRecord._id }, opts);
+        });
 
         return res.status(200).json({ success: true, message: "Email updated successfully" });
 
@@ -202,10 +204,37 @@ const deleteUserAccount = async (req, res) => {
             const opts = session ? { session } : {};
 
             if (ledTeamIds.length > 0) {
+                const ledTasks = await Task.find({ team: { $in: ledTeamIds } }).select('_id').lean();
+                const ledTaskIds = ledTasks.map(t => t._id);
+
                 await Task.deleteMany({ team: { $in: ledTeamIds } }, opts);
-                await PullRequest.deleteMany({ team: { $in: ledTeamIds } }, opts);
+                await PullRequest.deleteMany({
+                    $or: [
+                        { team: { $in: ledTeamIds } },
+                        ...(ledTaskIds.length > 0 ? [{ task: { $in: ledTaskIds } }] : [])
+                    ]
+                }, opts);
                 await TeamInvitation.deleteMany({ team: { $in: ledTeamIds } }, opts);
+                await Notification.deleteMany({
+                    $or: [
+                        { 'metadata.teamId': { $in: ledTeamIds } },
+                        { 'metadata.teamId': { $in: ledTeamIds.map(id => id.toString()) } },
+                        ...(ledTaskIds.length > 0 ? [
+                            { 'metadata.taskId': { $in: ledTaskIds } },
+                            { 'metadata.taskId': { $in: ledTaskIds.map(id => id.toString()) } }
+                        ] : [])
+                    ]
+                }, opts);
                 await Team.deleteMany({ _id: { $in: ledTeamIds } }, opts);
+            }
+
+            // Reassign active tasks in other teams where the user is assigned to the respective team leader
+            const otherAssignedTasks = await Task.find({ assignedTo: userId, isDeleted: false });
+            for (const ot of otherAssignedTasks) {
+                const parentTeam = await Team.findById(ot.team).select('leader').lean();
+                if (parentTeam && parentTeam.leader) {
+                    await Task.updateOne({ _id: ot._id }, { assignedTo: parentTeam.leader }, opts);
+                }
             }
 
             await Team.updateMany({ 'members.user': userId }, { $pull: { members: { user: userId } }, $inc: { memberCount: -1 } }, opts);
