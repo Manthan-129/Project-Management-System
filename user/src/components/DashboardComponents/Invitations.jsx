@@ -2,6 +2,7 @@ import { Check, Clock, Mail, Send, X } from 'lucide-react'
 import { useContext, useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-toastify'
 import api from '../../api/axiosInstance.js'
+import { SOCKET_EVENTS } from '../../api/socketEvents.js'
 import { AppContext } from '../../context/AppContext.jsx'
 import Loading from '../LoadingPage.jsx'
 
@@ -98,12 +99,12 @@ const Invitations = () => {
             );
         };
 
-        socket.on('team:invitation_received', handleInvitationReceived);
-        socket.on('team:invitation_responded', handleInvitationResponded);
+        socket.on(SOCKET_EVENTS.TEAM_INVITATION_RECEIVED, handleInvitationReceived);
+        socket.on(SOCKET_EVENTS.TEAM_INVITATION_RESPONDED, handleInvitationResponded);
 
         return () => {
-            socket.off('team:invitation_received', handleInvitationReceived);
-            socket.off('team:invitation_responded', handleInvitationResponded);
+            socket.off(SOCKET_EVENTS.TEAM_INVITATION_RECEIVED, handleInvitationReceived);
+            socket.off(SOCKET_EVENTS.TEAM_INVITATION_RESPONDED, handleInvitationResponded);
         };
     }, [socket]);
 

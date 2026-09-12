@@ -2,6 +2,7 @@ import { Check, Clock, Heart, Send, UserMinus, Users, X } from 'lucide-react'
 import { useContext, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import api from '../../api/axiosInstance.js'
+import { SOCKET_EVENTS } from '../../api/socketEvents.js'
 import { AppContext } from '../../context/AppContext.jsx'
 import Loading from '../LoadingPage.jsx'
 import AlertModal from './AlertModal.jsx'
@@ -124,20 +125,20 @@ const Friends = () => {
             setFriends((prev) => prev.filter((f) => f._id !== friendId));
         };
 
-        socket.on('friend:request_received', handleRequestReceived);
-        socket.on('friend:request_responded', handleRequestResponded);
-        socket.on('friend:request_accepted', handleFriendListUpdated);
-        socket.on('friend:request_cancelled', handleRequestCancelled);
-        socket.on('friend:list_updated', handleFriendListUpdated);
-        socket.on('friend:unfriended', handleUnfriended);
+        socket.on(SOCKET_EVENTS.FRIEND_REQUEST_RECEIVED, handleRequestReceived);
+        socket.on(SOCKET_EVENTS.FRIEND_REQUEST_RESPONDED, handleRequestResponded);
+        socket.on(SOCKET_EVENTS.FRIEND_REQUEST_ACCEPTED, handleFriendListUpdated);
+        socket.on(SOCKET_EVENTS.FRIEND_REQUEST_CANCELLED, handleRequestCancelled);
+        socket.on(SOCKET_EVENTS.FRIEND_LIST_UPDATED, handleFriendListUpdated);
+        socket.on(SOCKET_EVENTS.FRIEND_UNFRIENDED, handleUnfriended);
 
         return () => {
-            socket.off('friend:request_received', handleRequestReceived);
-            socket.off('friend:request_responded', handleRequestResponded);
-            socket.off('friend:request_accepted', handleFriendListUpdated);
-            socket.off('friend:request_cancelled', handleRequestCancelled);
-            socket.off('friend:list_updated', handleFriendListUpdated);
-            socket.off('friend:unfriended', handleUnfriended);
+            socket.off(SOCKET_EVENTS.FRIEND_REQUEST_RECEIVED, handleRequestReceived);
+            socket.off(SOCKET_EVENTS.FRIEND_REQUEST_RESPONDED, handleRequestResponded);
+            socket.off(SOCKET_EVENTS.FRIEND_REQUEST_ACCEPTED, handleFriendListUpdated);
+            socket.off(SOCKET_EVENTS.FRIEND_REQUEST_CANCELLED, handleRequestCancelled);
+            socket.off(SOCKET_EVENTS.FRIEND_LIST_UPDATED, handleFriendListUpdated);
+            socket.off(SOCKET_EVENTS.FRIEND_UNFRIENDED, handleUnfriended);
         };
     }, [socket]);
 

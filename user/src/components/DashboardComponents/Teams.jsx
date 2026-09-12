@@ -3,6 +3,7 @@ import { useCallback, useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import api from '../../api/axiosInstance.js'
+import { SOCKET_EVENTS } from '../../api/socketEvents.js'
 import { AppContext } from '../../context/AppContext.jsx'
 import Loading from '../LoadingPage'
 
@@ -66,20 +67,20 @@ const Teams = () => {
             fetchTeams(false);
         };
 
-        socket.on('team:member_joined', handleTeamListUpdate);
-        socket.on('team:member_removed', handleTeamListUpdate);
-        socket.on('team:removed_from_team', handleTeamListUpdate);
-        socket.on('team:member_role_changed', handleTeamListUpdate);
-        socket.on('team:leadership_transferred', handleTeamListUpdate);
-        socket.on('team:deleted', handleTeamListUpdate);
+        socket.on(SOCKET_EVENTS.TEAM_MEMBER_JOINED, handleTeamListUpdate);
+        socket.on(SOCKET_EVENTS.TEAM_MEMBER_REMOVED, handleTeamListUpdate);
+        socket.on(SOCKET_EVENTS.TEAM_REMOVED_FROM_TEAM, handleTeamListUpdate);
+        socket.on(SOCKET_EVENTS.TEAM_MEMBER_ROLE_CHANGED, handleTeamListUpdate);
+        socket.on(SOCKET_EVENTS.TEAM_LEADERSHIP_TRANSFERRED, handleTeamListUpdate);
+        socket.on(SOCKET_EVENTS.TEAM_DELETED, handleTeamListUpdate);
 
         return () => {
-            socket.off('team:member_joined', handleTeamListUpdate);
-            socket.off('team:member_removed', handleTeamListUpdate);
-            socket.off('team:removed_from_team', handleTeamListUpdate);
-            socket.off('team:member_role_changed', handleTeamListUpdate);
-            socket.off('team:leadership_transferred', handleTeamListUpdate);
-            socket.off('team:deleted', handleTeamListUpdate);
+            socket.off(SOCKET_EVENTS.TEAM_MEMBER_JOINED, handleTeamListUpdate);
+            socket.off(SOCKET_EVENTS.TEAM_MEMBER_REMOVED, handleTeamListUpdate);
+            socket.off(SOCKET_EVENTS.TEAM_REMOVED_FROM_TEAM, handleTeamListUpdate);
+            socket.off(SOCKET_EVENTS.TEAM_MEMBER_ROLE_CHANGED, handleTeamListUpdate);
+            socket.off(SOCKET_EVENTS.TEAM_LEADERSHIP_TRANSFERRED, handleTeamListUpdate);
+            socket.off(SOCKET_EVENTS.TEAM_DELETED, handleTeamListUpdate);
         };
     }, [socket, fetchTeams]);
 
