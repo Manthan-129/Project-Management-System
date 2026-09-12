@@ -122,6 +122,7 @@ const createTask= async (req, res) => {
             to: newTask.assignedTo.email,
             subject: taskAssignmentNotification.subject,
             text: taskAssignmentNotification.html.replace(/<[^>]+>/g, ''),
+            html: taskAssignmentNotification.html,
         };
         enqueueEmail(mailOptions);
         }catch(error){
@@ -582,6 +583,7 @@ const updateTask= async (req, res) => {
                 to: populatedTask.assignedTo.email,
                 subject: emailTemplate.subject,
                 text: emailTemplate.html.replace(/<[^>]+>/g, ''),
+                html: emailTemplate.html,
             }
 
             enqueueEmail(mailOptions);

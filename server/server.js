@@ -11,9 +11,8 @@ const rateLimit = require("express-rate-limit");
 const { connectDB } = require("./configs/db");
 const { connectCloudinary } = require("./configs/cloudinary");
 const { initSocket } = require("./configs/socket");
-const { checkRedisAvailability } = require("./configs/redis");
-const { initEmailQueue } = require("./queues/emailQueue");
-const { initEmailWorker } = require("./workers/emailWorker");
+const { initEmailQueue, closeEmailQueue } = require("./queues/emailQueue");
+const { initEmailWorker, closeEmailWorker } = require("./workers/emailWorker");
 
 const { authRouter } = require("./routes/AuthRoutes");
 const settingsRouter = require("./routes/SettingsRoutes");
@@ -39,7 +38,12 @@ const authLimiter = rateLimit({
     },
 });
 
-function shutdown(exitCode = 0) {
+async function shutdown(exitCode = 0) {
+    try {
+        await Promise.all([closeEmailWorker(), closeEmailQueue()]);
+    } catch (err) {
+        // Silently continue shutdown
+    }
     if (server) {
         server.close(() => {
             console.log("Server closed.");
@@ -75,15 +79,9 @@ const startServer = async () => {
         await connectDB();
         connectCloudinary();
 
-        // Check Redis availability once; activate BullMQ if available, else direct async
-        const redisConfig = await checkRedisAvailability();
-        if (redisConfig) {
-            initEmailQueue(redisConfig);
-            initEmailWorker(redisConfig);
-            console.log("Redis connected successfully. BullMQ email queue active.");
-        } else {
-            console.log("Redis not detected (set REDIS_URL in .env to enable BullMQ). Using direct async email delivery.");
-        }
+        // Initialize BullMQ email queue and background worker
+        initEmailQueue();
+        initEmailWorker();
 
         app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 

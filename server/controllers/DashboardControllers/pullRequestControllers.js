@@ -63,6 +63,7 @@ const createPullRequest= async (req, res) => {
             to: team.leader.email,
             subject: emailTemplate.subject,
             text: emailTemplate.html.replace(/<[^>]+>/g, ''),
+            html: emailTemplate.html,
         };
 
         enqueueEmail(mailOptions);
@@ -155,6 +156,7 @@ const reviewPullRequest= async (req, res) => {
             to: senderEmail,
             subject: emailTemplate.subject,
             text: emailTemplate.html.replace(/<[^>]+>/g, ''),
+            html: emailTemplate.html,
         };
         
         enqueueEmail(mailOptions);
