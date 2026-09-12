@@ -18,12 +18,8 @@ const DashboardPage = () => {
         <DashboardSidebar />
 
         <main className="min-w-0 flex-1">
-          <div className="dd-shell-frame h-full p-4 md:p-6">
-            <div className="dd-shell-surface min-h-[calc(100vh-3rem)] overflow-hidden">
-              <div className="h-full overflow-y-auto p-1 md:p-0">
-                <Outlet />
-              </div>
-            </div>
+          <div className="min-h-[calc(100vh-3rem)] rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-[0_4px_24px_rgba(15,23,42,0.03)] backdrop-blur-md md:p-6">
+            <Outlet />
           </div>
         </main>
       </div>

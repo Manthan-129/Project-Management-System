@@ -48,109 +48,104 @@ const DashboardSidebar = () => {
     ];
 
   return (
-    <aside className="dd-aside-panel relative z-30 flex w-full flex-col gap-5 lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] lg:w-[19rem] lg:shrink-0 lg:self-start">
-        <div className="rounded-[1.5rem] border border-slate-200/80 bg-[linear-gradient(135deg,rgba(49,94,141,0.12),rgba(255,255,255,0.95))] p-4 shadow-[0_16px_40px_rgba(15,23,42,0.05)]">
+    <aside className="relative z-30 flex w-full flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white/80 p-3.5 shadow-[0_4px_24px_rgba(15,23,42,0.03)] backdrop-blur-md lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] lg:w-[18.5rem] lg:shrink-0 lg:self-start">
+        <div className="rounded-xl border border-slate-200/70 bg-gradient-to-br from-indigo-50/60 via-white to-slate-50/70 p-3.5 shadow-sm">
             <NavLink to='/' className="flex items-center gap-3 no-underline">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80">
-                    <Sparkles size={20} className="text-[#315e8d]" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 shadow-sm shadow-indigo-500/20 ring-2 ring-indigo-100/80">
+                    <Sparkles size={18} className="text-white" />
                 </div>
                 <div>
-                    <h1 className="text-base font-black tracking-tight text-slate-900">Dev<span className="text-[#315e8d]">Dash</span></h1>
-                    <p className="text-xs font-medium text-slate-500">Project management</p>
+                    <h1 className="text-base font-black tracking-tight text-slate-900">Dev<span className="text-indigo-600">Dash</span></h1>
+                    <p className="text-[11px] font-medium text-slate-400">Team Workspace</p>
                 </div>
             </NavLink>
         </div>
 
-        <nav className="flex-1 space-y-5 overflow-y-auto pr-1">
-            <p className="px-3 text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Main Menu</p>
-            {navItems.map((item)=> (
-                <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
-                    className={({ isActive }) => `dd-nav-pill ${isActive ? 'dd-nav-pill-active' : 'dd-nav-pill-inactive'}`}
-                >
-                    {({ isActive }) => (
-                        <>
-                            <div className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-all ${isActive ? 'border-white/60 bg-white shadow-sm' : 'border-slate-200 bg-slate-100/90'}`}>
-                                <item.icon size={16} className={isActive ? 'text-[#315e8d]' : 'text-slate-500'} />
-                            </div>
-                            <span className="flex-1">{item.label}</span>
-                            {isActive && <ChevronRight size={14} className="text-[#315e8d]" />}
-                        </>
-                    )}
-                </NavLink>
-            ))}
+        <nav className="flex-1 space-y-4 overflow-y-auto pr-1 custom-scrollbar">
+            <p className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Navigation</p>
+            <div className="space-y-1">
+                {navItems.map((item)=> (
+                    <NavLink
+                        key={item.to}
+                        to={item.to}
+                        end={item.end}
+                        className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all no-underline ${isActive ? 'bg-indigo-50/80 font-semibold text-indigo-700 shadow-xs ring-1 ring-indigo-100' : 'text-slate-600 hover:bg-slate-100/70 hover:text-slate-900'}`}
+                    >
+                        {({ isActive }) => (
+                            <>
+                                <div className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all ${isActive ? 'bg-white shadow-xs text-indigo-600' : 'bg-slate-100/80 text-slate-500'}`}>
+                                    <item.icon size={15} />
+                                </div>
+                                <span className="flex-1">{item.label}</span>
+                                {isActive && <ChevronRight size={14} className="text-indigo-500" />}
+                            </>
+                        )}
+                    </NavLink>
+                ))}
+            </div>
 
-            <div className="pt-4 border-t border-slate-200/80 space-y-3">
-                <p className="px-3 text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Preferences</p>
+            <div className="pt-3 border-t border-slate-200/70 space-y-1">
+                <p className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Settings</p>
                 <NavLink
                     to="/settings"
-                    className={({ isActive }) => `dd-nav-pill ${isActive ? 'dd-nav-pill-active' : 'dd-nav-pill-inactive'}`}
+                    className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all no-underline ${isActive ? 'bg-indigo-50/80 font-semibold text-indigo-700 shadow-xs ring-1 ring-indigo-100' : 'text-slate-600 hover:bg-slate-100/70 hover:text-slate-900'}`}
                 >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-100/90 transition-all">
-                        <Settings size={16} className="text-slate-500" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100/80 text-slate-500">
+                        <Settings size={15} />
                     </div>
-                    Settings
+                    <span>Settings</span>
                 </NavLink>
 
                 <button
                     onClick={logout}
-                    className="dd-nav-pill dd-nav-pill-inactive w-full text-left text-rose-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-rose-600 transition-all hover:bg-rose-50/70 hover:text-rose-700"
                 >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-rose-100 bg-rose-50 transition-all">
-                        <LogOut size={16} className="text-rose-500" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-500">
+                        <LogOut size={15} />
                     </div>
-                    Logout
+                    <span>Logout</span>
                 </button>
             </div>
         </nav>
 
         {user && (
-            <div className="rounded-[1.5rem] border border-slate-200/80 bg-white/90 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
-                <div className="space-y-3 rounded-[1.25rem] border border-slate-100 bg-slate-50/90 p-3">
-                    <div className="flex items-center justify-between gap-2">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Current Team</p>
-                        <span className="rounded-full border border-blue-100 bg-blue-50 px-2 py-1 text-[10px] font-semibold text-[#315e8d]">
-                            Workspace
-                        </span>
-                    </div>
-
-                    <div className="flex items-center gap-3 rounded-[1.25rem] border border-slate-100 bg-white p-3">
+            <div className="rounded-xl border border-slate-200/70 bg-slate-50/60 p-2.5">
+                <div className="flex items-center gap-2.5 rounded-lg border border-slate-200/70 bg-white p-2.5 shadow-xs">
+                    <div className="relative">
                         <img
                             src={user.profilePicture || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=6366f1&color=fff`}
                             alt="avatar"
-                            className="h-11 w-11 rounded-2xl object-cover ring-2 ring-white shadow-sm"
+                            className="h-9 w-9 rounded-xl object-cover ring-1 ring-slate-200 shadow-xs"
                         />
-                        <div className="min-w-0 flex-1">
-                            <NavLink to={`/dashboard/user/${user.username}`} title="View Public Profile" className="block truncate text-sm font-semibold text-slate-900 transition-colors hover:text-indigo-600">
-                                {user.firstName} {user.lastName}
-                            </NavLink>
-                            <p className="truncate text-xs text-slate-500">@{user.username}</p>
-                        </div>
-                        <div className="relative" ref={notificationRef}>
-                            <button onClick={handleToggleNotifications} className="relative rounded-xl border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900">
-                                <Bell size={15} />
-                                {unreadNotificationsCount > 0 && (
-                                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#315e8d] px-1 text-[10px] font-semibold text-white shadow">
-                                        {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
-                                    </span>
-                                )}
-                            </button>
-
-                            {isNotificationOpen && (
-                                <div className="absolute bottom-[calc(100%+0.75rem)] -right-2 z-[130] w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.16)] sm:-left-4 sm:right-auto sm:origin-bottom-left">
-                                    <NotificationPopup
-                                        notifications={notifications}
-                                        unreadCount={unreadNotificationsCount}
-                                        onItemClick={handleNotificationItemClick}
-                                        onMarkAllAsRead={markNotificationsAsRead}
-                                        onClose={() => setIsNotificationOpen(false)}
-                                    />
-                                </div>
+                        <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <NavLink to={`/dashboard/user/${user.username}`} title="View Public Profile" className="block truncate text-xs font-bold text-slate-800 transition-colors hover:text-indigo-600">
+                            {user.firstName} {user.lastName}
+                        </NavLink>
+                        <p className="truncate text-[11px] text-slate-400">@{user.username}</p>
+                    </div>
+                    <div className="relative" ref={notificationRef}>
+                        <button onClick={handleToggleNotifications} className="relative rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 shadow-xs transition hover:border-slate-300 hover:text-slate-800">
+                            <Bell size={14} />
+                            {unreadNotificationsCount > 0 && (
+                                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-600 px-1 text-[9px] font-bold text-white shadow">
+                                    {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                                </span>
                             )}
-                        </div>
-                        <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-400 ring-4 ring-emerald-100"></div>
+                        </button>
+
+                        {isNotificationOpen && (
+                            <div className="absolute bottom-[calc(100%+0.75rem)] -right-2 z-[130] w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl sm:-left-4 sm:right-auto">
+                                <NotificationPopup
+                                    notifications={notifications}
+                                    unreadCount={unreadNotificationsCount}
+                                    onItemClick={handleNotificationItemClick}
+                                    onMarkAllAsRead={markNotificationsAsRead}
+                                    onClose={() => setIsNotificationOpen(false)}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

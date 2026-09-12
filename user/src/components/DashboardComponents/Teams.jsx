@@ -122,13 +122,13 @@ const Teams = () => {
         return 'text-gray-600 bg-gray-50 border border-gray-200';
     };
 
-    const gradientColors = [
-        'from-blue-500 to-indigo-600',
-        'from-violet-500 to-purple-600',
-        'from-emerald-500 to-teal-600',
-        'from-rose-500 to-pink-600',
-        'from-amber-500 to-orange-600',
-        'from-cyan-500 to-blue-600',
+    const cardThemes = [
+        { gradient: 'from-blue-500 to-indigo-600', borderHover: 'hover:border-blue-300', accent: 'border-l-blue-500' },
+        { gradient: 'from-violet-500 to-purple-600', borderHover: 'hover:border-violet-300', accent: 'border-l-violet-500' },
+        { gradient: 'from-teal-500 to-emerald-600', borderHover: 'hover:border-teal-300', accent: 'border-l-teal-500' },
+        { gradient: 'from-rose-500 to-pink-600', borderHover: 'hover:border-rose-300', accent: 'border-l-rose-500' },
+        { gradient: 'from-amber-500 to-orange-600', borderHover: 'hover:border-amber-300', accent: 'border-l-amber-500' },
+        { gradient: 'from-cyan-500 to-blue-600', borderHover: 'hover:border-cyan-300', accent: 'border-l-cyan-500' },
     ];
 
     if(loading) return <Loading />;
@@ -203,41 +203,51 @@ const Teams = () => {
                 </div>
         )}
 
-        <div className="grid gap-3 md:grid-cols-2">
-            {teams.map(team=>{
-                const role= getUserRole(team);
+        <div className="grid gap-3.5 md:grid-cols-2">
+            {teams.map((team, idx) => {
+                const role = getUserRole(team);
+                const theme = cardThemes[idx % cardThemes.length];
                 return (
-                    <div key={team._id} onClick={()=> navigate(`/dashboard/teams/${team._id}`)} className="dd-section-card cursor-pointer border-slate-200 transition hover:-translate-y-0.5 hover:shadow-lg">
-                        <div className="flex items-start justify-between gap-3">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-lg font-bold text-[#315e8d]">
+                    <div 
+                        key={team._id} 
+                        onClick={() => navigate(`/dashboard/teams/${team._id}`)} 
+                        className={`dd-section-card group cursor-pointer border border-slate-200/80 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${theme.borderHover} border-l-4 ${theme.accent}`}
+                    >
+                        <div className="flex items-start justify-between gap-3.5">
+                            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${theme.gradient} text-lg font-black text-white shadow-sm shadow-slate-200`}>
                                 {team.name.charAt(0).toUpperCase()}
                             </div>
-                            <div className="flex-1">
+                            <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <h3 className="text-lg font-bold text-slate-900">{team.name}</h3>
+                                    <h3 className="truncate text-base font-bold text-slate-900 group-hover:text-[#26486d] transition-colors">{team.name}</h3>
                                     <span className={`dd-badge ${roleBadgeColor(role)}`}>{roleIcon(role)} {role}</span>
                                 </div>
-                                {team.title && <p className="text-sm text-slate-500">{team.title}</p>}
-                                <p className="mt-1 text-xs font-medium text-slate-500">{team.memberCount ?? team.members?.length ?? 0} members</p>
+                                {team.title && <p className="mt-0.5 truncate text-xs text-slate-500">{team.title}</p>}
+                                <p className="mt-1 text-xs font-medium text-slate-400">{team.memberCount ?? team.members?.length ?? 0} members</p>
                             </div>
 
-                            <div className="text-right">
-                                <p className="text-xs text-slate-500">Team Leader Username: {team.leader?.username}</p>
+                            <div className="text-right shrink-0">
+                                <span className="rounded-md bg-slate-100/80 px-2 py-1 text-[11px] font-medium text-slate-500">
+                                    @{team.leader?.username || 'leader'}
+                                </span>
                             </div>
                         </div>
 
-                        <div className="mt-4 flex items-center justify-between">
+                        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
                             <div className="flex -space-x-2">
-                                {team.members?.slice(0,4).map((m, i)=>(
-                                    <img key={i} className="h-8 w-8 rounded-full border-2 border-white object-cover" src={m.user?.profilePicture || `https://ui-avatars.com/api/?name=${m.user?.firstName}+${m.user?.lastName}&background=6366f1&color=fff&size=28`} alt="" />
+                                {team.members?.slice(0, 4).map((m, i) => (
+                                    <img key={i} className="h-7 w-7 rounded-full border-2 border-white object-cover shadow-xs" src={m.user?.profilePicture || `https://ui-avatars.com/api/?name=${m.user?.firstName}+${m.user?.lastName}&background=6366f1&color=fff&size=28`} alt="" />
                                 ))}
 
                                 {(team.members?.length || 0) > 4 && (
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-slate-200 text-xs font-semibold text-slate-700">+{team.members.length - 4}</div>
+                                    <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-[10px] font-bold text-slate-600">+{team.members.length - 4}</div>
                                 )}
                             </div>
 
-                            <ChevronRight size={16} className="text-slate-400" />
+                            <div className="flex items-center gap-1 text-xs font-semibold text-slate-400 group-hover:text-[#315e8d] transition-colors">
+                                <span>Open Workspace</span>
+                                <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+                            </div>
                         </div>
                     </div>
                 )
