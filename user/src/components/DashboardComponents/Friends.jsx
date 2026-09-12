@@ -100,27 +100,46 @@ const Friends = () => {
     useEffect(() => {
         if (!socket) return;
 
-        const handleFriendUpdate = () => {
-            fetchFriends();
-            fetchRequests();
+        const handleRequestReceived = (invite) => {
+            if (!invite?._id) return;
+            setReceived((prev) => [invite, ...prev.filter((r) => r._id !== invite._id)]);
         };
 
-        socket.on('friend:request_received', handleFriendUpdate);
-        socket.on('friend:request_responded', handleFriendUpdate);
-        socket.on('friend:request_accepted', handleFriendUpdate);
-        socket.on('friend:request_cancelled', handleFriendUpdate);
-        socket.on('friend:list_updated', handleFriendUpdate);
-        socket.on('friend:unfriended', handleFriendUpdate);
+        const handleRequestResponded = ({ inviteId }) => {
+            if (!inviteId) return;
+            setSent((prev) => prev.filter((s) => s._id !== inviteId));
+        };
+
+        const handleRequestCancelled = ({ inviteId }) => {
+            if (!inviteId) return;
+            setReceived((prev) => prev.filter((r) => r._id !== inviteId));
+        };
+
+        const handleFriendListUpdated = () => {
+            fetchFriends();
+        };
+
+        const handleUnfriended = ({ friendId }) => {
+            if (!friendId) return;
+            setFriends((prev) => prev.filter((f) => f._id !== friendId));
+        };
+
+        socket.on('friend:request_received', handleRequestReceived);
+        socket.on('friend:request_responded', handleRequestResponded);
+        socket.on('friend:request_accepted', handleFriendListUpdated);
+        socket.on('friend:request_cancelled', handleRequestCancelled);
+        socket.on('friend:list_updated', handleFriendListUpdated);
+        socket.on('friend:unfriended', handleUnfriended);
 
         return () => {
-            socket.off('friend:request_received', handleFriendUpdate);
-            socket.off('friend:request_responded', handleFriendUpdate);
-            socket.off('friend:request_accepted', handleFriendUpdate);
-            socket.off('friend:request_cancelled', handleFriendUpdate);
-            socket.off('friend:list_updated', handleFriendUpdate);
-            socket.off('friend:unfriended', handleFriendUpdate);
+            socket.off('friend:request_received', handleRequestReceived);
+            socket.off('friend:request_responded', handleRequestResponded);
+            socket.off('friend:request_accepted', handleFriendListUpdated);
+            socket.off('friend:request_cancelled', handleRequestCancelled);
+            socket.off('friend:list_updated', handleFriendListUpdated);
+            socket.off('friend:unfriended', handleUnfriended);
         };
-    }, [socket, authHeaders]);
+    }, [socket]);
 
     const sendRequest= async (e)=>{
         e.preventDefault();

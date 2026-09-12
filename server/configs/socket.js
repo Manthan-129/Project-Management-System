@@ -45,11 +45,11 @@ const initSocket = (httpServer, allowedOrigins = []) => {
         socket.join(`user:${userId}`);
 
         socket.on("join:team", (teamId) => {
-            if (teamId) socket.join(`team:${teamId}`);
+            if (teamId) socket.join(`team:${teamId.toString()}`);
         });
 
         socket.on("leave:team", (teamId) => {
-            if (teamId) socket.leave(`team:${teamId}`);
+            if (teamId) socket.leave(`team:${teamId.toString()}`);
         });
     });
 

@@ -15,7 +15,7 @@ export const getSocket = () => socket;
 export const connectSocket = (token) => {
     if (!token) return null;
 
-    if (socket && socket.connected) {
+    if (socket && socket.connected && socket.auth?.token === token) {
         return socket;
     }
 
@@ -33,12 +33,8 @@ export const connectSocket = (token) => {
         reconnectionDelay: 2000,
     });
 
-    socket.on('connect', () => {
-        // Connected to DevDash Real-Time WebSocket Server
-    });
-
     socket.on('connect_error', (error) => {
-        console.warn('DevDash WebSocket connection notice:', error.message);
+        console.warn('WebSocket connection notice:', error.message);
     });
 
     return socket;

@@ -65,22 +65,47 @@ const Invitations = () => {
         }
     }, [token, authHeaders]);
 
-    // Live socket updates for team invitations
+    // Live real-time socket updates for team invitations
     useEffect(() => {
         if (!socket) return;
 
-        const handleInvitationUpdate = () => {
-            fetchInvitations(false);
+        const handleInvitationReceived = (invitation) => {
+            if (!invitation?._id) return;
+            setReceived((prev) => {
+                if (prev.some((inv) => inv._id === invitation._id)) return prev;
+                return [invitation, ...prev];
+            });
         };
 
-        socket.on('team:invitation_received', handleInvitationUpdate);
-        socket.on('team:invitation_responded', handleInvitationUpdate);
+        const handleInvitationResponded = ({ invitationId }) => {
+            if (!invitationId) return;
+            setReceived((prev) => prev.filter((inv) => inv._id !== invitationId));
+            setSentByMe((prev) =>
+                prev
+                    .map((group) => ({
+                        ...group,
+                        invitations: (group.invitations || []).filter((inv) => inv._id !== invitationId),
+                    }))
+                    .filter((group) => (group.invitations || []).length > 0)
+            );
+            setSentByTeam((prev) =>
+                prev
+                    .map((group) => ({
+                        ...group,
+                        invitations: (group.invitations || []).filter((inv) => inv._id !== invitationId),
+                    }))
+                    .filter((group) => (group.invitations || []).length > 0)
+            );
+        };
+
+        socket.on('team:invitation_received', handleInvitationReceived);
+        socket.on('team:invitation_responded', handleInvitationResponded);
 
         return () => {
-            socket.off('team:invitation_received', handleInvitationUpdate);
-            socket.off('team:invitation_responded', handleInvitationUpdate);
+            socket.off('team:invitation_received', handleInvitationReceived);
+            socket.off('team:invitation_responded', handleInvitationResponded);
         };
-    }, [socket, authHeaders]);
+    }, [socket]);
 
     const respondInvitation= async (inviteId, status) => {
         setIsResponding(true);

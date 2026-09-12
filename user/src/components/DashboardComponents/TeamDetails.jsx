@@ -70,9 +70,45 @@ const TeamDetails = () => {
   const [team, setTeam] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
   const [kanbanBoard, setKanbanBoard] = useState(emptyBoard());
-  const [teamStats, setTeamStats] = useState(null);
   const [progressData, setProgressData] = useState(null);
   const [pullRequests, setPullRequests] = useState([]);
+
+  const teamStats = useMemo(() => {
+    const now = new Date();
+    const stats = {
+      total: 0,
+      byStatus: {
+        todo: 0,
+        'in-progress': 0,
+        'in-review': 0,
+        completed: 0,
+      },
+      byPriority: {
+        high: 0,
+        medium: 0,
+        low: 0,
+      },
+      overDue: 0,
+      deletedTasks: kanbanBoard.deleted || [],
+    };
+
+    ['todo', 'in-progress', 'in-review', 'completed'].forEach((status) => {
+      const list = kanbanBoard[status] || [];
+      stats.byStatus[status] = list.length;
+      stats.total += list.length;
+      list.forEach((t) => {
+        const p = (t.priority || '').toLowerCase();
+        if (stats.byPriority[p] !== undefined) {
+          stats.byPriority[p]++;
+        }
+        if (t.dueDate && new Date(t.dueDate) < now && t.status !== 'completed') {
+          stats.overDue++;
+        }
+      });
+    });
+
+    return stats;
+  }, [kanbanBoard]);
 
   const [loading, setLoading] = useState(true);
   const [progressLoading, setProgressLoading] = useState(false);
@@ -178,7 +214,6 @@ const TeamDetails = () => {
     const { data } = await api.get(`/tasks/team-task/${teamId}`, { headers: authHeaders });
     if (!data?.success) throw new Error(data?.message || 'Failed to fetch tasks');
     setKanbanBoard(data.kanbanBoard || emptyBoard());
-    setTeamStats(data.stats || null);
   }, [teamId, authHeaders]);
 
   const fetchProgress = useCallback(async () => {
@@ -255,6 +290,174 @@ const TeamDetails = () => {
     }
   }, [token, teamId, loadAll]);
 
+  // Real-time pure state mutator for task status updates
+  const applyTaskStatusUpdate = useCallback((taskId, newStatus, completedAt, taskPayload) => {
+    if (!taskId || !newStatus) return;
+    setKanbanBoard((prev) => {
+      const next = {
+        todo: [],
+        'in-progress': [],
+        'in-review': [],
+        completed: [],
+        deleted: [],
+      };
+
+      let currentTask = null;
+
+      COLUMNS.forEach((col) => {
+        (prev[col.key] || []).forEach((item) => {
+          if (item._id === taskId) {
+            currentTask = {
+              ...item,
+              ...(taskPayload || {}),
+              status: newStatus,
+              completedAt: completedAt || item.completedAt,
+              isDeleted: false,
+            };
+          } else {
+            next[col.key].push(item);
+          }
+        });
+      });
+
+      if (!currentTask && taskPayload) {
+        currentTask = {
+          ...taskPayload,
+          status: newStatus,
+          completedAt: completedAt || taskPayload.completedAt,
+          isDeleted: false,
+        };
+      }
+
+      if (currentTask && next[newStatus]) {
+        next[newStatus].unshift(currentTask);
+      }
+
+      return next;
+    });
+  }, []);
+
+  // Real-time pure state mutator for task creation
+  const applyTaskCreated = useCallback((newTask) => {
+    if (!newTask?._id) return;
+    setKanbanBoard((prev) => {
+      const targetStatus = newTask.status || 'todo';
+      const exists = COLUMNS.some((col) =>
+        (prev[col.key] || []).some((item) => item._id === newTask._id)
+      );
+      if (exists) return prev;
+
+      return {
+        ...prev,
+        [targetStatus]: [newTask, ...(prev[targetStatus] || [])],
+      };
+    });
+  }, []);
+
+  // Real-time pure state mutator for task edit/field update
+  const applyTaskUpdated = useCallback((taskId, updatedTask) => {
+    if (!taskId) return;
+    setKanbanBoard((prev) => {
+      const next = {};
+      COLUMNS.forEach((col) => {
+        next[col.key] = (prev[col.key] || []).map((item) => {
+          if (item._id === taskId) {
+            return {
+              ...item,
+              ...(updatedTask || {}),
+              assignedTo: updatedTask?.assignedTo || item.assignedTo,
+              assignedBy: updatedTask?.assignedBy || item.assignedBy,
+            };
+          }
+          return item;
+        });
+      });
+      return next;
+    });
+  }, []);
+
+  // Real-time pure state mutator for task deletion
+  const applyTaskDeleted = useCallback((taskId, taskPayload) => {
+    if (!taskId) return;
+    setKanbanBoard((prev) => {
+      const next = {
+        todo: [],
+        'in-progress': [],
+        'in-review': [],
+        completed: [],
+        deleted: [],
+      };
+      let targetTask = null;
+
+      COLUMNS.forEach((col) => {
+        (prev[col.key] || []).forEach((item) => {
+          if (item._id === taskId) {
+            targetTask = { ...item, ...(taskPayload || {}), isDeleted: true };
+          } else {
+            next[col.key].push(item);
+          }
+        });
+      });
+
+      if (!targetTask && taskPayload) {
+        targetTask = { ...taskPayload, isDeleted: true };
+      }
+
+      if (targetTask) {
+        next.deleted.unshift(targetTask);
+      }
+
+      return next;
+    });
+  }, []);
+
+  // Real-time pure state mutator for restoring a task
+  const applyTaskRestored = useCallback((taskId, taskPayload) => {
+    if (!taskId) return;
+    setKanbanBoard((prev) => {
+      const next = {
+        todo: [],
+        'in-progress': [],
+        'in-review': [],
+        completed: [],
+        deleted: [],
+      };
+      let restoredTask = null;
+
+      COLUMNS.forEach((col) => {
+        (prev[col.key] || []).forEach((item) => {
+          if (item._id === taskId) {
+            restoredTask = {
+              ...item,
+              ...(taskPayload || {}),
+              isDeleted: false,
+              status: taskPayload?.status || 'todo',
+            };
+          } else {
+            next[col.key].push(item);
+          }
+        });
+      });
+
+      if (!restoredTask && taskPayload) {
+        restoredTask = {
+          ...taskPayload,
+          isDeleted: false,
+          status: taskPayload?.status || 'todo',
+        };
+      }
+
+      if (restoredTask) {
+        const destStatus = restoredTask.status || 'todo';
+        if (next[destStatus]) {
+          next[destStatus].unshift(restoredTask);
+        }
+      }
+
+      return next;
+    });
+  }, []);
+
   // Real-time WebSocket connection to Team Workspace Room
   useEffect(() => {
     if (!socket || !teamId) return;
@@ -262,51 +465,116 @@ const TeamDetails = () => {
     socket.emit('join:team', teamId);
 
     const handleTaskCreated = (data) => {
-      fetchTasks();
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
+      if (data?.task) {
+        applyTaskCreated(data.task);
+        if (data.task?.assignedBy?._id !== user?._id) {
+          toast.info(`New task added: ${data.task.title || 'Task'}`);
+        }
+      }
       if (activeTab === 'progress') fetchProgress();
-      if (data?.task?.assignedBy?._id !== user?._id) {
-        toast.info(`New task added: ${data?.task?.title || 'Task'}`);
+    };
+
+    const handleTaskStatusUpdated = (data) => {
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
+      if (data?.taskId && data?.status) {
+        applyTaskStatusUpdate(data.taskId, data.status, data.completedAt, data.task);
+      }
+      if (activeTab === 'progress') fetchProgress();
+    };
+
+    const handleTaskUpdated = (data) => {
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
+      if (data?.taskId && data?.task) {
+        applyTaskUpdated(data.taskId, data.task);
+      }
+      if (activeTab === 'progress') fetchProgress();
+    };
+
+    const handleTaskDeleted = (data) => {
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
+      if (data?.taskId) {
+        applyTaskDeleted(data.taskId, data.task);
+      }
+      if (activeTab === 'progress') fetchProgress();
+    };
+
+    const handleTaskRestored = (data) => {
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
+      if (data?.taskId) {
+        applyTaskRestored(data.taskId, data.task);
+      }
+      if (activeTab === 'progress') fetchProgress();
+    };
+
+    const handlePRCreated = (data) => {
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
+      if (data?.pullRequest) {
+        setPullRequests((prev) => [data.pullRequest, ...prev.filter((p) => p._id !== data.pullRequest._id)]);
       }
     };
 
-    const handleTaskStatusUpdated = () => {
-      fetchTasks();
+    const handlePRReviewed = (data) => {
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
+      if (data?.pullRequest) {
+        setPullRequests((prev) =>
+          prev.map((p) => (p._id === data.pullRequest._id ? { ...p, ...data.pullRequest } : p))
+        );
+      }
       if (activeTab === 'progress') fetchProgress();
     };
 
-    const handleTaskUpdated = () => {
-      fetchTasks();
-      if (activeTab === 'progress') fetchProgress();
-    };
-
-    const handleTaskDeleted = () => {
-      fetchTasks();
-      if (activeTab === 'progress') fetchProgress();
-    };
-
-    const handleTaskRestored = () => {
-      fetchTasks();
-      if (activeTab === 'progress') fetchProgress();
-    };
-
-    const handlePRCreated = () => {
-      fetchPullRequests();
-      fetchTasks();
-    };
-
-    const handlePRReviewed = () => {
-      fetchPullRequests();
-      fetchTasks();
-      if (activeTab === 'progress') fetchProgress();
-    };
-
-    const handleMemberEvent = () => {
+    const handleMemberJoined = (data) => {
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
       fetchMembers();
       fetchTeam();
       if (activeTab === 'progress') fetchProgress();
     };
 
-    const handleTeamDeleted = () => {
+    const handleMemberRemoved = (data) => {
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
+      const targetId = data?.memberId;
+      if (targetId && user?._id && targetId.toString() === user._id.toString()) {
+        toast.warn('You have been removed from this team.');
+        navigate('/dashboard/teams');
+        return;
+      }
+      if (targetId) {
+        setTeamMembers((prev) => prev.filter((m) => m.user?._id !== targetId && m.user !== targetId));
+      }
+      if (activeTab === 'progress') fetchProgress();
+    };
+
+    const handleMemberLeft = (data) => {
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
+      const targetId = data?.userId;
+      if (targetId) {
+        setTeamMembers((prev) => prev.filter((m) => m.user?._id !== targetId && m.user !== targetId));
+      }
+      if (activeTab === 'progress') fetchProgress();
+    };
+
+    const handleMemberRoleChanged = (data) => {
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
+      if (data?.memberId && data?.role) {
+        setTeamMembers((prev) =>
+          prev.map((m) =>
+            m.user?._id === data.memberId || m.user === data.memberId
+              ? { ...m, role: data.role }
+              : m
+          )
+        );
+      }
+    };
+
+    const handleLeadershipTransferred = (data) => {
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
+      fetchTeam();
+      fetchMembers();
+    };
+
+    const handleTeamDeleted = (data) => {
+      if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
       toast.warn('This team workspace was deleted by the team leader.');
       navigate('/dashboard/teams');
     };
@@ -318,10 +586,11 @@ const TeamDetails = () => {
     socket.on('task:restored', handleTaskRestored);
     socket.on('pr:created', handlePRCreated);
     socket.on('pr:reviewed', handlePRReviewed);
-    socket.on('team:member_joined', handleMemberEvent);
-    socket.on('team:member_removed', handleMemberEvent);
-    socket.on('team:member_role_changed', handleMemberEvent);
-    socket.on('team:leadership_transferred', handleMemberEvent);
+    socket.on('team:member_joined', handleMemberJoined);
+    socket.on('team:member_removed', handleMemberRemoved);
+    socket.on('team:member_left', handleMemberLeft);
+    socket.on('team:member_role_changed', handleMemberRoleChanged);
+    socket.on('team:leadership_transferred', handleLeadershipTransferred);
     socket.on('team:deleted', handleTeamDeleted);
 
     return () => {
@@ -333,30 +602,34 @@ const TeamDetails = () => {
       socket.off('task:restored', handleTaskRestored);
       socket.off('pr:created', handlePRCreated);
       socket.off('pr:reviewed', handlePRReviewed);
-      socket.off('team:member_joined', handleMemberEvent);
-      socket.off('team:member_removed', handleMemberEvent);
-      socket.off('team:member_role_changed', handleMemberEvent);
-      socket.off('team:leadership_transferred', handleMemberEvent);
+      socket.off('team:member_joined', handleMemberJoined);
+      socket.off('team:member_removed', handleMemberRemoved);
+      socket.off('team:member_left', handleMemberLeft);
+      socket.off('team:member_role_changed', handleMemberRoleChanged);
+      socket.off('team:leadership_transferred', handleLeadershipTransferred);
       socket.off('team:deleted', handleTeamDeleted);
     };
-  }, [socket, teamId, fetchTasks, fetchProgress, fetchPullRequests, fetchMembers, fetchTeam, activeTab, user, navigate]);
+  }, [
+    socket,
+    teamId,
+    applyTaskCreated,
+    applyTaskStatusUpdate,
+    applyTaskUpdated,
+    applyTaskDeleted,
+    applyTaskRestored,
+    fetchProgress,
+    fetchMembers,
+    fetchTeam,
+    activeTab,
+    user,
+    navigate,
+  ]);
 
   useEffect(() => {
     if (activeTab === 'progress' && token && teamId && !progressData) {
       fetchProgress();
     }
   }, [activeTab, token, teamId, progressData, fetchProgress]);
-
-  const refreshTaskData = useCallback(async () => {
-    try {
-      await Promise.all([fetchTasks(), fetchPullRequests()]);
-      if (activeTab === 'progress') {
-        await fetchProgress();
-      }
-    } catch (error) {
-      console.error('Refresh background data failed:', error);
-    }
-  }, [fetchTasks, fetchPullRequests, fetchProgress, activeTab]);
 
   const handleCreateTask = async (event) => {
     event.preventDefault();
@@ -382,7 +655,9 @@ const TeamDetails = () => {
 
       setShowCreateTask(false);
       setTaskForm(emptyTaskForm);
-      await refreshTaskData();
+      if (data?.task) {
+        applyTaskCreated(data.task);
+      }
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to create task');
     } finally {
@@ -404,7 +679,7 @@ const TeamDetails = () => {
         return;
       }
 
-      await refreshTaskData();
+      applyTaskStatusUpdate(taskId, status, data?.task?.completedAt, data?.task);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to update task status');
     } finally {
@@ -427,7 +702,7 @@ const TeamDetails = () => {
             return;
           }
 
-          await refreshTaskData();
+          applyTaskDeleted(taskId, data?.task);
         } catch (error) {
           toast.error(error?.response?.data?.message || 'Unable to delete task');
         } finally {
@@ -446,7 +721,7 @@ const TeamDetails = () => {
         return;
       }
 
-      await refreshTaskData();
+      applyTaskRestored(taskId, data?.task);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to restore task');
     } finally {
@@ -473,7 +748,7 @@ const TeamDetails = () => {
         return;
       }
 
-      await refreshTaskData();
+      applyTaskUpdated(taskId, data?.task);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to extend due date');
     } finally {
@@ -514,9 +789,10 @@ const TeamDetails = () => {
         return;
       }
 
+      const updatedId = editingTask._id;
       setEditingTask(null);
       setEditingTaskForm(emptyTaskForm);
-      await refreshTaskData();
+      applyTaskUpdated(updatedId, data?.task);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to update task');
     } finally {
@@ -544,10 +820,14 @@ const TeamDetails = () => {
         return;
       }
 
+      const taskId = selectedTaskForPR;
       setShowPRModal(false);
       setSelectedTaskForPR(null);
       setPrForm(emptyPrForm);
-      await refreshTaskData();
+      if (data?.pullRequest) {
+        setPullRequests((prev) => [data.pullRequest, ...prev.filter((p) => p._id !== data.pullRequest._id)]);
+      }
+      applyTaskStatusUpdate(taskId, 'in-review');
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to submit PR');
     } finally {
@@ -571,7 +851,16 @@ const TeamDetails = () => {
 
       setReviewingPR(null);
       setReviewNote('');
-      await refreshTaskData();
+      if (data?.pullRequest) {
+        setPullRequests((prev) =>
+          prev.map((p) => (p._id === prId ? { ...p, ...data.pullRequest } : p))
+        );
+        const resolvedTaskId = data.pullRequest.task?._id || data.pullRequest.task;
+        const targetStatus = status === 'accepted' ? 'completed' : 'in-progress';
+        if (resolvedTaskId) {
+          applyTaskStatusUpdate(resolvedTaskId, targetStatus);
+        }
+      }
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Unable to review PR');
     } finally {
@@ -669,7 +958,6 @@ const TeamDetails = () => {
           }
 
           await fetchMembers();
-          await refreshTaskData();
         } catch (error) {
           toast.error(error?.response?.data?.message || 'Unable to remove member');
         } finally {

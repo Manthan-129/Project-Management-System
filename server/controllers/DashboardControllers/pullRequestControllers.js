@@ -130,6 +130,11 @@ const reviewPullRequest= async (req, res) => {
                 task.status= 'in-progress';
             }
             await task.save();
+
+            await task.populate([
+                { path: 'assignedTo', select: 'username firstName lastName profilePicture email' },
+                { path: 'assignedBy', select: 'username firstName lastName profilePicture email' }
+            ]);
         }
 
         const senderEmail = pullRequest.sender.email;

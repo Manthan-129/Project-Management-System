@@ -200,12 +200,29 @@ export const AppContextProvider = (props) => {
             });
         };
 
+        const handleNotificationMarkedRead = (payload) => {
+            if (!payload?.notificationId) return;
+            setNotifications((prev) =>
+                prev.map((n) => (n._id === payload.notificationId ? { ...n, isRead: true } : n))
+            );
+            setUnreadNotificationsCount((prev) => Math.max(0, prev - 1));
+        };
+
+        const handleAllNotificationsMarkedRead = () => {
+            setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+            setUnreadNotificationsCount(0);
+        };
+
         socket.on('notification:received', handleNotificationReceived);
+        socket.on('notification:marked_read', handleNotificationMarkedRead);
+        socket.on('notification:all_marked_read', handleAllNotificationsMarkedRead);
         socket.on('friend:request_received', handleFriendRequestReceived);
         socket.on('team:invitation_received', handleTeamInvitationReceived);
 
         return () => {
             socket.off('notification:received', handleNotificationReceived);
+            socket.off('notification:marked_read', handleNotificationMarkedRead);
+            socket.off('notification:all_marked_read', handleAllNotificationsMarkedRead);
             socket.off('friend:request_received', handleFriendRequestReceived);
             socket.off('team:invitation_received', handleTeamInvitationReceived);
         };

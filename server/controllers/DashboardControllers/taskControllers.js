@@ -685,6 +685,12 @@ const deleteTask= async (req, res) => {
         task.deletedBy= userId;
         task.updatedBy= userId;
         await task.save();
+
+        await task.populate([
+            { path: 'assignedTo', select: 'username firstName lastName profilePicture email' },
+            { path: 'assignedBy', select: 'username firstName lastName profilePicture email' },
+            { path: 'deletedBy', select: 'username firstName lastName profilePicture email' }
+        ]);
         
         const recipients = new Set([
             team.leader.toString(),

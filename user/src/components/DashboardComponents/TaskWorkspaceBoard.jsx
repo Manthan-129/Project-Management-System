@@ -80,24 +80,173 @@ const TaskWorkspaceBoard = () => {
     useEffect(() => {
         if (!socket) return;
 
-        const handleTaskChange = () => {
+        const updateBoardWithStatus = (taskId, newStatus, completedAt, taskPayload) => {
+            if (!taskId || !newStatus) return;
+            setWorkspaceBoard((prev) => {
+                const updateCategory = (board) => {
+                    const next = createEmptyBoard();
+                    let found = null;
+                    KANBAN_COLUMNS.forEach((col) => {
+                        (board?.[col.key] || []).forEach((item) => {
+                            if (item._id === taskId) {
+                                found = {
+                                    ...item,
+                                    ...(taskPayload || {}),
+                                    status: newStatus,
+                                    completedAt: completedAt || item.completedAt,
+                                    isDeleted: false,
+                                };
+                            } else {
+                                next[col.key].push(item);
+                            }
+                        });
+                    });
+                    if (found && next[newStatus]) {
+                        next[newStatus].unshift(found);
+                    }
+                    return next;
+                };
+
+                return {
+                    assignedTaskToMe: updateCategory(prev.assignedTaskToMe),
+                    assignedTaskByMeAsAdmin: updateCategory(prev.assignedTaskByMeAsAdmin),
+                    assignedTaskByMeAsLeader: updateCategory(prev.assignedTaskByMeAsLeader),
+                };
+            });
+        };
+
+        const updateBoardWithTask = (taskId, updatedTask) => {
+            if (!taskId) return;
+            setWorkspaceBoard((prev) => {
+                const updateCategory = (board) => {
+                    const next = {};
+                    KANBAN_COLUMNS.forEach((col) => {
+                        next[col.key] = (board?.[col.key] || []).map((item) => {
+                            if (item._id === taskId) {
+                                return { ...item, ...(updatedTask || {}) };
+                            }
+                            return item;
+                        });
+                    });
+                    return next;
+                };
+
+                return {
+                    assignedTaskToMe: updateCategory(prev.assignedTaskToMe),
+                    assignedTaskByMeAsAdmin: updateCategory(prev.assignedTaskByMeAsAdmin),
+                    assignedTaskByMeAsLeader: updateCategory(prev.assignedTaskByMeAsLeader),
+                };
+            });
+        };
+
+        const updateBoardWithDeletion = (taskId, taskPayload) => {
+            if (!taskId) return;
+            setWorkspaceBoard((prev) => {
+                const updateCategory = (board) => {
+                    const next = createEmptyBoard();
+                    let target = null;
+                    KANBAN_COLUMNS.forEach((col) => {
+                        (board?.[col.key] || []).forEach((item) => {
+                            if (item._id === taskId) {
+                                target = { ...item, ...(taskPayload || {}), isDeleted: true };
+                            } else {
+                                next[col.key].push(item);
+                            }
+                        });
+                    });
+                    if (target) {
+                        next.deleted.unshift(target);
+                    }
+                    return next;
+                };
+
+                return {
+                    assignedTaskToMe: updateCategory(prev.assignedTaskToMe),
+                    assignedTaskByMeAsAdmin: updateCategory(prev.assignedTaskByMeAsAdmin),
+                    assignedTaskByMeAsLeader: updateCategory(prev.assignedTaskByMeAsLeader),
+                };
+            });
+        };
+
+        const updateBoardWithRestoration = (taskId, taskPayload) => {
+            if (!taskId) return;
+            setWorkspaceBoard((prev) => {
+                const updateCategory = (board) => {
+                    const next = createEmptyBoard();
+                    let target = null;
+                    KANBAN_COLUMNS.forEach((col) => {
+                        (board?.[col.key] || []).forEach((item) => {
+                            if (item._id === taskId) {
+                                target = {
+                                    ...item,
+                                    ...(taskPayload || {}),
+                                    isDeleted: false,
+                                    status: taskPayload?.status || 'todo',
+                                };
+                            } else {
+                                next[col.key].push(item);
+                            }
+                        });
+                    });
+                    if (target) {
+                        const dest = target.status || 'todo';
+                        if (next[dest]) {
+                            next[dest].unshift(target);
+                        }
+                    }
+                    return next;
+                };
+
+                return {
+                    assignedTaskToMe: updateCategory(prev.assignedTaskToMe),
+                    assignedTaskByMeAsAdmin: updateCategory(prev.assignedTaskByMeAsAdmin),
+                    assignedTaskByMeAsLeader: updateCategory(prev.assignedTaskByMeAsLeader),
+                };
+            });
+        };
+
+        const handleStatusUpdated = (data) => {
+            if (data?.taskId && data?.status) {
+                updateBoardWithStatus(data.taskId, data.status, data.completedAt, data.task);
+            }
+        };
+
+        const handleTaskUpdated = (data) => {
+            if (data?.taskId && data?.task) {
+                updateBoardWithTask(data.taskId, data.task);
+            }
+        };
+
+        const handleTaskDeleted = (data) => {
+            if (data?.taskId) {
+                updateBoardWithDeletion(data.taskId, data.task);
+            }
+        };
+
+        const handleTaskRestored = (data) => {
+            if (data?.taskId) {
+                updateBoardWithRestoration(data.taskId, data.task);
+            }
+        };
+
+        const handleTaskAssigned = () => {
             fetchData(false);
         };
 
-        socket.on('task:assigned', handleTaskChange);
-        socket.on('task:status_updated', handleTaskChange);
-        socket.on('task:updated', handleTaskChange);
-        socket.on('task:deleted', handleTaskChange);
-        socket.on('task:restored', handleTaskChange);
+        socket.on('task:assigned', handleTaskAssigned);
+        socket.on('task:status_updated', handleStatusUpdated);
+        socket.on('task:updated', handleTaskUpdated);
+        socket.on('task:deleted', handleTaskDeleted);
+        socket.on('task:restored', handleTaskRestored);
 
         return () => {
-            socket.off('task:assigned', handleTaskChange);
-            socket.off('task:status_updated', handleTaskChange);
-            socket.off('task:updated', handleTaskChange);
-            socket.off('task:deleted', handleTaskChange);
-            socket.off('task:restored', handleTaskChange);
+            socket.off('task:assigned', handleTaskAssigned);
+            socket.off('task:status_updated', handleStatusUpdated);
+            socket.off('task:updated', handleTaskUpdated);
+            socket.off('task:deleted', handleTaskDeleted);
+            socket.off('task:restored', handleTaskRestored);
         };
-    }, [socket, authHeaders]);
+    }, [socket]);
 
     const taskByCategory= useMemo(()=>{
         const countBoardTasks = (board) =>
