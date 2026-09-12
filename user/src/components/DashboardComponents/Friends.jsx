@@ -286,7 +286,7 @@ const Friends = () => {
             </div>
 
             {tab === 'friends' && (
-                <div className="space-y-4">
+                <div className="max-h-[calc(100vh-280px)] overflow-y-auto pr-1.5 custom-scrollbar space-y-4">
                     {friends.length === 0 ? (
                         <EmptyState icon={Users} text="No friends yet. Send a request to get started!"/>
                     ) : (
@@ -329,7 +329,7 @@ const Friends = () => {
             )}
 
             {tab === 'received' && (
-                <div className="space-y-3">
+                <div className="max-h-[calc(100vh-280px)] overflow-y-auto pr-1.5 custom-scrollbar space-y-3">
                     {received.length === 0 ? (
                         <EmptyState icon= {Clock} text="No pending requests. When someone sends you a friend request, it will appear here." />
                     ) : (
@@ -362,7 +362,7 @@ const Friends = () => {
             )}
 
             {tab === 'sent' && (
-                <div className="space-y-3">
+                <div className="max-h-[calc(100vh-280px)] overflow-y-auto pr-1.5 custom-scrollbar space-y-3">
                     {sent.length === 0 ? (
                         <EmptyState icon={Send} text="No sent requests. When you send a friend request, it will appear here until accepted or rejected." />
                     ) : (

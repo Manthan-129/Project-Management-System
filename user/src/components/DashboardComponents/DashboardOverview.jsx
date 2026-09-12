@@ -327,7 +327,7 @@ const DashboardOverview = () => {
                         </span>
                     </div>
 
-                    <div className="space-y-2.5">
+                    <div className="max-h-64 overflow-y-auto pr-1.5 custom-scrollbar space-y-2.5">
                         {todayFocus.length === 0 && <p className="text-xs text-slate-400">No active focus items right now.</p>}
 
                         {todayFocus.map((task) => (
@@ -386,7 +386,7 @@ const DashboardOverview = () => {
                             <h3 className="text-sm font-bold text-slate-800">Team Workload Snapshot</h3>
                         </div>
                     </div>
-                    <div className="space-y-2.5">
+                    <div className="max-h-64 overflow-y-auto pr-1.5 custom-scrollbar space-y-2.5">
                         {memberLoad.length === 0 && <p className="text-xs text-slate-400">No workload data available.</p>}
                         {memberLoad.map((member) => (
                             <div key={member.id} className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-3">
@@ -446,7 +446,7 @@ const DashboardOverview = () => {
                                 </span>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="max-h-56 overflow-y-auto pr-1.5 custom-scrollbar space-y-2">
                                 {upcomingDeadlines.length === 0 && (
                                     <p className="py-4 text-center text-xs text-slate-400">No upcoming deadlines.</p>
                                 )}
@@ -483,7 +483,7 @@ const DashboardOverview = () => {
                                 </span>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="max-h-56 overflow-y-auto pr-1.5 custom-scrollbar space-y-2">
                                 {recentUpdates.length === 0 && (
                                     <p className="py-4 text-center text-xs text-slate-400">No recent updates.</p>
                                 )}

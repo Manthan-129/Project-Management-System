@@ -1336,7 +1336,7 @@ const TeamDetails = () => {
             />
           )}
 
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[calc(100vh-340px)] overflow-y-auto pr-1.5 custom-scrollbar">
             {visibleMembers
               .filter((member) => member?.user?._id !== teamLeader?._id)
               .map((member) => (

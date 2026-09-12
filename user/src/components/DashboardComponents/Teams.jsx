@@ -203,7 +203,7 @@ const Teams = () => {
                 </div>
         )}
 
-        <div className="grid gap-3.5 md:grid-cols-2">
+        <div className="grid gap-3.5 md:grid-cols-2 max-h-[calc(100vh-280px)] overflow-y-auto pr-1.5 custom-scrollbar">
             {teams.map((team, idx) => {
                 const role = getUserRole(team);
                 const theme = cardThemes[idx % cardThemes.length];
@@ -219,7 +219,7 @@ const Teams = () => {
                             </div>
                             <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <h3 className="truncate text-base font-bold text-slate-900 group-hover:text-[#26486d] transition-colors">{team.name}</h3>
+                                    <h3 className="truncate text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{team.name}</h3>
                                     <span className={`dd-badge ${roleBadgeColor(role)}`}>{roleIcon(role)} {role}</span>
                                 </div>
                                 {team.title && <p className="mt-0.5 truncate text-xs text-slate-500">{team.title}</p>}

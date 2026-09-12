@@ -180,7 +180,7 @@ const PullRequests = () => {
         )
       :
       (
-        <div className="space-y-3">
+        <div className="max-h-[calc(100vh-280px)] overflow-y-auto pr-1.5 custom-scrollbar space-y-3">
           {filtered.map(pr => (
             <div key= {pr._id} className={`dd-section-card border-l-4 ${statusBorderAccent(pr.status)}`}>
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">

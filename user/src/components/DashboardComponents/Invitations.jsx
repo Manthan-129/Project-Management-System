@@ -183,7 +183,7 @@ const Invitations = () => {
 
         {/* Received Invitations */}
         {tab === 'received' && (
-            <div className="space-y-3">
+            <div className="max-h-[calc(100vh-280px)] overflow-y-auto pr-1.5 custom-scrollbar space-y-3">
                 {received.length === 0 ? (
                     <div className="dd-section-card py-14 text-center">
                         <Mail size= {40} className="mx-auto text-slate-300"></Mail>
