@@ -2,6 +2,7 @@ import { createContext, useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../api/axiosInstance.js';
+import { connectSocket, disconnectSocket, getSocket } from '../api/socket.js';
 
 export const AppContext = createContext();
 
@@ -11,6 +12,8 @@ export const AppContextProvider = (props) => {
     const [notifications, setNotifications] = useState([]);
     const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
     const [token, setToken] = useState(localStorage.getItem('token') || '');
+    const [socket, setSocket] = useState(null);
+
     const authHeaders = useMemo(() => {
         return token ? { Authorization: `Bearer ${token}` } : {};
     }, [token]);
@@ -59,10 +62,14 @@ export const AppContextProvider = (props) => {
     useEffect(() => {
         if (token) {
             localStorage.setItem('token', token);
+            const s = connectSocket(token);
+            setSocket(s);
             return;
         }
 
         localStorage.removeItem('token');
+        disconnectSocket();
+        setSocket(null);
     }, [token]);
 
     const logout = async () => {
@@ -70,6 +77,8 @@ export const AppContextProvider = (props) => {
         setToken('');
         setNotifications([]);
         setUnreadNotificationsCount(0);
+        disconnectSocket();
+        setSocket(null);
         navigate('/');
     };
 
@@ -163,7 +172,44 @@ export const AppContextProvider = (props) => {
 
     useEffect(() => {
         fetchCurrentUser();
+        fetchNotifications();
     }, [fetchCurrentUser]);
+
+    // Setup global socket event listeners for notifications, friend requests, and invites
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleNotificationReceived = (notification) => {
+            if (!notification) return;
+            setNotifications((prev) => [notification, ...prev]);
+            setUnreadNotificationsCount((prev) => prev + 1);
+            toast.info(`${notification.title}: ${notification.message}`, {
+                autoClose: 4000,
+            });
+        };
+
+        const handleFriendRequestReceived = (invite) => {
+            toast.info(`Friend request received from ${invite?.sender?.firstName || 'a user'}.`, {
+                autoClose: 4000,
+            });
+        };
+
+        const handleTeamInvitationReceived = (invitation) => {
+            toast.info(`Team invitation received for ${invitation?.team?.name || 'a team'}.`, {
+                autoClose: 4000,
+            });
+        };
+
+        socket.on('notification:received', handleNotificationReceived);
+        socket.on('friend:request_received', handleFriendRequestReceived);
+        socket.on('team:invitation_received', handleTeamInvitationReceived);
+
+        return () => {
+            socket.off('notification:received', handleNotificationReceived);
+            socket.off('friend:request_received', handleFriendRequestReceived);
+            socket.off('team:invitation_received', handleTeamInvitationReceived);
+        };
+    }, [socket]);
 
     const markNotificationAsRead = async (notificationId) => {
         try {
@@ -209,17 +255,6 @@ export const AppContextProvider = (props) => {
         }
     };
 
-    // useEffect(() => {
-    //     if (!token) return;
-
-    //     fetchNotifications();
-    //     const intervalId = setInterval(() => {
-    //         fetchNotifications();
-    //     }, 30000);
-
-    //     return () => clearInterval(intervalId);
-    // }, [token]);
-
     const value = {
         navigate,
         user,
@@ -238,6 +273,7 @@ export const AppContextProvider = (props) => {
         fetchNotifications,
         markNotificationAsRead,
         markNotificationsAsRead,
+        socket,
     };
 
     return <AppContext.Provider value={value}>{props.children}</AppContext.Provider>;

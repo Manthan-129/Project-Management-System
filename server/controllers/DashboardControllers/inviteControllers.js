@@ -1,82 +1,93 @@
-const User= require('../../models/User');
-const Invite= require('../../models/Invite');
-const {createNotification}= require('../../utils/notificationService.js');
+const User = require('../../models/User');
+const Invite = require('../../models/Invite');
+const { createNotification } = require('../../utils/notificationService.js');
+const { emitToUser } = require('../../configs/socket.js');
+const { runInTransaction } = require('../../utils/transactionHelper.js');
 
-const sendRequestToMakeFriend= async (req, res) => {
-    try{
-        const userId= req.userId;
-        const {username}= req.body;
+const sendRequestToMakeFriend = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { username } = req.body;
 
-        const userIdStr= userId.toString();
-        const trimmedUsername= username?.trim();
+        const userIdStr = userId.toString();
+        const trimmedUsername = username?.trim();
 
-        if(!trimmedUsername){
-            return res.status(400).json({success: false, message: 'Username is required'});
+        if (!trimmedUsername) {
+            return res.status(400).json({ success: false, message: 'Username is required' });
         }
 
-        const receiver= await User.findOne({username: trimmedUsername}).select('_id friends privacySettings');
+        const receiver = await User.findOne({ username: trimmedUsername }).select('_id friends privacySettings');
 
-        if(!receiver){
-            return res.status(404).json({success: false, message: 'User not found'});
+        if (!receiver) {
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        if(receiver.privacySettings?.showInSearch === false){
-            return res.status(404).json({success: false, message: 'User not found'});
+        if (receiver.privacySettings?.showInSearch === false) {
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        if(receiver._id.toString() === userIdStr){
-            return res.status(400).json({success: false, message: 'You cannot send a friend request to yourself'});
+        if (receiver._id.toString() === userIdStr) {
+            return res.status(400).json({ success: false, message: 'You cannot send a friend request to yourself' });
         }
 
-        const friends= receiver.friends.some(f => f.toString() === userIdStr);
-        if(friends){
-            return res.status(400).json({success: false, message: 'You are already friends with this user'});
+        const friends = receiver.friends.some((f) => f.toString() === userIdStr);
+        if (friends) {
+            return res.status(400).json({ success: false, message: 'You are already friends with this user' });
         }
 
         const [existingInvite, pendingRequestFromReceiver, recentRejection] = await Promise.all([
             Invite.findOne({ sender: userId, receiver: receiver._id, status: 'pending' }).lean(),
             Invite.findOne({ sender: receiver._id, receiver: userId, status: 'pending' }),
             Invite.findOne({
-                sender: userId, receiver: receiver._id, status: 'rejected',
-                updatedAt: { $gte: new Date(Date.now() - 7*24*60*60*1000) }
+                sender: userId,
+                receiver: receiver._id,
+                status: 'rejected',
+                updatedAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
             }).lean(),
         ]);
-        
-        if(existingInvite){
-            return res.status(400).json({success: false, message: 'Friend request already sent'});
-        }
-        
 
-        if(pendingRequestFromReceiver){
-            pendingRequestFromReceiver.status= 'accepted';
+        if (existingInvite) {
+            return res.status(400).json({ success: false, message: 'Friend request already sent' });
+        }
+
+        if (pendingRequestFromReceiver) {
+            pendingRequestFromReceiver.status = 'accepted';
             await pendingRequestFromReceiver.save();
 
-            await User.updateOne(
-                { _id: receiver._id },
-                { $addToSet: { friends: userId } },
-            );
-            
-            await User.updateOne(
-                { _id: userId },
-                { $addToSet: { friends: receiver._id } },
-            );
+            await runInTransaction(async (session) => {
+                const opts = session ? { session } : {};
+                await User.updateOne({ _id: receiver._id }, { $addToSet: { friends: userId } }, opts);
+                await User.updateOne({ _id: userId }, { $addToSet: { friends: receiver._id } }, opts);
+            });
 
-            return res.status(200).json({success: true, message: "Friend request accepted successfully", invite: pendingRequestFromReceiver});
+            emitToUser(receiver._id, 'friend:request_accepted', { invite: pendingRequestFromReceiver, friendId: userId });
+            emitToUser(userId, 'friend:request_accepted', { invite: pendingRequestFromReceiver, friendId: receiver._id });
+            emitToUser(receiver._id, 'friend:list_updated', {});
+            emitToUser(userId, 'friend:list_updated', {});
 
+            return res.status(200).json({
+                success: true,
+                message: 'Friend request accepted successfully',
+                invite: pendingRequestFromReceiver,
+            });
         }
 
-        if(recentRejection){
-            return res.status(400).json({success: false, message: 'You cannot send another friend request to this user for 7 days since your last request was rejected'});
+        if (recentRejection) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'You cannot send another friend request to this user for 7 days since your last request was rejected',
+            });
         }
 
-        const newInvite= new Invite({
+        const newInvite = new Invite({
             sender: userId,
             receiver: receiver._id,
         });
-        
+
         await newInvite.save();
 
-        const senderUser= await User.findById(userId).select('firstName lastName username').lean();
+        const senderUser = await User.findById(userId).select('firstName lastName username profilePicture').lean();
 
         await createNotification({
             recipient: receiver._id,
@@ -87,155 +98,187 @@ const sendRequestToMakeFriend= async (req, res) => {
             metadata: { inviteId: newInvite._id },
         });
 
-        res.status(200).json({success: true, message: 'Friend request sent successfully', invite: newInvite});
+        const populatedInvite = {
+            ...newInvite.toObject(),
+            sender: senderUser,
+        };
 
-    }catch(error){
+        emitToUser(receiver._id, 'friend:request_received', populatedInvite);
+
+        res.status(200).json({ success: true, message: 'Friend request sent successfully', invite: newInvite });
+    } catch (error) {
         console.error('Error in sendRequestToMakeFriend:', error.message);
-        res.status(500).json({success: false, message: 'Server error while sending friend request'});
+        res.status(500).json({ success: false, message: 'Server error while sending friend request' });
     }
-}
+};
 
-const getMyInvitationsReceived= async (req, res) => {
-    try{
-        const userId= req.userId;
-
-        const requestReceive= await Invite.find({receiver: userId, status: 'pending'}).populate('sender', 'firstName lastName username email profilePicture').sort({createdAt: -1}).lean();
-
-        return res.status(200).json({success: true,message: "Received invitations fetched successfully", invitations: requestReceive});
-
-    }catch(error){
-        console.error('Error in getMyInvitationsReceived:', error.message);
-        return res.status(500).json({success: false, message: 'Server error while fetching received invitations'});
-    }
-}
-
-const getMyInvitationsSent= async (req, res) => {
-    try{
-        const userId= req.userId;
-
-        const requestSent= await Invite.find({sender: userId, status: 'pending'}).populate('receiver', 'firstName lastName username email profilePicture').sort({createdAt: -1}).lean();
-
-        return res.status(200).json({success: true, message: "Sent invitations fetched successfully", invitations: requestSent});
-
-    }catch(error){
-        console.error('Error in getMyInvitationsSent:', error.message);
-        return res.status(500).json({success: false, message: 'Server error while fetching sent invitations'});
-    }
-}
-
-const respondToFriendRequest= async (req, res) => {
-    try{
+const getMyInvitationsReceived = async (req, res) => {
+    try {
         const userId = req.userId;
 
-        const {inviteId}= req.params;
-        const {status}= req.body;
+        const requestReceive = await Invite.find({ receiver: userId, status: 'pending' })
+            .populate('sender', 'firstName lastName username email profilePicture')
+            .sort({ createdAt: -1 })
+            .lean();
 
-        if(!['accepted', 'rejected'].includes(status)){
-            return res.status(400).json({success: false, message: 'Invalid status value'});
+        return res.status(200).json({
+            success: true,
+            message: 'Received invitations fetched successfully',
+            invitations: requestReceive,
+        });
+    } catch (error) {
+        console.error('Error in getMyInvitationsReceived:', error.message);
+        return res.status(500).json({ success: false, message: 'Server error while fetching received invitations' });
+    }
+};
+
+const getMyInvitationsSent = async (req, res) => {
+    try {
+        const userId = req.userId;
+
+        const requestSent = await Invite.find({ sender: userId, status: 'pending' })
+            .populate('receiver', 'firstName lastName username email profilePicture')
+            .sort({ createdAt: -1 })
+            .lean();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Sent invitations fetched successfully',
+            invitations: requestSent,
+        });
+    } catch (error) {
+        console.error('Error in getMyInvitationsSent:', error.message);
+        return res.status(500).json({ success: false, message: 'Server error while fetching sent invitations' });
+    }
+};
+
+const respondToFriendRequest = async (req, res) => {
+    try {
+        const userId = req.userId;
+
+        const { inviteId } = req.params;
+        const { status } = req.body;
+
+        if (!['accepted', 'rejected'].includes(status)) {
+            return res.status(400).json({ success: false, message: 'Invalid status value' });
         }
 
-        const invitation= await Invite.findOne({_id: inviteId, receiver: userId, status: 'pending'}).select('sender receiver status');
+        const invitation = await Invite.findOne({ _id: inviteId, receiver: userId, status: 'pending' }).select(
+            'sender receiver status'
+        );
 
-        if(!invitation){
-            return res.status(404).json({success: false, message: 'Invitation not found'});
+        if (!invitation) {
+            return res.status(404).json({ success: false, message: 'Invitation not found' });
         }
 
-        invitation.status= status;
+        invitation.status = status;
         await invitation.save();
 
-        if(status === 'accepted'){
-            await Promise.all([
-                User.updateOne(
-                    {_id: invitation.sender._id},
-                    {$addToSet: {friends: invitation.receiver._id}},
-                ),
-                User.updateOne(
-                    {_id: invitation.receiver._id},
-                    {$addToSet: {friends: invitation.sender._id}},
-                ),
-            ]);
+        if (status === 'accepted') {
+            await runInTransaction(async (session) => {
+                const opts = session ? { session } : {};
+                await User.updateOne({ _id: invitation.sender._id }, { $addToSet: { friends: invitation.receiver._id } }, opts);
+                await User.updateOne({ _id: invitation.receiver._id }, { $addToSet: { friends: invitation.sender._id } }, opts);
+            });
+
+            emitToUser(invitation.sender._id, 'friend:list_updated', {});
+            emitToUser(userId, 'friend:list_updated', {});
         }
 
-        return res.status(200).json({success: true, message: `Invitation ${status} successfully`});
+        emitToUser(invitation.sender._id, 'friend:request_responded', { inviteId, status, responder: userId });
 
-    }catch(error){
-        return res.status(500).json({success: false, message: 'Server error while responding to invitation'});
+        return res.status(200).json({ success: true, message: `Invitation ${status} successfully` });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Server error while responding to invitation' });
     }
-}
+};
 
-const cancelSentFriendRequest= async (req, res) => {
-    try{
-        const userId= req.userId;
+const cancelSentFriendRequest = async (req, res) => {
+    try {
+        const userId = req.userId;
 
-        const {inviteId}= req.params;
+        const { inviteId } = req.params;
 
         const result = await Invite.findOneAndDelete({
             _id: inviteId,
             sender: userId,
-            status: 'pending'
+            status: 'pending',
         });
 
         if (!result) {
             return res.status(404).json({
                 success: false,
-                message: 'Invitation not found or already handled'
+                message: 'Invitation not found or already handled',
             });
         }
 
-        return res.status(200).json({success: true, message: 'Friend request cancelled successfully'});
+        emitToUser(result.receiver, 'friend:request_cancelled', { inviteId });
 
-    }catch(error){
-        console.log("Error cancelling friend request:", error.message);
-        return res.status(500).json({success: false, message: "Error cancelling friend request"});
+        return res.status(200).json({ success: true, message: 'Friend request cancelled successfully' });
+    } catch (error) {
+        console.log('Error cancelling friend request:', error.message);
+        return res.status(500).json({ success: false, message: 'Error cancelling friend request' });
     }
-}
+};
 
-const allFriends= async (req, res) => {
-    try{
-        const userId= req.userId;
+const allFriends = async (req, res) => {
+    try {
+        const userId = req.userId;
 
-        const user= await User.findById(userId).select('friends').populate('friends', 'firstName lastName username email profilePicture privacySettings').lean();
+        const user = await User.findById(userId)
+            .select('friends')
+            .populate('friends', 'firstName lastName username email profilePicture privacySettings')
+            .lean();
 
-        return res.status(200).json({success: true, message: "Friends fetched successfully", friends: user.friends});
-
-    }catch(error){
+        return res.status(200).json({ success: true, message: 'Friends fetched successfully', friends: user.friends });
+    } catch (error) {
         console.error('Error in allFriends:', error.message);
-        return res.status(500).json({success: false, message: 'Server error while fetching friends'});
+        return res.status(500).json({ success: false, message: 'Server error while fetching friends' });
     }
-}
+};
 
-const unfriendUser= async (req, res) => {
-    try{
-        const userId= req.userId;
+const unfriendUser = async (req, res) => {
+    try {
+        const userId = req.userId;
 
-        const {friendId}= req.params;
+        const { friendId } = req.params;
 
         const [user, friendExists] = await Promise.all([
             User.findById(userId).select('friends').lean(),
-            User.exists({_id: friendId}),
+            User.exists({ _id: friendId }),
         ]);
-        if(!friendExists){
-            return res.status(404).json({success: false, message: 'User not found'});
+        if (!friendExists) {
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        const isFriend= user.friends.some(f => f.toString() === friendId);
+        const isFriend = user.friends.some((f) => f.toString() === friendId);
 
-        if(!isFriend){
-            return res.status(400).json({success: false, message: 'This user is not in your friends list'});
+        if (!isFriend) {
+            return res.status(400).json({ success: false, message: 'This user is not in your friends list' });
         }
 
-        await Promise.all([
-            User.updateOne({_id: userId}, {$pull: {friends: friendId}}),
-            User.updateOne({_id: friendId}, {$pull: {friends: userId}}),
-        ]);
-        
-        return res.status(200).json({success: true, message: "Unfriended successfully"});
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
+            await User.updateOne({ _id: userId }, { $pull: { friends: friendId } }, opts);
+            await User.updateOne({ _id: friendId }, { $pull: { friends: userId } }, opts);
+        });
 
-    }catch(error){
-        console.log("Error unfriending user:", error.message);
-        return res.status(500).json({success: false, message: "Error unfriending user"});
+        emitToUser(friendId, 'friend:unfriended', { friendId: userId });
+        emitToUser(userId, 'friend:unfriended', { friendId });
+
+        return res.status(200).json({ success: true, message: 'Unfriended successfully' });
+    } catch (error) {
+        console.log('Error unfriending user:', error.message);
+        return res.status(500).json({ success: false, message: 'Error unfriending user' });
     }
-}
+};
 
-
-module.exports= {sendRequestToMakeFriend, getMyInvitationsReceived, getMyInvitationsSent, respondToFriendRequest, cancelSentFriendRequest, unfriendUser, allFriends};
+module.exports = {
+    sendRequestToMakeFriend,
+    getMyInvitationsReceived,
+    getMyInvitationsSent,
+    respondToFriendRequest,
+    cancelSentFriendRequest,
+    unfriendUser,
+    allFriends,
+};

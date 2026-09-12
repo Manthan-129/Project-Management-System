@@ -24,7 +24,7 @@ const createEmptyBoard = () => ({
 
 const TaskWorkspaceBoard = () => {
 
-    const {token, setToken, authHeaders }= useContext(AppContext);
+    const {token, setToken, authHeaders, socket }= useContext(AppContext);
     const [tab, setTab]= useState('assignedTaskToMe');
     const [loading, setLoading]= useState(true);
     const [isExtending, setIsExtending]= useState(false);
@@ -35,8 +35,8 @@ const TaskWorkspaceBoard = () => {
         assignedTaskByMeAsLeader: createEmptyBoard(),
     });
 
-    const fetchData= async ()=>{
-        setLoading(true);
+    const fetchData= async (showLoading = true)=>{
+        if (showLoading) setLoading(true);
         try{
             const { data } = await api.get('/tasks/workspace-board', { headers: authHeaders });
 
@@ -64,17 +64,40 @@ const TaskWorkspaceBoard = () => {
             toast.error(error?.response?.data?.message || 'Unable to fetch workspace tasks');
 
         } finally {
-            setLoading(false);
+            if (showLoading) setLoading(false);
         }
     }
 
     useEffect(()=>{
         if(token){
-            fetchData();
+            fetchData(true);
         } else {
             setLoading(false);
         }
     },[token]);
+
+    // Listen for live task events across any team assigned to/by user
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleTaskChange = () => {
+            fetchData(false);
+        };
+
+        socket.on('task:assigned', handleTaskChange);
+        socket.on('task:status_updated', handleTaskChange);
+        socket.on('task:updated', handleTaskChange);
+        socket.on('task:deleted', handleTaskChange);
+        socket.on('task:restored', handleTaskChange);
+
+        return () => {
+            socket.off('task:assigned', handleTaskChange);
+            socket.off('task:status_updated', handleTaskChange);
+            socket.off('task:updated', handleTaskChange);
+            socket.off('task:deleted', handleTaskChange);
+            socket.off('task:restored', handleTaskChange);
+        };
+    }, [socket, authHeaders]);
 
     const taskByCategory= useMemo(()=>{
         const countBoardTasks = (board) =>

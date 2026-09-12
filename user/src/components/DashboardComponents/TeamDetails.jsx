@@ -65,7 +65,7 @@ const capitalizePriority = (priority) => {
 
 const TeamDetails = () => {
   const { teamId } = useParams();
-  const { token, setToken, user, navigate, authHeaders } = useContext(AppContext);
+  const { token, setToken, user, navigate, authHeaders, socket } = useContext(AppContext);
 
   const [team, setTeam] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
@@ -254,6 +254,92 @@ const TeamDetails = () => {
       setLoading(false);
     }
   }, [token, teamId, loadAll]);
+
+  // Real-time WebSocket connection to Team Workspace Room
+  useEffect(() => {
+    if (!socket || !teamId) return;
+
+    socket.emit('join:team', teamId);
+
+    const handleTaskCreated = (data) => {
+      fetchTasks();
+      if (activeTab === 'progress') fetchProgress();
+      if (data?.task?.assignedBy?._id !== user?._id) {
+        toast.info(`New task added: ${data?.task?.title || 'Task'}`);
+      }
+    };
+
+    const handleTaskStatusUpdated = () => {
+      fetchTasks();
+      if (activeTab === 'progress') fetchProgress();
+    };
+
+    const handleTaskUpdated = () => {
+      fetchTasks();
+      if (activeTab === 'progress') fetchProgress();
+    };
+
+    const handleTaskDeleted = () => {
+      fetchTasks();
+      if (activeTab === 'progress') fetchProgress();
+    };
+
+    const handleTaskRestored = () => {
+      fetchTasks();
+      if (activeTab === 'progress') fetchProgress();
+    };
+
+    const handlePRCreated = () => {
+      fetchPullRequests();
+      fetchTasks();
+    };
+
+    const handlePRReviewed = () => {
+      fetchPullRequests();
+      fetchTasks();
+      if (activeTab === 'progress') fetchProgress();
+    };
+
+    const handleMemberEvent = () => {
+      fetchMembers();
+      fetchTeam();
+      if (activeTab === 'progress') fetchProgress();
+    };
+
+    const handleTeamDeleted = () => {
+      toast.warn('This team workspace was deleted by the team leader.');
+      navigate('/dashboard/teams');
+    };
+
+    socket.on('task:created', handleTaskCreated);
+    socket.on('task:status_updated', handleTaskStatusUpdated);
+    socket.on('task:updated', handleTaskUpdated);
+    socket.on('task:deleted', handleTaskDeleted);
+    socket.on('task:restored', handleTaskRestored);
+    socket.on('pr:created', handlePRCreated);
+    socket.on('pr:reviewed', handlePRReviewed);
+    socket.on('team:member_joined', handleMemberEvent);
+    socket.on('team:member_removed', handleMemberEvent);
+    socket.on('team:member_role_changed', handleMemberEvent);
+    socket.on('team:leadership_transferred', handleMemberEvent);
+    socket.on('team:deleted', handleTeamDeleted);
+
+    return () => {
+      socket.emit('leave:team', teamId);
+      socket.off('task:created', handleTaskCreated);
+      socket.off('task:status_updated', handleTaskStatusUpdated);
+      socket.off('task:updated', handleTaskUpdated);
+      socket.off('task:deleted', handleTaskDeleted);
+      socket.off('task:restored', handleTaskRestored);
+      socket.off('pr:created', handlePRCreated);
+      socket.off('pr:reviewed', handlePRReviewed);
+      socket.off('team:member_joined', handleMemberEvent);
+      socket.off('team:member_removed', handleMemberEvent);
+      socket.off('team:member_role_changed', handleMemberEvent);
+      socket.off('team:leadership_transferred', handleMemberEvent);
+      socket.off('team:deleted', handleTeamDeleted);
+    };
+  }, [socket, teamId, fetchTasks, fetchProgress, fetchPullRequests, fetchMembers, fetchTeam, activeTab, user, navigate]);
 
   useEffect(() => {
     if (activeTab === 'progress' && token && teamId && !progressData) {

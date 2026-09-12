@@ -2,8 +2,9 @@ const Team= require('../../models/Team');
 const Task= require('../../models/Task');
 const User= require('../../models/User');
 const PullRequest= require('../../models/PullRequest');
-const { transporter } = require('../../configs/nodemailer');
+const { enqueueEmail } = require('../../queues/emailQueue');
 const { pullRequestTemplate, pullRequestReviewTemplate } = require('../../utils/emailTemplates');
+const { emitToTeam, emitToUser } = require('../../configs/socket');
 
 const createPullRequest= async (req, res) => {
     try{
@@ -28,8 +29,6 @@ const createPullRequest= async (req, res) => {
 
         if(existingPR) return res.status(400).json({success: false, message: 'You already have a pending pull request for this task'});
 
-
-
         const team= await Team.findById(task.team).populate('leader', 'firstName lastName username email').lean();
         if(!team){
             return res.status(404).json({success: false, message: "Team not found"});
@@ -52,25 +51,32 @@ const createPullRequest= async (req, res) => {
             { path: 'task', select: 'title description status priority' },
         ]);
 
-
         const emailTemplate= pullRequestTemplate({
             taskTitle: task.title,
             senderName: task.assignedTo.firstName + ' ' + task.assignedTo.lastName,
             githubPRLink: trimmedLink,
             message: trimmedMessage || '',
-        })
+        });
 
         const mailOptions= {
             from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
             to: team.leader.email,
             subject: emailTemplate.subject,
             text: emailTemplate.html.replace(/<[^>]+>/g, ''),
-        }
+        };
 
-        transporter.sendMail(mailOptions).catch(err => {
-            console.error('Error sending PR email:', err.message);
+        enqueueEmail(mailOptions);
+
+        const teamIdStr = task.team.toString();
+        emitToTeam(teamIdStr, "pr:created", { pullRequest: newPR, teamId: teamIdStr });
+        emitToTeam(teamIdStr, "task:status_updated", {
+            taskId: task._id,
+            status: "in-review",
+            task,
+            teamId: teamIdStr,
         });
-        res.status(201).json({success: true, message: 'Pull request submitted successfully'});
+
+        res.status(201).json({success: true, message: 'Pull request submitted successfully', pullRequest: newPR});
 
     } catch (error) {
         console.error('Error creating pull request:', error);
@@ -145,9 +151,22 @@ const reviewPullRequest= async (req, res) => {
             subject: emailTemplate.subject,
             text: emailTemplate.html.replace(/<[^>]+>/g, ''),
         };
-        transporter.sendMail(mailOptions).catch(err => {
-            console.error('Error sending PR review email:', err.message);
-        });
+        
+        enqueueEmail(mailOptions);
+
+        const teamIdStr = (team._id || team).toString();
+        emitToTeam(teamIdStr, "pr:reviewed", { pullRequest, teamId: teamIdStr });
+        emitToUser(pullRequest.sender._id, "pr:reviewed", { pullRequest, teamId: teamIdStr });
+
+        if (task) {
+            emitToTeam(teamIdStr, "task:status_updated", {
+                taskId: task._id,
+                status: task.status,
+                completedAt: task.completedAt,
+                task,
+                teamId: teamIdStr,
+            });
+        }
 
         return res.status(200).json({success: true, message: 'Pull request reviewed successfully', pullRequest});
 

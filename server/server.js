@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const http = require("http");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -9,6 +10,10 @@ const rateLimit = require("express-rate-limit");
 
 const { connectDB } = require("./configs/db");
 const { connectCloudinary } = require("./configs/cloudinary");
+const { initSocket } = require("./configs/socket");
+const { checkRedisAvailability } = require("./configs/redis");
+const { initEmailQueue } = require("./queues/emailQueue");
+const { initEmailWorker } = require("./workers/emailWorker");
 
 const { authRouter } = require("./routes/AuthRoutes");
 const settingsRouter = require("./routes/SettingsRoutes");
@@ -70,6 +75,16 @@ const startServer = async () => {
         await connectDB();
         connectCloudinary();
 
+        // Check Redis availability once; activate BullMQ if available, else direct async
+        const redisConfig = await checkRedisAvailability();
+        if (redisConfig) {
+            initEmailQueue(redisConfig);
+            initEmailWorker(redisConfig);
+            console.log("Redis connected successfully. BullMQ email queue active.");
+        } else {
+            console.log("Redis not detected (set REDIS_URL in .env to enable BullMQ). Using direct async email delivery.");
+        }
+
         app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
         const allowedOrigins = [
@@ -92,7 +107,7 @@ const startServer = async () => {
                     ) {
                         return callback(null, origin);
                     }
-                    return callback(null, origin);
+                    return callback(new Error("CORS policy violation: Unauthorized origin blocked"), false);
                 },
                 credentials: true,
             })
@@ -110,7 +125,7 @@ const startServer = async () => {
         app.get("/", (req, res) => {
             res.status(200).json({
                 success: true,
-                message: "API is running 🚀",
+                message: "DevDash API is running",
             });
         });
 
@@ -142,13 +157,19 @@ const startServer = async () => {
             });
         });
 
-        server = app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
+        // Create HTTP server for Express and Socket.io integration
+        server = http.createServer(app);
+
+        // Initialize WebSockets with authentication & room handling
+        initSocket(server, allowedOrigins);
+
+        server.listen(PORT, () => {
+            console.log(`Server and WebSocket running on port ${PORT}`);
         });
     } catch (err) {
         console.error("Failed to start server:", err);
         process.exit(1);
     }
-}
+};
 
 startServer();

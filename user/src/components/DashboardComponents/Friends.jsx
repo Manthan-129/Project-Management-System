@@ -18,7 +18,7 @@ const EmptyState = ({ icon: Icon, text }) => (
 
 const Friends = () => {
 
-    const {token, setToken, authHeaders, navigate}= useContext(AppContext);
+    const {token, setToken, authHeaders, navigate, socket}= useContext(AppContext);
 
     const [friends, setFriends]= useState([]);
     const [received, setReceived]= useState([]);
@@ -94,7 +94,33 @@ const Friends = () => {
         };
 
         loadData();
-    },[token])
+    },[token]);
+
+    // Real-time friend updates via WebSockets
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleFriendUpdate = () => {
+            fetchFriends();
+            fetchRequests();
+        };
+
+        socket.on('friend:request_received', handleFriendUpdate);
+        socket.on('friend:request_responded', handleFriendUpdate);
+        socket.on('friend:request_accepted', handleFriendUpdate);
+        socket.on('friend:request_cancelled', handleFriendUpdate);
+        socket.on('friend:list_updated', handleFriendUpdate);
+        socket.on('friend:unfriended', handleFriendUpdate);
+
+        return () => {
+            socket.off('friend:request_received', handleFriendUpdate);
+            socket.off('friend:request_responded', handleFriendUpdate);
+            socket.off('friend:request_accepted', handleFriendUpdate);
+            socket.off('friend:request_cancelled', handleFriendUpdate);
+            socket.off('friend:list_updated', handleFriendUpdate);
+            socket.off('friend:unfriended', handleFriendUpdate);
+        };
+    }, [socket, authHeaders]);
 
     const sendRequest= async (e)=>{
         e.preventDefault();

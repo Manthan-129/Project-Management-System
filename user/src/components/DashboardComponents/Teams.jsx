@@ -8,7 +8,7 @@ import Loading from '../LoadingPage'
 
 const Teams = () => {
 
-    const {token,navigate, setToken, user, authHeaders}= useContext(AppContext)
+    const {token,navigate, setToken, user, authHeaders, socket}= useContext(AppContext)
     const [teams, setTeams]= useState([]);
     const [loading, setLoading]= useState(true);
 
@@ -24,8 +24,8 @@ const Teams = () => {
 
     const [creating, setCreating]= useState(false);
 
-    const fetchTeams = useCallback(async () => {
-        setLoading(true);
+    const fetchTeams = useCallback(async (showLoading = true) => {
+        if (showLoading) setLoading(true);
         try {
             const { data } = await api.get('/teams/my-teams', { headers: authHeaders });
 
@@ -46,17 +46,42 @@ const Teams = () => {
             setTeams([]);
 
         } finally {
-            setLoading(false);
+            if (showLoading) setLoading(false);
         }
     }, [authHeaders, setToken]);
 
     useEffect(() => {
         if (token) {
-            fetchTeams();
+            fetchTeams(true);
         } else {
             setLoading(false);
         }
     }, [token, fetchTeams]);
+
+    // Live socket updates for team list
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleTeamListUpdate = () => {
+            fetchTeams(false);
+        };
+
+        socket.on('team:member_joined', handleTeamListUpdate);
+        socket.on('team:member_removed', handleTeamListUpdate);
+        socket.on('team:removed_from_team', handleTeamListUpdate);
+        socket.on('team:member_role_changed', handleTeamListUpdate);
+        socket.on('team:leadership_transferred', handleTeamListUpdate);
+        socket.on('team:deleted', handleTeamListUpdate);
+
+        return () => {
+            socket.off('team:member_joined', handleTeamListUpdate);
+            socket.off('team:member_removed', handleTeamListUpdate);
+            socket.off('team:removed_from_team', handleTeamListUpdate);
+            socket.off('team:member_role_changed', handleTeamListUpdate);
+            socket.off('team:leadership_transferred', handleTeamListUpdate);
+            socket.off('team:deleted', handleTeamListUpdate);
+        };
+    }, [socket, fetchTeams]);
 
     const createTeam= async (formData)=>{
         setCreating(true);

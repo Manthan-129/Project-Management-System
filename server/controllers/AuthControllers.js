@@ -1,11 +1,9 @@
-require('dotenv').config();
-
 const User = require('../models/User');
 const OTP= require('../models/OTP');
 const bcrypt= require('bcrypt');
 const jwt= require('jsonwebtoken');
 const validator= require('validator');
-const {transporter}= require('../configs/nodemailer');
+const { enqueueEmail } = require('../queues/emailQueue');
 const {registrationTemplate, forgetPasswordTemplate, twoFactorTemplate}= require('../utils/emailTemplates.js');
 
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
@@ -79,9 +77,7 @@ const sendRegistrationOTP= async (req, res)=>{
             html: tmpl.html,
         }
 
-        transporter.sendMail(mailOptions).catch(err => {
-            console.error("Error sending OTP email:", err.message);
-        });
+        enqueueEmail(mailOptions);
         return res.status(200).json({success: true, message: "OTP sent to email successfully"});
 
     }catch(error){
@@ -207,14 +203,12 @@ const loginUser= async (req, res)=>{
 
             const mailTemplate= twoFactorTemplate(loginOtp, 5, 'login verification');
 
-            transporter.sendMail({
+            enqueueEmail({
                 from: `"DevDash Security" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
                 to: user.email,
                 subject: mailTemplate.subject,
                 text: mailTemplate.html.replace(/<[^>]+>/g, ''),
                 html: mailTemplate.html,
-            }).catch(err => {
-                console.error("Error sending 2FA login email:", err.message);
             });
 
             return res.status(200).json({
@@ -346,9 +340,7 @@ const forgetPasswordOTPRequest= async (req, res)=>{
             html: tmpl.html,
         }
 
-        transporter.sendMail(mailOptions).catch(err => {
-            console.error("Error sending OTP email:", err.message);
-        });
+        enqueueEmail(mailOptions);
         return res.status(200).json({success: true, message: "OTP sent to email successfully"});
 
     }catch(error){

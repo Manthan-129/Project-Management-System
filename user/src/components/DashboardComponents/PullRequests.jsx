@@ -7,15 +7,15 @@ import Loading from '../LoadingPage'
 import AlertModal from './AlertModal'
 
 const PullRequests = () => {
-  const {token, setToken, authHeaders}= useContext(AppContext)
+  const {token, setToken, authHeaders, socket}= useContext(AppContext)
 
   const [pullRequests, setPullRequests]= useState([]);
   const [loading, setLoading]= useState(false);
   const [filterStatus, setFilterStatus]= useState('all');
   const [alert, setAlert]= useState({ isOpen: false, title: '', message: '', type: 'info' });
 
-  const fetchPrs= async ()=>{
-    setLoading(true);
+  const fetchPrs= async (showLoading = true)=>{
+    if (showLoading) setLoading(true);
     try{
         const { data }= await api.get('/pull-requests/my-pull-requests', {headers: authHeaders});
         if(!data?.success){
@@ -35,17 +35,34 @@ const PullRequests = () => {
         setPullRequests([]);
 
     }finally{
-        setLoading(false);
+        if (showLoading) setLoading(false);
     }
   }
 
   useEffect(()=>{
     if(token){
-      fetchPrs();
+      fetchPrs(true);
     } else {
       setLoading(false);
     }
   }, [token]);
+
+  // Live real-time PR status updates
+  useEffect(() => {
+    if (!socket) return;
+
+    const handlePrUpdate = () => {
+      fetchPrs(false);
+    };
+
+    socket.on('pr:created', handlePrUpdate);
+    socket.on('pr:reviewed', handlePrUpdate);
+
+    return () => {
+      socket.off('pr:created', handlePrUpdate);
+      socket.off('pr:reviewed', handlePrUpdate);
+    };
+  }, [socket, authHeaders]);
 
   const filtered= useMemo(() => {
     return filterStatus === 'all' ? pullRequests : pullRequests.filter(pr => pr.status === filterStatus);

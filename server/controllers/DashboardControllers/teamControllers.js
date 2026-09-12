@@ -5,9 +5,11 @@ const PullRequest = require('../../models/PullRequest');
 const Notification = require('../../models/Notification');
 
 const TeamInvitation= require('../../models/TeamInvitation')
-const { transporter } = require('../../configs/nodemailer')
+const { enqueueEmail } = require('../../queues/emailQueue')
 const { createNotification } = require('../../utils/notificationService.js')
 const { teamInvitationTemplate }= require('../../utils/emailTemplates')
+const { emitToTeam, emitToUser } = require('../../configs/socket')
+const { runInTransaction } = require('../../utils/transactionHelper')
 
 
 const mongoose= require('mongoose');
@@ -219,9 +221,9 @@ const sendTeamInvitation= async (req, res) => {
             text: teamInvitationData.html.replace(/<[^>]+>/g, ''),
         }
 
-        transporter.sendMail(mailOptions).catch(err => {
-            console.log('Error sending team invitation email:', err.message);
-        });
+        enqueueEmail(mailOptions);
+        emitToUser(receiver._id, "team:invitation_received", invitation);
+
         return res.status(201).json({success: true, message: "Team invitation sent successfully", invitation});
         
     }catch(error){
@@ -377,7 +379,11 @@ const respondToTeamInvitation= async (req, res) => {
                     $inc: {memberCount: 1}
                 }
             )
+            emitToTeam(invitation.team.toString(), "team:member_joined", { teamId: invitation.team, userId });
         }
+
+        emitToTeam(invitation.team.toString(), "team:invitation_responded", { invitationId, status, userId });
+        emitToUser(senderId, "team:invitation_responded", { invitationId, status, userId });
 
         return res.status(200).json({success: true, message: `Team invitation ${status} successfully`, invitation});
 
@@ -434,6 +440,9 @@ const makeUserAdminOrMember= async (req, res) => {
             {_id: teamId, leader: userId, 'members.user': memberId},
             {$set: {'members.$.role': role, 'members.$.updatedAt': new Date()}}
         )
+
+        emitToTeam(teamId.toString(), "team:member_role_changed", { teamId, memberId, role });
+        emitToUser(memberId, "team:my_role_changed", { teamId, role });
 
         return res.status(200).json({success: true, message: `User role updated to ${role} successfully`});
 
@@ -532,6 +541,10 @@ const removeTeamMember= async (req, res) => {
                 message: 'Failed to remove member'
             });
         }
+
+        emitToTeam(teamId.toString(), "team:member_removed", { teamId, memberId });
+        emitToUser(memberId, "team:removed_from_team", { teamId });
+
         return res.status(200).json({success: true, message: 'Member removed from the team successfully'});
 
     }catch(error){
@@ -572,6 +585,8 @@ const leaveTeam= async (req, res) => {
             return res.status(400).json({success: false, message: 'Failed to leave the team'});
         }
 
+        emitToTeam(teamId.toString(), "team:member_left", { teamId, userId });
+
         return res.status(200).json({success: true, message: 'Left the team successfully'});
 
     }catch(error){
@@ -599,18 +614,16 @@ const deleteTeam= async (req, res) => {
             return res.status(403).json({success: false, message: 'Only team leader can delete the team' });
         }
 
-        const result1= await Team.deleteOne({_id: teamId});
+        await runInTransaction(async (session) => {
+            const opts = session ? { session } : {};
+            await Team.deleteOne({_id: teamId}, opts);
+            await TeamInvitation.deleteMany({team: teamId}, opts);
+            await Task.deleteMany({team: teamId}, opts);
+            await PullRequest.deleteMany({team: teamId}, opts);
+            await Notification.deleteMany({'metadata.teamId': teamId}, opts);
+        });
 
-        if(result1.deletedCount === 0){
-            return res.status(400).json({success: false, message: 'Failed to delete the team'});
-        }
-
-        await Promise.all([
-            TeamInvitation.deleteMany({team: teamId}),
-            Task.deleteMany({team: teamId}),
-            PullRequest.deleteMany({team: teamId}),
-            Notification.deleteMany({'metadata.teamId': teamId}),
-        ]);
+        emitToTeam(teamId.toString(), "team:deleted", { teamId });
 
         return res.status(200).json({success: true, message: 'Team deleted successfully'});
 
@@ -678,6 +691,8 @@ const transferLeadership= async (req, res) => {
                 message: 'Leadership transfer failed'
             });
         }
+
+        emitToTeam(teamId.toString(), "team:leadership_transferred", { teamId, newLeaderId, previousLeaderId: userId });
 
         return res.status(200).json({success: true, message: 'Team leadership transferred successfully'});
 

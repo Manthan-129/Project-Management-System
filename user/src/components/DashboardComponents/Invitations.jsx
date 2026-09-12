@@ -7,7 +7,7 @@ import Loading from '../LoadingPage.jsx'
 
 const Invitations = () => {
 
-    const { token, setToken, authHeaders } = useContext(AppContext);
+    const { token, setToken, authHeaders, socket } = useContext(AppContext);
     const [received, setReceived]= useState([]);
     const [sentByMe, setSentByMe]= useState([]);
     const [sentByTeam, setSentByTeam]= useState([]);
@@ -16,8 +16,8 @@ const Invitations = () => {
     const [loading, setLoading]= useState(true);
     const [isResponding, setIsResponding]= useState(false);
 
-    const fetchInvitations = async () => {
-        setLoading(true);
+    const fetchInvitations = async (showLoading = true) => {
+        if (showLoading) setLoading(true);
         try{
             const [receivedRes, sentByMeRes, sentByTeamRes] = await Promise.all([
                 api.get('/teams/invitations/received', { headers: authHeaders }),
@@ -53,17 +53,34 @@ const Invitations = () => {
             }
             toast.error(error?.response?.data?.message || 'Unable to fetch invitations');
         }finally{
-            setLoading(false);
+            if (showLoading) setLoading(false);
         }
     }
 
     useEffect(()=> {
         if (token) {
-            fetchInvitations();
+            fetchInvitations(true);
         } else {
             setLoading(false);
         }
     }, [token, authHeaders]);
+
+    // Live socket updates for team invitations
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleInvitationUpdate = () => {
+            fetchInvitations(false);
+        };
+
+        socket.on('team:invitation_received', handleInvitationUpdate);
+        socket.on('team:invitation_responded', handleInvitationUpdate);
+
+        return () => {
+            socket.off('team:invitation_received', handleInvitationUpdate);
+            socket.off('team:invitation_responded', handleInvitationUpdate);
+        };
+    }, [socket, authHeaders]);
 
     const respondInvitation= async (inviteId, status) => {
         setIsResponding(true);

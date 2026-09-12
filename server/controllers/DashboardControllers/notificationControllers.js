@@ -1,64 +1,66 @@
 const Notification = require("../../models/Notification");
+const { emitToUser } = require("../../configs/socket");
 
-const getMyNotifications= async (req, res) => {
-    try{
-        const userId= req.userId;
+const getMyNotifications = async (req, res) => {
+    try {
+        const userId = req.userId;
 
         const [notifications, unreadCount] = await Promise.all([
             Notification.find({ recipient: userId })
-                .populate('actor', 'firstName lastName username profilePicture')
-                .sort({createdAt: -1})
+                .populate("actor", "firstName lastName username profilePicture")
+                .sort({ createdAt: -1 })
                 .limit(100)
                 .lean(),
             Notification.countDocuments({ recipient: userId, isRead: false }),
         ]);
 
-        return res.status(200).json({ success: true, message:"Notifications of the User",notifications, unreadCount });
-
-    }catch(error){
+        return res.status(200).json({ success: true, message: "Notifications of the User", notifications, unreadCount });
+    } catch (error) {
         console.log(error.message);
-        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-}
+};
 
-const markNotificationRead= async (req, res) => {
-    try{
-        const userId= req.userId;
-        const {notificationId}= req.params;
+const markNotificationRead = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { notificationId } = req.params;
 
-        const notification= await Notification.findOneAndUpdate(
-            {_id: notificationId, recipient: userId},
-            {$set: {isRead: true}},
-            {new: true}
+        const notification = await Notification.findOneAndUpdate(
+            { _id: notificationId, recipient: userId },
+            { $set: { isRead: true } },
+            { new: true }
         );
 
-        if(!notification){
-            return res.status(404).json({ success: false, message: 'Notification not found' });
+        if (!notification) {
+            return res.status(404).json({ success: false, message: "Notification not found" });
         }
 
-        return res.status(200).json({ success: true, message: 'Notification marked as read' });
+        emitToUser(userId, "notification:marked_read", { notificationId });
 
-    }catch(error){
+        return res.status(200).json({ success: true, message: "Notification marked as read" });
+    } catch (error) {
         console.log(error.message);
-        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-}
+};
 
-const markAllNotificationsRead= async (req, res) => {
-    try{
-        const userId= req.userId;
-        
+const markAllNotificationsRead = async (req, res) => {
+    try {
+        const userId = req.userId;
+
         await Notification.updateMany(
-            {recipient: userId, isRead: false},
-            {$set: {isRead: true}},
-        )
+            { recipient: userId, isRead: false },
+            { $set: { isRead: true } }
+        );
 
-        return res.status(200).json({success: true, message: 'All notifications marked as read'});
-        
-    }catch(error){
+        emitToUser(userId, "notification:all_marked_read", {});
+
+        return res.status(200).json({ success: true, message: "All notifications marked as read" });
+    } catch (error) {
         console.log(error.message);
-        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-}
+};
 
-module.exports= {getMyNotifications, markNotificationRead, markAllNotificationsRead};
+module.exports = { getMyNotifications, markNotificationRead, markAllNotificationsRead };

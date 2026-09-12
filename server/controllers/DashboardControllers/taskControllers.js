@@ -1,7 +1,8 @@
 const Team = require('../../models/Team');
 const Task= require('../../models/Task');
 const User= require('../../models/User');
-const { transporter }= require('../../configs/nodemailer');
+const { enqueueEmail } = require('../../queues/emailQueue');
+const { emitToTeam, emitToUser } = require('../../configs/socket');
 const {updateTaskTemplate, taskAssignmentTemplate}= require('../../utils/emailTemplates');
 const { createNotification, createNotifications } = require('../../utils/notificationService.js');
 
@@ -121,14 +122,14 @@ const createTask= async (req, res) => {
             to: newTask.assignedTo.email,
             subject: taskAssignmentNotification.subject,
             text: taskAssignmentNotification.html.replace(/<[^>]+>/g, ''),
-        }
-
-        transporter.sendMail(mailOptions).catch(err => {
-            console.log('Error sending task assignment email:', err.message);
-        });
+        };
+        enqueueEmail(mailOptions);
         }catch(error){
             console.log('Error preparing task assignment email:', error.message);
         }
+
+        emitToTeam(teamId, "task:created", { task: newTask, teamId });
+        emitToUser(assignedTo, "task:assigned", { task: newTask, teamId });
 
         return res.status(201).json({success: true, message: "Task created successfully", task: newTask});
 
@@ -461,6 +462,15 @@ const updateTaskStatus = async (req, res) => {
 
         await task.save();
 
+        const teamIdStr = (team._id || team).toString();
+        emitToTeam(teamIdStr, "task:status_updated", {
+            taskId: task._id,
+            status: task.status,
+            completedAt: task.completedAt,
+            task,
+            teamId: teamIdStr,
+        });
+
         return res.status(200).json({success: true, message: "Task status updated successfully", task});
 
     }catch(error){
@@ -574,12 +584,17 @@ const updateTask= async (req, res) => {
                 text: emailTemplate.html.replace(/<[^>]+>/g, ''),
             }
 
-            transporter.sendMail(mailOptions).catch(err => {
-                console.log('Error sending task update email:', err.message);
-            });
+            enqueueEmail(mailOptions);
         }catch(error){
             console.log('Error preparing task update email:', error.message);
         }
+
+        const teamIdStr = (team._id || team).toString();
+        emitToTeam(teamIdStr, "task:updated", {
+            taskId: task._id,
+            task: populatedTask,
+            teamId: teamIdStr,
+        });
 
         return res.status(200).json({success: true, message: "Task updated successfully", task});
 
@@ -623,6 +638,13 @@ const restoreTask= async (req, res) => {
         await task.save();
 
         await task.populate('assignedTo', 'firstName lastName username profilePicture').populate('assignedBy', 'firstName lastName username profilePicture');
+
+        const teamIdStr = (team._id || team).toString();
+        emitToTeam(teamIdStr, "task:restored", {
+            taskId: task._id,
+            task,
+            teamId: teamIdStr,
+        });
 
         return res.status(200).json({success: true, message: "Task restored to To-Do", task});
 
@@ -682,6 +704,13 @@ const deleteTask= async (req, res) => {
             }));
 
         await createNotifications(removalNotifications);
+
+        const teamIdStr = (team._id || team).toString();
+        emitToTeam(teamIdStr, "task:deleted", {
+            taskId: task._id,
+            task,
+            teamId: teamIdStr,
+        });
 
         return res.status(200).json({success: true, message: "Task deleted successfully", task});
 
