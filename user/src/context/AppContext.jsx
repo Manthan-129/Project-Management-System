@@ -2,7 +2,8 @@ import { createContext, useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../api/axiosInstance.js';
-import { connectSocket, disconnectSocket, getSocket } from '../api/socket.js';
+import { connectSocket, disconnectSocket } from '../api/socket.js';
+import { SOCKET_EVENTS } from '../api/socketEvents.js';
 
 export const AppContext = createContext();
 
@@ -213,18 +214,18 @@ export const AppContextProvider = (props) => {
             setUnreadNotificationsCount(0);
         };
 
-        socket.on('notification:received', handleNotificationReceived);
-        socket.on('notification:marked_read', handleNotificationMarkedRead);
-        socket.on('notification:all_marked_read', handleAllNotificationsMarkedRead);
-        socket.on('friend:request_received', handleFriendRequestReceived);
-        socket.on('team:invitation_received', handleTeamInvitationReceived);
+        socket.on(SOCKET_EVENTS.NOTIFICATION_RECEIVED, handleNotificationReceived);
+        socket.on(SOCKET_EVENTS.NOTIFICATION_MARKED_READ, handleNotificationMarkedRead);
+        socket.on(SOCKET_EVENTS.NOTIFICATION_ALL_MARKED_READ, handleAllNotificationsMarkedRead);
+        socket.on(SOCKET_EVENTS.FRIEND_REQUEST_RECEIVED, handleFriendRequestReceived);
+        socket.on(SOCKET_EVENTS.TEAM_INVITATION_RECEIVED, handleTeamInvitationReceived);
 
         return () => {
-            socket.off('notification:received', handleNotificationReceived);
-            socket.off('notification:marked_read', handleNotificationMarkedRead);
-            socket.off('notification:all_marked_read', handleAllNotificationsMarkedRead);
-            socket.off('friend:request_received', handleFriendRequestReceived);
-            socket.off('team:invitation_received', handleTeamInvitationReceived);
+            socket.off(SOCKET_EVENTS.NOTIFICATION_RECEIVED, handleNotificationReceived);
+            socket.off(SOCKET_EVENTS.NOTIFICATION_MARKED_READ, handleNotificationMarkedRead);
+            socket.off(SOCKET_EVENTS.NOTIFICATION_ALL_MARKED_READ, handleAllNotificationsMarkedRead);
+            socket.off(SOCKET_EVENTS.FRIEND_REQUEST_RECEIVED, handleFriendRequestReceived);
+            socket.off(SOCKET_EVENTS.TEAM_INVITATION_RECEIVED, handleTeamInvitationReceived);
         };
     }, [socket]);
 

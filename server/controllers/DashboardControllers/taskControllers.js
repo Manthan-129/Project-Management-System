@@ -2,7 +2,7 @@ const Team = require('../../models/Team');
 const Task= require('../../models/Task');
 const User= require('../../models/User');
 const { enqueueEmail } = require('../../queues/emailQueue');
-const { emitToTeam, emitToUser } = require('../../configs/socket');
+const { SOCKET_EVENTS, emitToTeam, emitToUser } = require('../../configs/socket');
 const {updateTaskTemplate, taskAssignmentTemplate}= require('../../utils/emailTemplates');
 const { createNotification, createNotifications } = require('../../utils/notificationService.js');
 
@@ -129,8 +129,8 @@ const createTask= async (req, res) => {
             console.log('Error preparing task assignment email:', error.message);
         }
 
-        emitToTeam(teamId, "task:created", { task: newTask, teamId });
-        emitToUser(assignedTo, "task:assigned", { task: newTask, teamId });
+        emitToTeam(teamId, SOCKET_EVENTS.TASK_CREATED, { task: newTask, teamId });
+        emitToUser(assignedTo, SOCKET_EVENTS.TASK_ASSIGNED, { task: newTask, teamId });
 
         return res.status(201).json({success: true, message: "Task created successfully", task: newTask});
 
@@ -464,7 +464,7 @@ const updateTaskStatus = async (req, res) => {
         await task.save();
 
         const teamIdStr = (team._id || team).toString();
-        emitToTeam(teamIdStr, "task:status_updated", {
+        emitToTeam(teamIdStr, SOCKET_EVENTS.TASK_STATUS_UPDATED, {
             taskId: task._id,
             status: task.status,
             completedAt: task.completedAt,
@@ -517,7 +517,9 @@ const updateTask= async (req, res) => {
             return res.status(403).json({success: false, message: 'Only team leader or admins can update task' });
         }
 
+        const previousAssignedToId = task.assignedTo ? task.assignedTo.toString() : '';
         let updated= false;
+        let assignmentChanged = false;
 
         if(trimmedTitle !== undefined){
              task.title= trimmedTitle;
@@ -541,8 +543,9 @@ const updateTask= async (req, res) => {
         }
 
         if(assignedTo !== undefined){
-            const isMember= team.members.some(m => m.user.toString() === assignedTo.toString()) || team.leader.toString() === assignedTo.toString();
-            const isAssignedLeader= team.leader.toString() === assignedTo.toString();
+            const assignedToStr = assignedTo.toString();
+            const isMember= team.members.some(m => m.user.toString() === assignedToStr) || team.leader.toString() === assignedToStr;
+            const isAssignedLeader= team.leader.toString() === assignedToStr;
 
             if(!isMember){
                 return res.status(400).json({success: false, message: 'Assigned user must be a member of the team or not a Team Leader' });
@@ -550,8 +553,11 @@ const updateTask= async (req, res) => {
             if(isAdmin && isAssignedLeader){
                 return res.status(400).json({success: false, message: 'Admins cannot assign tasks to the team leader' });
             }
-            task.assignedTo= assignedTo;
-            updated = true;
+            if (previousAssignedToId !== assignedToStr) {
+                task.assignedTo = assignedTo;
+                updated = true;
+                assignmentChanged = true;
+            }
         }
 
         if(!updated){
@@ -592,11 +598,50 @@ const updateTask= async (req, res) => {
         }
 
         const teamIdStr = (team._id || team).toString();
-        emitToTeam(teamIdStr, "task:updated", {
+        emitToTeam(teamIdStr, SOCKET_EVENTS.TASK_UPDATED, {
             taskId: task._id,
             task: populatedTask,
             teamId: teamIdStr,
         });
+
+        if (assignmentChanged) {
+            const currentAssignedToId = populatedTask.assignedTo?._id?.toString() || task.assignedTo.toString();
+            const actorName = populatedTask.updatedBy?.firstName
+                ? `${populatedTask.updatedBy.firstName} ${populatedTask.updatedBy.lastName || ''}`.trim()
+                : "Team member";
+
+            if (previousAssignedToId && previousAssignedToId !== currentAssignedToId) {
+                emitToUser(previousAssignedToId, SOCKET_EVENTS.TASK_UNASSIGNED, {
+                    taskId: task._id,
+                    teamId: teamIdStr,
+                    task: populatedTask,
+                });
+
+                await createNotification({
+                    recipient: previousAssignedToId,
+                    actor: userId,
+                    type: "task-unassigned",
+                    title: "Task unassigned",
+                    message: `${actorName} unassigned you from task: ${populatedTask.title}`,
+                    metadata: { taskId: task._id, teamId: teamIdStr, teamName: team.name },
+                });
+            }
+
+            emitToUser(currentAssignedToId, SOCKET_EVENTS.TASK_ASSIGNED, {
+                taskId: task._id,
+                teamId: teamIdStr,
+                task: populatedTask,
+            });
+
+            await createNotification({
+                recipient: currentAssignedToId,
+                actor: userId,
+                type: "task-assigned",
+                title: "Task assigned",
+                message: `${actorName} assigned you task: ${populatedTask.title}`,
+                metadata: { taskId: task._id, teamId: teamIdStr, teamName: team.name },
+            });
+        }
 
         return res.status(200).json({success: true, message: "Task updated successfully", task});
 
@@ -642,7 +687,7 @@ const restoreTask= async (req, res) => {
         await task.populate('assignedTo', 'firstName lastName username profilePicture').populate('assignedBy', 'firstName lastName username profilePicture');
 
         const teamIdStr = (team._id || team).toString();
-        emitToTeam(teamIdStr, "task:restored", {
+        emitToTeam(teamIdStr, SOCKET_EVENTS.TASK_RESTORED, {
             taskId: task._id,
             task,
             teamId: teamIdStr,
@@ -714,7 +759,7 @@ const deleteTask= async (req, res) => {
         await createNotifications(removalNotifications);
 
         const teamIdStr = (team._id || team).toString();
-        emitToTeam(teamIdStr, "task:deleted", {
+        emitToTeam(teamIdStr, SOCKET_EVENTS.TASK_DELETED, {
             taskId: task._id,
             task,
             teamId: teamIdStr,

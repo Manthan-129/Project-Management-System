@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import { BASE_URL } from './apiPaths.js';
+import { SOCKET_EVENTS } from './socketEvents.js';
 
 let socket = null;
 
@@ -27,7 +28,7 @@ export const connectSocket = (token) => {
 
     socket = io(backendUrl, {
         auth: { token },
-        transports: ['websocket', 'polling'],
+        transports: ['websocket'],
         reconnection: true,
         reconnectionAttempts: 10,
         reconnectionDelay: 2000,
@@ -38,6 +39,16 @@ export const connectSocket = (token) => {
     });
 
     return socket;
+};
+
+export const subscribeToTeamRoom = (teamId, callback) => {
+    if (!socket || !teamId) return;
+    socket.emit(SOCKET_EVENTS.TEAM_SUBSCRIBE, teamId, callback);
+};
+
+export const unsubscribeFromTeamRoom = (teamId, callback) => {
+    if (!socket || !teamId) return;
+    socket.emit(SOCKET_EVENTS.TEAM_UNSUBSCRIBE, teamId, callback);
 };
 
 export const disconnectSocket = () => {

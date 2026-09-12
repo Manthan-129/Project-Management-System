@@ -2,6 +2,7 @@ import { CalendarDays, CheckCircle2, ClipboardList, Clock, FolderKanban, GitPull
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from '../../api/axiosInstance.js';
+import { SOCKET_EVENTS } from '../../api/socketEvents.js';
 import { AppContext } from '../../context/AppContext.jsx';
 import Loading from '../LoadingPage';
 import AlertModal from './AlertModal.jsx';
@@ -233,18 +234,20 @@ const TaskWorkspaceBoard = () => {
             fetchData(false);
         };
 
-        socket.on('task:assigned', handleTaskAssigned);
-        socket.on('task:status_updated', handleStatusUpdated);
-        socket.on('task:updated', handleTaskUpdated);
-        socket.on('task:deleted', handleTaskDeleted);
-        socket.on('task:restored', handleTaskRestored);
+        socket.on(SOCKET_EVENTS.TASK_ASSIGNED, handleTaskAssigned);
+        socket.on(SOCKET_EVENTS.TASK_UNASSIGNED, handleTaskAssigned);
+        socket.on(SOCKET_EVENTS.TASK_STATUS_UPDATED, handleStatusUpdated);
+        socket.on(SOCKET_EVENTS.TASK_UPDATED, handleTaskUpdated);
+        socket.on(SOCKET_EVENTS.TASK_DELETED, handleTaskDeleted);
+        socket.on(SOCKET_EVENTS.TASK_RESTORED, handleTaskRestored);
 
         return () => {
-            socket.off('task:assigned', handleTaskAssigned);
-            socket.off('task:status_updated', handleStatusUpdated);
-            socket.off('task:updated', handleTaskUpdated);
-            socket.off('task:deleted', handleTaskDeleted);
-            socket.off('task:restored', handleTaskRestored);
+            socket.off(SOCKET_EVENTS.TASK_ASSIGNED, handleTaskAssigned);
+            socket.off(SOCKET_EVENTS.TASK_UNASSIGNED, handleTaskAssigned);
+            socket.off(SOCKET_EVENTS.TASK_STATUS_UPDATED, handleStatusUpdated);
+            socket.off(SOCKET_EVENTS.TASK_UPDATED, handleTaskUpdated);
+            socket.off(SOCKET_EVENTS.TASK_DELETED, handleTaskDeleted);
+            socket.off(SOCKET_EVENTS.TASK_RESTORED, handleTaskRestored);
         };
     }, [socket]);
 

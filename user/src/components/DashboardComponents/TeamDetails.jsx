@@ -25,6 +25,8 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../api/axiosInstance.js';
+import { subscribeToTeamRoom, unsubscribeFromTeamRoom } from '../../api/socket.js';
+import { SOCKET_EVENTS } from '../../api/socketEvents.js';
 import { AppContext } from '../../context/AppContext.jsx';
 import Loading from '../LoadingPage.jsx';
 
@@ -462,7 +464,11 @@ const TeamDetails = () => {
   useEffect(() => {
     if (!socket || !teamId) return;
 
-    socket.emit('join:team', teamId);
+    subscribeToTeamRoom(teamId, (result) => {
+      if (!result?.success && result?.message) {
+        toast.error(result.message);
+      }
+    });
 
     const handleTaskCreated = (data) => {
       if (data?.teamId && data.teamId.toString() !== teamId.toString()) return;
@@ -579,35 +585,35 @@ const TeamDetails = () => {
       navigate('/dashboard/teams');
     };
 
-    socket.on('task:created', handleTaskCreated);
-    socket.on('task:status_updated', handleTaskStatusUpdated);
-    socket.on('task:updated', handleTaskUpdated);
-    socket.on('task:deleted', handleTaskDeleted);
-    socket.on('task:restored', handleTaskRestored);
-    socket.on('pr:created', handlePRCreated);
-    socket.on('pr:reviewed', handlePRReviewed);
-    socket.on('team:member_joined', handleMemberJoined);
-    socket.on('team:member_removed', handleMemberRemoved);
-    socket.on('team:member_left', handleMemberLeft);
-    socket.on('team:member_role_changed', handleMemberRoleChanged);
-    socket.on('team:leadership_transferred', handleLeadershipTransferred);
-    socket.on('team:deleted', handleTeamDeleted);
+    socket.on(SOCKET_EVENTS.TASK_CREATED, handleTaskCreated);
+    socket.on(SOCKET_EVENTS.TASK_STATUS_UPDATED, handleTaskStatusUpdated);
+    socket.on(SOCKET_EVENTS.TASK_UPDATED, handleTaskUpdated);
+    socket.on(SOCKET_EVENTS.TASK_DELETED, handleTaskDeleted);
+    socket.on(SOCKET_EVENTS.TASK_RESTORED, handleTaskRestored);
+    socket.on(SOCKET_EVENTS.PR_CREATED, handlePRCreated);
+    socket.on(SOCKET_EVENTS.PR_REVIEWED, handlePRReviewed);
+    socket.on(SOCKET_EVENTS.TEAM_MEMBER_JOINED, handleMemberJoined);
+    socket.on(SOCKET_EVENTS.TEAM_MEMBER_REMOVED, handleMemberRemoved);
+    socket.on(SOCKET_EVENTS.TEAM_MEMBER_LEFT, handleMemberLeft);
+    socket.on(SOCKET_EVENTS.TEAM_MEMBER_ROLE_CHANGED, handleMemberRoleChanged);
+    socket.on(SOCKET_EVENTS.TEAM_LEADERSHIP_TRANSFERRED, handleLeadershipTransferred);
+    socket.on(SOCKET_EVENTS.TEAM_DELETED, handleTeamDeleted);
 
     return () => {
-      socket.emit('leave:team', teamId);
-      socket.off('task:created', handleTaskCreated);
-      socket.off('task:status_updated', handleTaskStatusUpdated);
-      socket.off('task:updated', handleTaskUpdated);
-      socket.off('task:deleted', handleTaskDeleted);
-      socket.off('task:restored', handleTaskRestored);
-      socket.off('pr:created', handlePRCreated);
-      socket.off('pr:reviewed', handlePRReviewed);
-      socket.off('team:member_joined', handleMemberJoined);
-      socket.off('team:member_removed', handleMemberRemoved);
-      socket.off('team:member_left', handleMemberLeft);
-      socket.off('team:member_role_changed', handleMemberRoleChanged);
-      socket.off('team:leadership_transferred', handleLeadershipTransferred);
-      socket.off('team:deleted', handleTeamDeleted);
+      unsubscribeFromTeamRoom(teamId);
+      socket.off(SOCKET_EVENTS.TASK_CREATED, handleTaskCreated);
+      socket.off(SOCKET_EVENTS.TASK_STATUS_UPDATED, handleTaskStatusUpdated);
+      socket.off(SOCKET_EVENTS.TASK_UPDATED, handleTaskUpdated);
+      socket.off(SOCKET_EVENTS.TASK_DELETED, handleTaskDeleted);
+      socket.off(SOCKET_EVENTS.TASK_RESTORED, handleTaskRestored);
+      socket.off(SOCKET_EVENTS.PR_CREATED, handlePRCreated);
+      socket.off(SOCKET_EVENTS.PR_REVIEWED, handlePRReviewed);
+      socket.off(SOCKET_EVENTS.TEAM_MEMBER_JOINED, handleMemberJoined);
+      socket.off(SOCKET_EVENTS.TEAM_MEMBER_REMOVED, handleMemberRemoved);
+      socket.off(SOCKET_EVENTS.TEAM_MEMBER_LEFT, handleMemberLeft);
+      socket.off(SOCKET_EVENTS.TEAM_MEMBER_ROLE_CHANGED, handleMemberRoleChanged);
+      socket.off(SOCKET_EVENTS.TEAM_LEADERSHIP_TRANSFERRED, handleLeadershipTransferred);
+      socket.off(SOCKET_EVENTS.TEAM_DELETED, handleTeamDeleted);
     };
   }, [
     socket,
