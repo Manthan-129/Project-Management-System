@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext.jsx'
 
 const iconColors = [
-  'text-[#315e8d] bg-[#e9f0f8]',
-  'text-emerald-700 bg-emerald-50',
-  'text-sky-700 bg-sky-50',
+  'text-indigo-600 bg-indigo-50',
+  'text-violet-600 bg-violet-50',
+  'text-emerald-600 bg-emerald-50',
 ]
 
 const steps = [
@@ -36,12 +36,12 @@ const HowItWorks = () => {
 
   return (
     <section id="how-it-works" className="relative px-5 py-24 lg:px-12 overflow-hidden">
-      <div className="absolute -top-20 left-1/4 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute -bottom-20 right-1/4 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -top-20 left-1/4 w-64 h-64 bg-indigo-400/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-20 right-1/4 w-72 h-72 bg-violet-400/10 rounded-full blur-3xl -z-10"></div>
       <div className="max-w-7xl mx-auto space-y-12">
         <div className="max-w-2xl mx-auto text-center space-y-3">
-          <p className="text-xs font-semibold text-blue-700 uppercase tracking-[0.2em]">Simple Flow</p>
-          <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight">From Kickoff to Release in 3 Steps</h2>
+          <p className="text-xs font-bold text-indigo-600 uppercase tracking-[0.2em]">Simple Flow</p>
+          <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">From Kickoff to Release in 3 Steps</h2>
           <p className="text-base text-slate-600 leading-relaxed">
             No complex onboarding. Your team gets structure quickly, without slowing down development.
           </p>
@@ -49,11 +49,11 @@ const HowItWorks = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {steps.map((step, i) => (
-            <article key={step.step} className="relative flex flex-col items-center text-center gap-4 p-8 bg-white/85 border border-blue-100 rounded-2xl backdrop-blur-sm">
+            <article key={step.step} className="relative flex flex-col items-center text-center gap-4 p-8 bg-white/90 border border-slate-200/80 rounded-2xl backdrop-blur-sm shadow-[0_4px_20px_rgba(15,23,42,0.03)]">
               {i < steps.length - 1 && (
-                <div className="hidden md:block absolute top-1/2 -right-3 w-6 h-[2px] bg-blue-100" aria-hidden="true"></div>
+                <div className="hidden md:block absolute top-1/2 -right-3 w-6 h-[2px] bg-slate-200" aria-hidden="true"></div>
               )}
-              <div className="absolute -top-3.5 left-6 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full">
+              <div className="absolute -top-3.5 left-6 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/70 px-2.5 py-1 rounded-full">
                 {step.step}
               </div>
 
@@ -61,17 +61,17 @@ const HowItWorks = () => {
                 <step.icon size={22} />
               </div>
 
-              <h3 className="text-base font-semibold text-slate-800">{step.title}</h3>
+              <h3 className="text-base font-bold text-slate-900">{step.title}</h3>
               <p className="text-sm text-slate-600 leading-relaxed">{step.desc}</p>
             </article>
           ))}
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Link to={primaryCtaPath} className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 rounded-xl transition-all no-underline">
+          <Link to={primaryCtaPath} className="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 rounded-xl shadow-md shadow-indigo-500/20 transition-all no-underline active:scale-[0.99]">
             {token ? 'Open Workspace' : 'Start in Minutes'}
           </Link>
-          <a href="#collaboration" className="px-5 py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 bg-white hover:bg-slate-50 rounded-xl transition-colors no-underline">
+          <a href="#collaboration" className="px-6 py-2.5 text-sm font-semibold text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl transition-colors no-underline">
             View Collaboration Tools
           </a>
         </div>

@@ -174,7 +174,7 @@ const Invitations = () => {
         {/* Tabs */}
         <div className="dd-section-card p-3">
             {tabs.map(t=> (
-                <button key= {t.key} onClick={()=> setTab(t.key)} className={`mr-2 inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${tab === t.key ? 'bg-[#315e8d] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                <button key= {t.key} onClick={()=> setTab(t.key)} className={`mr-2 inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition ${tab === t.key ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                     {t.label}
                     {t.count > 0 && <span className={`rounded-full px-2 py-0.5 text-xs ${tab === t.key ? 'bg-white/20 text-white' : 'bg-white text-slate-600'}`}>{t.count}</span>}
                 </button>
@@ -196,7 +196,7 @@ const Invitations = () => {
                     <div key= {inv._id} className="dd-section-card p-4">
                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 font-bold text-[#315e8d]">{inv.sender?.firstName?.charAt(0)?.toUpperCase() || 'U'}</div>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 font-bold text-indigo-600">{inv.sender?.firstName?.charAt(0)?.toUpperCase() || 'U'}</div>
                             <div>
                                 <p className="font-semibold text-slate-900">{inv.sender?.firstName} {inv.sender?.lastName} (@{inv.sender?.username})</p>
                                 <p className="text-sm text-slate-500">{inv.team?.name || 'Team invitation'}</p>
@@ -275,12 +275,12 @@ const Invitations = () => {
                                     onClick={() => setTeamFilter(team.id)}
                                     className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
                                         isActive
-                                            ? 'border-[#d7e3f1] bg-[linear-gradient(135deg,rgba(49,94,141,0.12),rgba(255,255,255,0.95))] text-[#26486d] shadow-[0_12px_30px_rgba(49,94,141,0.10)]'
+                                            ? 'border-indigo-200 bg-indigo-50/80 text-indigo-700 shadow-xs'
                                             : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                                     }`}
                                 >
                                     <span>{team.name}</span>
-                                    <span className={`rounded-full px-2 py-0.5 text-[11px] ${isActive ? 'bg-white/80 text-[#315e8d]' : 'bg-slate-100 text-slate-500'}`}>
+                                    <span className={`rounded-full px-2 py-0.5 text-[11px] ${isActive ? 'bg-white text-indigo-600 font-bold' : 'bg-slate-100 text-slate-500'}`}>
                                         {team.count}
                                     </span>
                                 </button>

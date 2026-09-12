@@ -171,7 +171,7 @@ const PullRequests = () => {
       <div className="space-y-3">
         {filtered.length === 0 ? (
           <div className="dd-section-card py-14 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-[#315e8d]">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
                 <GitPullRequest size={36} />
             </div>
             <h1 className="mt-4 text-lg font-bold text-slate-900">No Pull Requests Found</h1>
@@ -195,7 +195,7 @@ const PullRequests = () => {
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-                <a className="inline-flex items-center gap-1.5 font-semibold text-[#315e8d] hover:text-[#26486d] no-underline" href={pr.githubPRLink} target="_blank" rel="noreferrer"> <ExternalLink size={12} /> View on GitHub </a>
+                <a className="inline-flex items-center gap-1.5 font-semibold text-indigo-600 hover:text-indigo-700 no-underline" href={pr.githubPRLink} target="_blank" rel="noreferrer"> <ExternalLink size={12} /> View on GitHub </a>
                 <div className="inline-flex items-center gap-1 text-xs text-slate-500">
                   <CalendarDays size={12} />
                   {new Date(pr.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}

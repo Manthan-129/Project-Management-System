@@ -210,124 +210,121 @@ const AccountPage = () => {
     };
 
     return (
-        <div className="relative max-w-3xl mx-auto px-4 py-8 space-y-6 overflow-hidden">
+        <div className="relative max-w-3xl mx-auto space-y-6">
 
-            <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
-            <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
-
-            <div className="bg-white/90 border border-blue-100 rounded-3xl p-5 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] backdrop-blur-sm">
-                <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Account Summary</span>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+            <div className="dd-section-card p-4">
+                <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Account Summary</span>
+                    <span className="dd-badge border-indigo-100 bg-indigo-50 text-indigo-700">
                         {user?.email || 'No email'}
                     </span>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                        Status: {user?.isAccountVerified ? 'Verified' : 'Pending Verification'}
+                    <span className={`dd-badge ${user?.isAccountVerified ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-700'}`}>
+                        {user?.isAccountVerified ? 'Verified' : 'Pending Verification'}
                     </span>
                 </div>
             </div>
 
-            {/* ── Change Email Card ── */}
-            <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-4 backdrop-blur-sm">
-                <h3 className="flex items-center gap-2 text-base font-semibold text-slate-700">
-                    <Mail size={16} className="text-blue-500" /> Change Email
+            {/* Change Email Card */}
+            <div className="dd-section-card p-6 space-y-4">
+                <h3 className="flex items-center gap-2 text-base font-bold text-slate-900">
+                    <Mail size={16} className="text-indigo-600" /> Change Email
                 </h3>
-                <p className="text-sm text-slate-500">
-                    Current email: <strong className="text-slate-700">{user?.email}</strong>
+                <p className="text-xs text-slate-500">
+                    Current email address: <strong className="font-semibold text-slate-800">{user?.email}</strong>
                 </p>
 
-                {/* Step 1: Enter new email & request OTP — no inline step 2 anymore */}
                 <form onSubmit={handleSendOTP} className="space-y-3">
                     <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">
+                        <label className="text-xs font-semibold text-slate-700">
                             New Email Address
                         </label>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                             <input
                                 type="email"
                                 placeholder="newemail@example.com"
                                 value={newEmail}
                                 onChange={(e) => setNewEmail(e.target.value)}
                                 required
-                                className="flex-1 px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
+                                className="dd-input flex-1"
                             />
                             <button
                                 type="submit"
                                 disabled={isSendingOtp || !isValidNewEmail}
-                                className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-xl transition-all shadow-sm whitespace-nowrap"
+                                className="dd-primary-button whitespace-nowrap"
                             >
                                 <Send size={14} /> Send OTP
                             </button>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => setNewEmail('')}
-                            disabled={!newEmail || isSendingOtp}
-                            className="text-xs font-medium text-slate-600 hover:text-slate-700 disabled:text-slate-400 disabled:cursor-not-allowed"
-                        >
-                            Discard Changes
-                        </button>
+                        {newEmail && (
+                            <button
+                                type="button"
+                                onClick={() => setNewEmail('')}
+                                disabled={!newEmail || isSendingOtp}
+                                className="text-xs font-semibold text-slate-500 hover:text-slate-700 disabled:opacity-40"
+                            >
+                                Clear Input
+                            </button>
+                        )}
                     </div>
                 </form>
             </div>
 
-            {/* ── Danger Zone Card ── */}
-            <div className="bg-white border border-rose-100 rounded-2xl p-6 shadow-sm space-y-4">
-                <h3 className="flex items-center gap-2 text-base font-semibold text-slate-700">
-                    <AlertTriangle size={16} className="text-rose-400" /> Danger Zone
+            {/* Danger Zone Card */}
+            <div className="dd-section-card border-rose-200/80 p-6 space-y-4">
+                <h3 className="flex items-center gap-2 text-base font-bold text-rose-700">
+                    <AlertTriangle size={16} className="text-rose-500" /> Danger Zone
                 </h3>
 
                 {/* Deactivate */}
-                <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-amber-50 border border-amber-100">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-amber-50/70 border border-amber-200/80">
                     <div>
-                        <p className="text-sm font-medium text-slate-700">Deactivate Account</p>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                            Temporarily hide your profile. Your data stays safe, you can reactivate anytime.
+                        <p className="text-sm font-bold text-amber-900">Deactivate Account</p>
+                        <p className="text-xs text-amber-700 mt-0.5">
+                            Temporarily hide your profile. Your project data stays intact and can be reactivated on next sign in.
                         </p>
                     </div>
                     <button
+                        type="button"
                         onClick={() => setShowDeactivatePopup(true)}
-                        className="shrink-0 px-4 py-2 text-sm font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 border border-amber-200 rounded-xl transition-colors whitespace-nowrap"
+                        className="shrink-0 px-3.5 py-2 text-xs font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-xl transition-colors whitespace-nowrap"
                     >
                         Deactivate
                     </button>
                 </div>
 
-                <hr className="border-slate-100" />
-
                 {/* Delete */}
-                <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-rose-50 border border-rose-100">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-rose-50/70 border border-rose-200/80">
                     <div>
-                        <p className="text-sm font-medium text-slate-700">Delete Account</p>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                            Permanently remove your account and all data. This cannot be undone.
+                        <p className="text-sm font-bold text-rose-900">Delete Account</p>
+                        <p className="text-xs text-rose-700 mt-0.5">
+                            Permanently remove your account, profile, and associated permissions. This action cannot be undone.
                         </p>
                     </div>
                     <button
+                        type="button"
                         onClick={() => setShowDeletePopup(true)}
-                        className="shrink-0 flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-rose-600 bg-rose-100 hover:bg-rose-200 border border-rose-200 rounded-xl transition-colors whitespace-nowrap"
+                        className="dd-danger-button shrink-0 text-xs whitespace-nowrap"
                     >
-                        <Trash2 size={14} /> Delete
+                        <Trash2 size={14} /> Delete Account
                     </button>
                 </div>
             </div>
 
-            {/* ── OTP Popup ── */}
+            {/* OTP Popup */}
             {showOtpPopup && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm px-4 dd-fade-in"
                     onClick={handleCloseOtpPopup}
                 >
                     <div
-                        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 space-y-4"
+                        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 space-y-4 border border-slate-200 dd-fade-up"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Header */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                             <div>
-                                <h4 className="text-base font-semibold text-slate-800">Verify New Email</h4>
+                                <h4 className="text-base font-bold text-slate-900">Verify New Email</h4>
                                 <p className="text-xs text-slate-500 mt-0.5">
-                                    OTP sent to <strong className="text-slate-700">{newEmail}</strong>. Check your inbox.
+                                    OTP sent to <strong className="font-semibold text-slate-800">{newEmail}</strong>.
                                 </p>
                             </div>
                             <button
@@ -339,30 +336,25 @@ const AccountPage = () => {
                             </button>
                         </div>
 
-                        <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-
                         <form onSubmit={handleVerifyEmailOTP} className="space-y-4">
-
-                            {/* OTP Input */}
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">
-                                    Enter OTP
+                                <label className="text-xs font-semibold text-slate-700">
+                                    Enter 6-Digit OTP
                                 </label>
                                 <OTP value={otp} onChange={(value) => setOtp(value)} />
                                 <button
                                     type="button"
                                     onClick={handleResendOTP}
                                     disabled={isResendingOtp}
-                                    className="text-xs font-medium text-blue-600 hover:text-blue-700 disabled:text-slate-400 disabled:cursor-not-allowed"
+                                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-50"
                                 >
                                     Resend OTP
                                 </button>
                             </div>
 
-                            {/* Password Input */}
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">
-                                    Confirm Password
+                                <label className="text-xs font-semibold text-slate-700">
+                                    Confirm Current Password
                                 </label>
                                 <div className="relative">
                                     <input
@@ -372,7 +364,7 @@ const AccountPage = () => {
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
                                         autoFocus
-                                        className="w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
+                                        className="dd-input pr-10"
                                     />
                                     <button
                                         type="button"
@@ -384,19 +376,18 @@ const AccountPage = () => {
                                 </div>
                             </div>
 
-                            {/* Action Buttons */}
-                            <div className="flex gap-2.5 pt-1">
+                            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
                                 <button
                                     type="button"
                                     onClick={handleCloseOtpPopup}
-                                    className="flex-1 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                                    className="dd-ghost-button"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isVerifyingOtp}
-                                    className="flex-1 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-sm"
+                                    className="dd-primary-button"
                                 >
                                     Verify & Update
                                 </button>
@@ -406,18 +397,18 @@ const AccountPage = () => {
                 </div>
             )}
 
-            {/* ── Deactivate Popup ── */}
+            {/* Deactivate Popup */}
             {showDeactivatePopup && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm px-4 dd-fade-in"
                     onClick={() => { setShowDeactivatePopup(false); resetDeactivate(); }}
                 >
                     <div
-                        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 space-y-4"
+                        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 space-y-4 border border-slate-200 dd-fade-up"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between">
-                            <h4 className="text-base font-semibold text-slate-800">Deactivate Account?</h4>
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <h4 className="text-base font-bold text-slate-900">Deactivate Account?</h4>
                             <button
                                 type="button"
                                 onClick={() => { setShowDeactivatePopup(false); resetDeactivate(); }}
@@ -426,13 +417,13 @@ const AccountPage = () => {
                                 <X size={16} />
                             </button>
                         </div>
-                        <p className="text-sm text-slate-500 leading-relaxed">
-                            Your profile will be hidden from all teams and searches. Log in again to reactivate.
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                            Your profile will be hidden from team rosters and collaborator search results. You can sign in at any time to resume.
                         </p>
 
-                        <form onSubmit={handleDeactivateSubmit(handleDeactivateAccount)} className="space-y-3">
+                        <form onSubmit={handleDeactivateSubmit(handleDeactivateAccount)} className="space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">
+                                <label className="text-xs font-semibold text-slate-700">
                                     Confirm Password
                                 </label>
                                 <div className="relative">
@@ -440,7 +431,7 @@ const AccountPage = () => {
                                         type={showDeactivatePass ? "text" : "password"}
                                         {...registerDeactivate('deactivatePassword', { required: 'Password is required' })}
                                         placeholder="Enter your password"
-                                        className="w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-300 transition"
+                                        className="dd-input pr-10"
                                     />
                                     <button
                                         type="button"
@@ -455,18 +446,18 @@ const AccountPage = () => {
                                 )}
                             </div>
 
-                            <div className="flex gap-2.5 pt-1">
+                            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
                                 <button
                                     type="button"
                                     onClick={() => { setShowDeactivatePopup(false); resetDeactivate(); }}
-                                    className="flex-1 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                                    className="dd-ghost-button"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isDeactivating}
-                                    className="flex-1 py-2.5 text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm"
+                                    className="rounded-xl border border-amber-300 bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 transition-colors shadow-sm disabled:opacity-50"
                                 >
                                     Yes, Deactivate
                                 </button>
@@ -476,18 +467,18 @@ const AccountPage = () => {
                 </div>
             )}
 
-            {/* ── Delete Popup ── */}
+            {/* Delete Popup */}
             {showDeletePopup && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm px-4 dd-fade-in"
                     onClick={() => { setShowDeletePopup(false); resetDelete(); }}
                 >
                     <div
-                        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 space-y-4"
+                        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 space-y-4 border border-slate-200 dd-fade-up"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between">
-                            <h4 className="text-base font-semibold text-slate-800">Delete Account</h4>
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <h4 className="text-base font-bold text-slate-900">Delete Account</h4>
                             <button
                                 type="button"
                                 onClick={() => { setShowDeletePopup(false); resetDelete(); }}
@@ -496,13 +487,13 @@ const AccountPage = () => {
                                 <X size={16} />
                             </button>
                         </div>
-                        <p className="text-sm text-slate-500 leading-relaxed">
-                            This is permanent. Enter your password to confirm deletion.
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                            This action is permanent and cannot be reversed. Please type your password to confirm deletion.
                         </p>
 
-                        <form onSubmit={handleDeleteSubmit(handleDeleteAccount)} className="space-y-3">
+                        <form onSubmit={handleDeleteSubmit(handleDeleteAccount)} className="space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">
+                                <label className="text-xs font-semibold text-slate-700">
                                     Confirm Password
                                 </label>
                                 <div className="relative">
@@ -510,7 +501,7 @@ const AccountPage = () => {
                                         type={showDeletePass ? "text" : "password"}
                                         {...registerDelete('deletePassword', { required: 'Password is required' })}
                                         placeholder="Enter your password"
-                                        className="w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300 transition"
+                                        className="dd-input pr-10"
                                     />
                                     <button
                                         type="button"
@@ -525,18 +516,18 @@ const AccountPage = () => {
                                 )}
                             </div>
 
-                            <div className="flex gap-2.5 pt-1">
+                            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
                                 <button
                                     type="button"
                                     onClick={() => { setShowDeletePopup(false); resetDelete(); }}
-                                    className="flex-1 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                                    className="dd-ghost-button"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isDeletingAccount}
-                                    className="flex-1 py-2.5 text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm"
+                                    className="dd-danger-button"
                                 >
                                     Delete Account
                                 </button>

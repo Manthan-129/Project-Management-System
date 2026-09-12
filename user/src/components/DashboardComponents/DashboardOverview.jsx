@@ -221,7 +221,7 @@ const DashboardOverview = () => {
     if (teams.length === 0) {
         return (
             <div className="dd-section-card text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-[#315e8d]">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
                     <FolderKanban size={30} />
                 </div>
                 <h2 className="text-2xl font-bold text-slate-900">No team workspace yet.</h2>

@@ -244,7 +244,7 @@ const Teams = () => {
                                 )}
                             </div>
 
-                            <div className="flex items-center gap-1 text-xs font-semibold text-slate-400 group-hover:text-[#315e8d] transition-colors">
+                            <div className="flex items-center gap-1 text-xs font-semibold text-slate-400 group-hover:text-indigo-600 transition-colors">
                                 <span>Open Workspace</span>
                                 <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
                             </div>

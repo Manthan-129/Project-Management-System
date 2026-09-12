@@ -114,81 +114,80 @@ const NotificationPage = () => {
     if (isFetching) return <LoadingPage />;
 
   return (
-    <div className="relative max-w-3xl mx-auto px-4 py-8 space-y-6 overflow-hidden">
+    <div className="relative max-w-3xl mx-auto space-y-6">
 
-      <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
-
-      <div className="bg-white/90 border border-blue-100 rounded-3xl p-5 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] backdrop-blur-sm">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Notification Summary</span>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-            {enabledCount} / 4 categories enabled
+      <div className="dd-section-card p-4">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Notification Summary</span>
+          <span className="dd-badge border-indigo-100 bg-indigo-50 text-indigo-700">
+            {enabledCount} of 4 categories active
           </span>
         </div>
       </div>
 
-      {/* ── Email Notifications Card ── */}
-      <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-5 backdrop-blur-sm">
-
-        {/* Card Header */}
-        <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
-          <div className="p-2 bg-indigo-50 rounded-lg">
-            <Bell size={18} className="text-blue-500" />
+      {/* Email Notifications Card */}
+      <div className="dd-section-card p-6 space-y-5">
+        <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+            <Bell size={18} />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-700">Email Notifications</h3>
-            <p className="text-xs text-slate-500">Choose what events trigger email notifications.</p>
+            <h3 className="text-base font-bold text-slate-900">Email Notifications</h3>
+            <p className="text-xs text-slate-500">Configure which workspace events trigger background email alerts.</p>
           </div>
         </div>
 
-        {notificationItems.map((item)=>{
-          const Icon= item.icon;
-          return (
-            <div key={item.key} className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-slate-100 rounded-lg shrink-0">
-                  <Icon size={18} className="text-slate-500" />
+        <div className="space-y-4">
+          {notificationItems.map((item)=>{
+            const Icon= item.icon;
+            const isEnabled = preferences[item.key];
+            return (
+              <div key={item.key} className="flex items-center justify-between gap-4 p-3 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200/80 text-slate-600 shadow-xs">
+                    <Icon size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-800">{item.title}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 truncate">{item.description}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-700">{item.title}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
-                </div>
-              </div>
-              {/* Toggle switch */}
-              <button onClick={() => handleToggle(item.key)}
-                type="button"
-                aria-pressed={preferences[item.key]}
-                disabled={isSaving}
-                className={`relative shrink-0 w-10 h-5 rounded-full transition-colors ${preferences[item.key] ? 'bg-blue-600' : 'bg-slate-200'}`}>
-                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${preferences[item.key] ? 'translate-x-5' : 'translate-x-0'}`} />
-              </button>
-            </div>
-          )
-        })}
 
-        <div className="pt-2 border-t border-slate-100 flex gap-3">
+                {/* Toggle switch */}
+                <button onClick={() => handleToggle(item.key)}
+                  type="button"
+                  aria-pressed={isEnabled}
+                  disabled={isSaving}
+                  className={`relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-200 ${isEnabled ? 'bg-indigo-600' : 'bg-slate-200'}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${isEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
           <button onClick={handleDiscardChanges}
             type="button"
             disabled={isSaving || !hasChanges}
-            className="flex-1 py-2.5 px-6 bg-white hover:bg-slate-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-slate-700 text-sm font-medium rounded-xl transition-colors border border-slate-200">
+            className="dd-ghost-button">
             Discard Changes
           </button>
           <button onClick={handleSave}
             type="button"
             disabled={isSaving || !hasChanges}
-            className="flex-1 py-2.5 px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all shadow-sm">
+            className="dd-primary-button">
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
 
-      {/* ── Info Card ── */}
-      <div className="flex gap-3 p-4 bg-sky-50 border border-sky-100 rounded-2xl">
-        <Info size={18} className="text-sky-400 shrink-0 mt-0.5" />
+      {/* Info Card */}
+      <div className="flex gap-3 p-4 bg-sky-50/70 border border-sky-100 rounded-2xl">
+        <Info size={18} className="text-sky-600 shrink-0 mt-0.5" />
         <div className="space-y-1">
-          <p className="text-sm font-medium text-slate-700">About Notifications</p>
-          <p className="text-xs text-slate-500 leading-relaxed">Email notifications are sent to your registered email address. You can change these preferences at any time.</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-sky-900">About Notifications</p>
+          <p className="text-xs text-slate-600 leading-relaxed">Notifications are queued asynchronously using our background BullMQ workers and dispatched to your verified email address.</p>
         </div>
       </div>
     </div>

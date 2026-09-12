@@ -134,109 +134,123 @@ const PrivacyPage = () => {
     if (isFetching) return <LoadingPage />;
 
   return (
-    <div className="relative max-w-3xl mx-auto px-4 py-8 space-y-6 overflow-hidden">
+    <div className="relative max-w-3xl mx-auto space-y-6">
 
-        <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
-
-        {/* ── Current Privacy Summary ── */}
-        <div className="bg-white/90 border border-blue-100 rounded-3xl p-5 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] backdrop-blur-sm">
-            <div className="flex flex-wrap items-center gap-3">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Current Visibility</span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+        {/* Current Privacy Summary */}
+        <div className="dd-section-card p-4">
+            <div className="flex flex-wrap items-center gap-2.5">
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Current Visibility</span>
+                <span className="dd-badge border-indigo-100 bg-indigo-50 text-indigo-700">
                     {visibilityLabel}
                 </span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                    {enabledControlsCount} / 3 controls enabled
+                <span className="dd-badge border-slate-200 bg-slate-50 text-slate-600">
+                    {enabledControlsCount} of 3 controls active
                 </span>
             </div>
         </div>
 
-        {/* ── Profile Visibility Card ── */}
-        <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-4 backdrop-blur-sm">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-slate-700">
-                <Shield size={16} className="text-blue-500" /> Profile Visibility
-            </h3>
-            <p className="text-sm text-slate-500">Choose who can see your profile information.</p>
+        {/* Profile Visibility Card */}
+        <div className="dd-section-card p-6 space-y-4">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                    <Shield size={18} />
+                </div>
+                <div>
+                    <h3 className="text-base font-bold text-slate-900">Profile Visibility</h3>
+                    <p className="text-xs text-slate-500">Configure who can discover and view your profile information.</p>
+                </div>
+            </div>
 
-            {/* Radio-style selection cards */}
+            {/* Selection cards */}
             <div className="space-y-2.5">
-                {visibilityOptions.map((option)=>(
-                    <button key={option.value} onClick={()=> handleVisibilityChange(option.value)}
-                        type="button"
-                        aria-pressed={settings.profileVisibility === option.value}
-                        disabled={isSaving}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-left transition-all
-                            ${settings.profileVisibility === option.value
-                                ? 'border-blue-400 bg-blue-50'
-                                : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100'
-                            }`}>
-                        {/* Radio indicator */}
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors
-                            ${settings.profileVisibility === option.value
-                                ? 'border-blue-600 bg-blue-600'
-                                : 'border-slate-300 bg-white'
-                            }`}>
-                            {settings.profileVisibility === option.value && (
-                                <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                            )}
-                        </div>
-                        <div>
-                            <p className={`text-sm font-medium ${settings.profileVisibility === option.value ? 'text-blue-700' : 'text-slate-700'}`}>
-                                {option.label}
-                            </p>
-                            <p className="text-xs text-slate-500 mt-0.5">{option.desc}</p>
-                        </div>
-                    </button>
-                ))}
+                {visibilityOptions.map((option)=>{
+                    const isSelected = settings.profileVisibility === option.value;
+                    return (
+                        <button key={option.value} onClick={()=> handleVisibilityChange(option.value)}
+                            type="button"
+                            aria-pressed={isSelected}
+                            disabled={isSaving}
+                            className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl border text-left transition-all duration-200
+                                ${isSelected
+                                    ? 'border-indigo-400 bg-indigo-50/70 shadow-xs ring-2 ring-indigo-200/50'
+                                    : 'border-slate-200/80 bg-slate-50/50 hover:border-slate-300 hover:bg-white'
+                                }`}>
+                            {/* Radio indicator */}
+                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors
+                                ${isSelected
+                                    ? 'border-indigo-600 bg-indigo-600'
+                                    : 'border-slate-300 bg-white'
+                                }`}>
+                                {isSelected && (
+                                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                                )}
+                            </div>
+                            <div>
+                                <p className={`text-sm font-bold ${isSelected ? 'text-indigo-900' : 'text-slate-800'}`}>
+                                    {option.label}
+                                </p>
+                                <p className="text-xs text-slate-500 mt-0.5">{option.desc}</p>
+                            </div>
+                        </button>
+                    )
+                })}
             </div>
         </div>
 
-        {/* ── Toggle Controls Card ── */}
-        <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(20,184,166,0.4)] space-y-5 backdrop-blur-sm">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-slate-700">
-                <EyeOff size={16} className="text-blue-500" /> Visibility Controls
-            </h3>
+        {/* Toggle Controls Card */}
+        <div className="dd-section-card p-6 space-y-5">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                    <EyeOff size={18} />
+                </div>
+                <div>
+                    <h3 className="text-base font-bold text-slate-900">Visibility Controls</h3>
+                    <p className="text-xs text-slate-500">Fine-tune individual metadata fields across DevDash.</p>
+                </div>
+            </div>
 
-            {toggleItems.map((item)=>{
-                const Icon = item.icon;
-                return (
-                    <div key={item.key} className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-slate-100 rounded-lg shrink-0">
-                                <Icon size={16} className="text-slate-500" />
+            <div className="space-y-3">
+                {toggleItems.map((item)=>{
+                    const Icon = item.icon;
+                    const isEnabled = settings[item.key];
+                    return (
+                        <div key={item.key} className="flex items-center justify-between gap-4 p-3 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                            <div className="flex items-center gap-3.5 min-w-0">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200/80 text-slate-600 shadow-xs">
+                                    <Icon size={16} />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-slate-800">{item.title}</p>
+                                    <p className="text-xs text-slate-500 mt-0.5 truncate">{item.desc}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-sm font-medium text-slate-700">{item.title}</p>
-                                <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
-                            </div>
+
+                            {/* Toggle switch */}
+                            <button onClick={()=> handleToggleChange(item.key)}
+                                type="button"
+                                aria-pressed={isEnabled}
+                                disabled={isSaving}
+                                className={`relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-200 ${isEnabled ? 'bg-indigo-600' : 'bg-slate-200'}`}>
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${isEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </button>
                         </div>
-
-                        {/* Toggle switch */}
-                        <button onClick={()=> handleToggleChange(item.key)}
-                            type="button"
-                            aria-pressed={settings[item.key]}
-                            disabled={isSaving}
-                            className={`relative shrink-0 w-10 h-5 rounded-full transition-colors ${settings[item.key] ? 'bg-blue-600' : 'bg-slate-200'}`}>
-                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${settings[item.key] ? 'translate-x-5' : 'translate-x-0'}`} />
-                        </button>
-                    </div>
-                )
-            })}
+                    )
+                })}
+            </div>
         </div>
 
-        {/* ── Save / Discard Actions ── */}
-        <div className="flex items-center gap-3">
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-3 pt-2">
             <button onClick={handleDiscardChanges}
                 type="button"
                 disabled={isSaving || !hasChanges}
-                className="flex-1 py-2.5 px-6 bg-white hover:bg-slate-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-slate-700 text-sm font-medium rounded-xl transition-colors border border-slate-200">
+                className="dd-ghost-button">
                 Discard Changes
             </button>
             <button onClick={handleSave}
                 type="button"
                 disabled={isSaving || !hasChanges}
-                className="flex-1 py-2.5 px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all shadow-sm">
+                className="dd-primary-button">
                 {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
         </div>

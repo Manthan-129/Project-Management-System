@@ -149,33 +149,33 @@ const ProfilePage = () => {
 
     return (
         // STEP 1 is triggered here — RHF validates, then calls onValidated
-        <form onSubmit={handleSubmit(onValidated)} className="relative max-w-3xl mx-auto px-4 py-8 space-y-6 overflow-hidden">
+        <form onSubmit={handleSubmit(onValidated)} className="relative max-w-3xl mx-auto space-y-6">
 
-            <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
-            <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
-
-            <div className="bg-white/90 border border-blue-100 rounded-3xl p-5 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] backdrop-blur-sm">
-                <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Profile Summary</span>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+            <div className="dd-section-card p-4">
+                <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Profile Summary</span>
+                    <span className="dd-badge border-indigo-100 bg-indigo-50 text-indigo-700">
                         @{user?.username || 'username'}
                     </span>
-                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="dd-badge border-slate-200 bg-slate-50 text-slate-600">
                         {user?.email || 'No email'}
                     </span>
-                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="dd-badge border-slate-200 bg-slate-50 text-slate-500">
                         Since: {user?.memberSince || 'N/A'}
                     </span>
                 </div>
             </div>
 
-            {/* ── Profile Picture Card ── */}
-            <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(20,184,166,0.45)] space-y-5 backdrop-blur-sm">
+            {/* Profile Picture Card */}
+            <div className="dd-section-card p-6 space-y-5">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-base font-semibold text-slate-700">Profile Picture</h3>
+                    <div>
+                        <h3 className="text-base font-bold text-slate-900">Profile Picture</h3>
+                        <p className="text-xs text-slate-500">Update your avatar displayed across workspaces.</p>
+                    </div>
                     <div className="text-right">
-                        <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Member Since</p>
-                        <p className="text-sm font-medium text-slate-600">{user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A'}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Member Since</p>
+                        <p className="text-xs font-semibold text-slate-600">{user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A'}</p>
                     </div>
                 </div>
 
@@ -184,7 +184,7 @@ const ProfilePage = () => {
                         <img
                             src={previewImage || user?.profilePicture || assets.default_profile_picture}
                             alt="Profile Picture"
-                            className="w-24 h-24 rounded-2xl object-cover border-2 border-blue-100 shadow-md"
+                            className="w-20 h-20 rounded-2xl object-cover ring-2 ring-slate-100 shadow-sm"
                         />
                         {previewImage && (
                             <button
@@ -203,9 +203,9 @@ const ProfilePage = () => {
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
                             disabled={isSaving}
-                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors"
+                            className="dd-ghost-button !px-3.5 !py-2 text-xs"
                         >
-                            <Camera size={14} />
+                            <Camera size={14} className="text-slate-500" />
                             <span>Upload Image</span>
                         </button>
 
@@ -214,63 +214,63 @@ const ProfilePage = () => {
                                 type="button"
                                 onClick={handleRemoveProfilePicture}
                                 disabled={isSaving}
-                                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors"
+                                className="dd-danger-button !px-3.5 !py-2 text-xs ml-2"
                             >
                                 <Trash2 size={14} />
                                 <span>Remove Photo</span>
                             </button>
                         )}
-                        <p className="text-xs text-slate-400">JPG, PNG or GIF. Max size 5MB.</p>
+                        <p className="text-[11px] text-slate-400">JPG, PNG, WebP or GIF. Maximum size 5MB.</p>
                     </div>
                 </div>
             </div>
 
-            {/* ── Personal Information Card ── */}
-            <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-4 backdrop-blur-sm">
-                <h3 className="text-base font-semibold text-slate-700">Personal Information</h3>
+            {/* Personal Information Card */}
+            <div className="dd-section-card p-6 space-y-4">
+                <h3 className="text-base font-bold text-slate-900">Personal Information</h3>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">First Name</label>
+                        <label className="text-xs font-semibold text-slate-700">First Name *</label>
                         <input
                             type="text"
                             {...register("firstName", { required: 'First name is required' })}
                             placeholder="Enter your first name"
-                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
+                            className="dd-input"
                         />
                         {errors.firstName && <p className="text-xs text-rose-500">{errors.firstName.message}</p>}
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Last Name</label>
+                        <label className="text-xs font-semibold text-slate-700">Last Name *</label>
                         <input
                             type="text"
                             {...register("lastName", { required: 'Last name is required' })}
                             placeholder="Enter your last name"
-                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
+                            className="dd-input"
                         />
                         {errors.lastName && <p className="text-xs text-rose-500">{errors.lastName.message}</p>}
                     </div>
                 </div>
 
                 <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Bio</label>
+                    <label className="text-xs font-semibold text-slate-700">Bio</label>
                     <textarea
                         {...register("bio", { maxLength: { value: 200, message: 'Bio must be 200 characters or less' } })}
-                        placeholder="Tell us about yourself..."
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition resize-none h-24"
+                        placeholder="Tell your team about yourself..."
+                        className="dd-input resize-none h-24"
                     />
                     {errors.bio && <p className="text-xs text-rose-500">{errors.bio.message}</p>}
                 </div>
             </div>
 
-            {/* ── Social Links Card ── */}
-            <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-4 backdrop-blur-sm">
-                <h3 className="text-base font-semibold text-slate-700">Social Links</h3>
+            {/* Social Links Card */}
+            <div className="dd-section-card p-6 space-y-4">
+                <h3 className="text-base font-bold text-slate-900">Social Links</h3>
 
                 <div className="space-y-1.5">
-                    <label className="flex items-center gap-1.5 text-xs font-medium text-slate-600 uppercase tracking-wide">
-                        <Github size={14} /> GitHub URL
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                        <Github size={14} className="text-slate-500" /> GitHub URL
                     </label>
                     <input
                         type="url"
@@ -278,14 +278,14 @@ const ProfilePage = () => {
                             pattern: { value: /^https?:\/\/[\w\-]+(\.[\w\-]+)+[/#?]?.*$/, message: 'Enter a valid URL' },
                         })}
                         placeholder="https://github.com/username"
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
+                        className="dd-input"
                     />
                     {errors.githubUrl && <p className="text-xs text-rose-500">{errors.githubUrl.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
-                    <label className="flex items-center gap-1.5 text-xs font-medium text-slate-600 uppercase tracking-wide">
-                        <Linkedin size={14} /> LinkedIn URL
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                        <Linkedin size={14} className="text-sky-600" /> LinkedIn URL
                     </label>
                     <input
                         type="url"
@@ -293,14 +293,14 @@ const ProfilePage = () => {
                             pattern: { value: /^https?:\/\/[\w\-]+(\.[\w\-]+)+[/#?]?.*$/, message: 'Enter a valid URL' },
                         })}
                         placeholder="https://linkedin.com/in/username"
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
+                        className="dd-input"
                     />
                     {errors.linkedinUrl && <p className="text-xs text-rose-500">{errors.linkedinUrl.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
-                    <label className="flex items-center gap-1.5 text-xs font-medium text-slate-600 uppercase tracking-wide">
-                        <Globe size={14} /> Portfolio Website
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                        <Globe size={14} className="text-teal-600" /> Portfolio Website
                     </label>
                     <input
                         type="url"
@@ -308,76 +308,71 @@ const ProfilePage = () => {
                             pattern: { value: /^https?:\/\/[\w\-]+(\.[\w\-]+)+[/#?]?.*$/, message: 'Enter a valid URL' },
                         })}
                         placeholder="https://yoursite.com"
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
+                        className="dd-input"
                     />
                     {errors.portfolioUrl && <p className="text-xs text-rose-500">{errors.portfolioUrl.message}</p>}
                 </div>
             </div>
 
-            {/* ── Action Buttons ── */}
-            <div className="flex gap-3">
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                     type="button"
                     onClick={handleCancel}
                     disabled={isSaving}
-                    className="flex-1 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                    className="dd-ghost-button"
                 >
                     Discard Changes
                 </button>
-                {/* type="submit" triggers RHF validation → onValidated → opens popup */}
                 <button
                     type="submit"
                     disabled={isSaving}
-                    className="flex-1 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 rounded-xl transition-all shadow-lg shadow-blue-900/20"
+                    className="dd-primary-button"
                 >
                     {isSaving ? 'Saving...' : 'Save Changes'}
                 </button>
             </div>
 
-            {/* ── Password Confirmation Popup ── */}
+            {/* Password Confirmation Popup */}
             {showPasswordPopup && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm px-4 dd-fade-in"
                     onClick={handleClosePopup}
                 >
                     <div
-                        className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-5 border border-blue-100"
+                        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 space-y-4 border border-slate-200 dd-fade-up"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Popup Header */}
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
                             <div>
-                                <h4 className="text-base font-semibold text-slate-800">Confirm Changes</h4>
-                                <p className="text-sm text-slate-500 mt-0.5">
-                                    Enter your password to save your profile updates.
+                                <h4 className="text-base font-bold text-slate-900">Confirm Changes</h4>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                    Enter your password to verify and save profile updates.
                                 </p>
                             </div>
                             <button
                                 type="button"
                                 onClick={handleClosePopup}
-                                className="shrink-0 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition"
                             >
                                 <X size={16} />
                             </button>
                         </div>
 
-                        {/* Decorative divider */}
-                        <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-
                         {/* Password Input */}
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">
+                            <label className="text-xs font-semibold text-slate-700">
                                 Your Password
                             </label>
                             <div className="relative">
                                 <input
                                     type={showPassword ? "text" : "password"}
-                                    placeholder="Enter your password"
+                                    placeholder="Enter your current password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    // Allow pressing Enter to confirm
                                     onKeyDown={(e) => e.key === 'Enter' && onConfirm()}
-                                    className="w-full px-3.5 py-2.5 pr-11 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
+                                    className="dd-input pr-10"
                                     autoFocus
                                 />
                                 <button
@@ -392,12 +387,12 @@ const ProfilePage = () => {
                         </div>
 
                         {/* Popup Action Buttons */}
-                        <div className="flex gap-2.5 pt-1">
+                        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
                             <button
                                 type="button"
                                 onClick={handleClosePopup}
                                 disabled={isSaving}
-                                className="flex-1 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                                className="dd-ghost-button"
                             >
                                 Cancel
                             </button>
@@ -405,7 +400,7 @@ const ProfilePage = () => {
                                 type="button"
                                 onClick={onConfirm}
                                 disabled={!password || isSaving}
-                                className="flex-1 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-lg shadow-blue-900/20"
+                                className="dd-primary-button"
                             >
                                 {isSaving ? 'Saving...' : 'Confirm & Save'}
                             </button>

@@ -35,8 +35,8 @@ const NotificationPopup = ({notifications, unreadCount, onItemClick, onMarkAllAs
     const hasUnread= useMemo(()=> unreadCount > 0, [unreadCount]);
 
     return (
-    <div className="w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.14)]">
-        <div className="border-b border-slate-200/80 bg-[linear-gradient(135deg,rgba(49,94,141,0.08),rgba(255,255,255,0.94))] px-4 py-3">
+    <div className="w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.14)]">
+        <div className="border-b border-slate-100 bg-gradient-to-r from-indigo-50/70 via-violet-50/40 to-white px-4 py-3">
             <div className="flex items-center justify-between gap-2">
                 <div>
                     <p className="text-sm font-bold text-slate-900">Notifications</p>
@@ -77,7 +77,7 @@ const NotificationPopup = ({notifications, unreadCount, onItemClick, onMarkAllAs
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2">
                                         <p className="truncate text-sm font-semibold text-slate-800">{item.title}</p>
-                                        {!item.isRead && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>}
+                                        {!item.isRead && <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0"></span>}
                                     </div>
                                     <p className="mt-0.5 line-clamp-2 text-xs text-slate-600">{item.message}</p>
                                     <p className="mt-1 text-[11px] text-slate-400">{formatTimeAgo(item.createdAt)}</p>

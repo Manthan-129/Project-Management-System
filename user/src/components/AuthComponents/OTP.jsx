@@ -72,7 +72,7 @@ const OTP = ({ value = '', onChange = () => {} }) => {
     }, []);
 
     return (
-        <div className="flex gap-3">
+        <div className="flex justify-center gap-2 sm:gap-2.5">
             {[...Array(6)].map((_, index) => (
                 <input
                     key={index}
@@ -89,7 +89,7 @@ const OTP = ({ value = '', onChange = () => {} }) => {
                     pattern="[0-9]*"
                     aria-label={`OTP digit ${index + 1}`}
                     autoComplete="one-time-code"
-                    className="w-12 h-14 text-center text-xl font-bold border-2 border-gray-300 rounded-xl outline-none bg-gray-50 text-gray-800 caret-indigo-500 transition-all duration-200 focus:border-indigo-500 focus:bg-white focus:shadow-md focus:shadow-indigo-200 focus:scale-105 hover:border-gray-400"
+                    className="h-12 w-10 sm:h-13 sm:w-12 text-center text-lg font-bold rounded-xl border border-slate-200 bg-slate-50/80 text-slate-900 outline-none transition-all duration-150 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600"
                 />
             ))}
         </div>

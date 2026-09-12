@@ -139,28 +139,27 @@ const AppearancePage = () => {
     if(isFetching) return <LoadingPage />;
   
   return (
-    <div className="relative max-w-3xl mx-auto px-4 py-8 space-y-6 overflow-hidden">
+    <div className="relative max-w-3xl mx-auto space-y-6">
 
-        <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
-
-        <div className="bg-white/90 border border-blue-100 rounded-3xl p-5 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] backdrop-blur-sm">
-            <div className="flex flex-wrap items-center gap-3">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Active Preferences</span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+        <div className="dd-section-card p-4">
+            <div className="flex flex-wrap items-center gap-2.5">
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Active Preferences</span>
+                <span className="dd-badge border-indigo-100 bg-indigo-50 text-indigo-700">
                     Theme: {resolvedThemeLabel}
                 </span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                <span className="dd-badge border-slate-200 bg-slate-50 text-slate-600">
                     Sidebar: {sidebarPosition === 'left' ? 'Left' : 'Right'}
                 </span>
             </div>
         </div>
 
-        {/* ── Theme Selection Card ── */}
-        <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-4 backdrop-blur-sm">
-            <h3 className="text-base font-semibold text-slate-700">Theme</h3>
-            <p className="text-sm text-slate-500">Select your preferred color scheme.</p>
-            <div className="flex gap-3">
+        {/* Theme Selection Card */}
+        <div className="dd-section-card p-6 space-y-4">
+            <div>
+                <h3 className="text-base font-bold text-slate-900">Theme Preference</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Select your preferred appearance for DevDash workspaces.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {themeOptions.map((opt)=>{
                     const Icon= opt.icon
                     const isSelected= theme === opt.value;
@@ -169,38 +168,53 @@ const AppearancePage = () => {
                             type="button"
                             aria-pressed={isSelected}
                             disabled={isSaving}
-                            className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all
+                            className={`flex flex-col items-center gap-2.5 py-4 px-3 rounded-2xl border transition-all duration-200
                                 ${isSelected
-                                    ? 'border-blue-400 bg-blue-50 text-blue-700'
-                                    : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-slate-100'
+                                    ? 'border-indigo-400 bg-indigo-50/80 text-indigo-700 shadow-sm ring-2 ring-indigo-200/60'
+                                    : 'border-slate-200/80 bg-slate-50/50 text-slate-600 hover:border-slate-300 hover:bg-white'
                                 }`}>
-                            <Icon size={28} />
-                            <span className="text-sm font-medium">{opt.label}</span>
-                            {isSelected && <Check size={14} className="text-blue-600" />}
+                            <Icon size={24} className={isSelected ? 'text-indigo-600' : 'text-slate-400'} />
+                            <span className="text-sm font-semibold">{opt.label}</span>
+                            {isSelected ? (
+                                <span className="flex items-center gap-1 text-[11px] font-bold text-indigo-600">
+                                    <Check size={13} /> Active
+                                </span>
+                            ) : (
+                                <span className="text-[11px] font-medium text-slate-400">Select</span>
+                            )}
                         </button>
                     )
                 })}
             </div>
         </div>
 
-        {/* ── Sidebar Position Card ── */}
-        <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(20,184,166,0.4)] space-y-4 backdrop-blur-sm">
-            <h3 className="text-base font-semibold text-slate-700">Sidebar Position</h3>
-            <p className="text-sm text-slate-500">Choose where the dashboard sidebar appears.</p>
+        {/* Sidebar Position Card */}
+        <div className="dd-section-card p-6 space-y-4">
+            <div>
+                <h3 className="text-base font-bold text-slate-900">Sidebar Position</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Configure the dock position for your navigation sidebar.</p>
+            </div>
             
-            <div className="flex gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Left option */}
                 <button onClick={() => setSidebarPosition('left')}
                     type="button"
                     aria-pressed={sidebarPosition === 'left'}
                     disabled={isSaving}
-                    className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all
+                    className={`flex flex-col items-center gap-2.5 py-4 px-3 rounded-2xl border transition-all duration-200
                         ${sidebarPosition === 'left'
-                            ? 'border-blue-400 bg-blue-50 text-blue-700'
-                            : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-slate-100'
+                            ? 'border-indigo-400 bg-indigo-50/80 text-indigo-700 shadow-sm ring-2 ring-indigo-200/60'
+                            : 'border-slate-200/80 bg-slate-50/50 text-slate-600 hover:border-slate-300 hover:bg-white'
                         }`}>
-                    <PanelLeft size={24} />
-                    <span className="text-sm font-medium">Left</span>
+                    <PanelLeft size={24} className={sidebarPosition === 'left' ? 'text-indigo-600' : 'text-slate-400'} />
+                    <span className="text-sm font-semibold">Left Aligned</span>
+                    {sidebarPosition === 'left' ? (
+                        <span className="flex items-center gap-1 text-[11px] font-bold text-indigo-600">
+                            <Check size={13} /> Active
+                        </span>
+                    ) : (
+                        <span className="text-[11px] font-medium text-slate-400">Select</span>
+                    )}
                 </button>
 
                 {/* Right option */}
@@ -208,28 +222,35 @@ const AppearancePage = () => {
                     type="button"
                     aria-pressed={sidebarPosition === 'right'}
                     disabled={isSaving}
-                    className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all
+                    className={`flex flex-col items-center gap-2.5 py-4 px-3 rounded-2xl border transition-all duration-200
                         ${sidebarPosition === 'right'
-                            ? 'border-blue-400 bg-blue-50 text-blue-700'
-                            : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-slate-100'
+                            ? 'border-indigo-400 bg-indigo-50/80 text-indigo-700 shadow-sm ring-2 ring-indigo-200/60'
+                            : 'border-slate-200/80 bg-slate-50/50 text-slate-600 hover:border-slate-300 hover:bg-white'
                         }`}>
-                    <PanelRight size={24} />
-                    <span className="text-sm font-medium">Right</span>
+                    <PanelRight size={24} className={sidebarPosition === 'right' ? 'text-indigo-600' : 'text-slate-400'} />
+                    <span className="text-sm font-semibold">Right Aligned</span>
+                    {sidebarPosition === 'right' ? (
+                        <span className="flex items-center gap-1 text-[11px] font-bold text-indigo-600">
+                            <Check size={13} /> Active
+                        </span>
+                    ) : (
+                        <span className="text-[11px] font-medium text-slate-400">Select</span>
+                    )}
                 </button>
             </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-end gap-3 pt-2">
             <button onClick={handleDiscardChanges}
                 type="button"
                 disabled={isSaving || !hasChanges}
-                className="flex-1 py-2.5 px-6 bg-white hover:bg-slate-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-slate-700 text-sm font-medium rounded-xl transition-colors border border-slate-200">
+                className="dd-ghost-button">
                 Discard Changes
             </button>
             <button onClick={handleSave}
                 type="button"
                 disabled={isSaving || !hasChanges}
-                className="flex-1 py-2.5 px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all shadow-sm">
+                className="dd-primary-button">
                 {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
         </div>

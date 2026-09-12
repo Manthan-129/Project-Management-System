@@ -155,46 +155,40 @@ const SecurityPage = () => {
     if (isFetchingStatus) return <LoadingPage />
 
   return (
-        <div className="relative max-w-3xl mx-auto px-4 py-8 space-y-6 overflow-hidden">
+        <div className="relative max-w-3xl mx-auto space-y-6">
 
-            <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-400/15 rounded-full blur-3xl -z-10"></div>
-            <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl -z-10"></div>
-
-            <div className="bg-white/90 border border-blue-100 rounded-3xl p-5 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] backdrop-blur-sm">
-                <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Security Summary</span>
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${twoFAEnabled ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+            <div className="dd-section-card p-4">
+                <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Security Summary</span>
+                    <span className={`dd-badge ${twoFAEnabled ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>
                         2FA: {twoFAEnabled ? 'Enabled' : 'Disabled'}
                     </span>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                        Password checks: {passedChecksCount}/4
+                    <span className="dd-badge border-indigo-100 bg-indigo-50 text-indigo-700">
+                        Password Strength: {passedChecksCount}/4
                     </span>
                 </div>
             </div>
 
-      {/* ── Change Password Card ── */}
-    <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(37,99,235,0.4)] space-y-5 backdrop-blur-sm">
-
-        {/* Card Header */}
-        <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
-            <div className="p-2 bg-blue-50 rounded-lg">
-                <Lock size={18} className="text-blue-500" />
+      {/* Change Password Card */}
+    <div className="dd-section-card p-6 space-y-5">
+        <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                <Lock size={18} />
             </div>
             <div>
-                <h3 className="text-base font-semibold text-slate-700">Change Password</h3>
-                <p className="text-xs text-slate-500">Choose a strong password with at least 8 characters.</p>
+                <h3 className="text-base font-bold text-slate-900">Change Password</h3>
+                <p className="text-xs text-slate-500">Choose a secure password containing at least 8 characters.</p>
             </div>
         </div>
 
         <form onSubmit={handleSubmit(handleChangePassword)} className="space-y-4">
-
             {/* Current Password */}
             <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Current Password</label>
+                <label className="text-xs font-semibold text-slate-700">Current Password *</label>
                 <div className="relative">
                     <input type={showCurrentPassword ? 'text' : 'password'} placeholder="Enter current password"
                     {...register('currentPassword', {required: 'Current Password is required'})}
-                    className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition" />
+                    className="dd-input pr-10" />
                     <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                         disabled={isChangingPassword}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
@@ -206,7 +200,7 @@ const SecurityPage = () => {
 
             {/* New Password */}
             <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">New Password</label>
+                <label className="text-xs font-semibold text-slate-700">New Password *</label>
                 <div className="relative">
               <input
                 type={showNewPassword ? 'text' : 'password'}
@@ -215,7 +209,7 @@ const SecurityPage = () => {
                   required: 'New password is required',
                   minLength: { value: 8, message: 'Password must be at least 8 characters' },
                 })}
-                                className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
+                className="dd-input pr-10"
               />
               <button type="button" onClick={() => setShowNewPassword(!showNewPassword)}
                 disabled={isChangingPassword}
@@ -227,11 +221,11 @@ const SecurityPage = () => {
 
             {newPassword && (
                 <div className="space-y-2 pt-1">
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Password checklist</p>
-                    <div className="grid grid-cols-2 gap-1.5">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Password Checklist</p>
+                    <div className="grid grid-cols-2 gap-2">
                         {strengthChecks.map((check) => (
-                            <span key={check.label} className={`text-xs flex items-center gap-1.5 ${check.pass ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                {check.pass ? <Check size={12} /> : <Circle size={12} />}
+                            <span key={check.label} className={`text-xs flex items-center gap-1.5 font-medium ${check.pass ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                {check.pass ? <Check size={13} className="text-emerald-600" /> : <Circle size={13} />}
                                 {check.label}
                             </span>
                         ))}
@@ -242,12 +236,12 @@ const SecurityPage = () => {
 
             {/* Confirm New Password */}
             <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Confirm New Password</label>
+                <label className="text-xs font-semibold text-slate-700">Confirm New Password *</label>
                 <div className="relative">
                     <input type={showConfirmNewPassword ? 'text' : 'password'}
-                    placeholder="Confirm New Password"
-                    {...register('confirmNewPassword', {required: 'Please confirm your password', validate: (value)=> value === newPassword || 'password do not match'})}
-                    className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition" />
+                    placeholder="Confirm new password"
+                    {...register('confirmNewPassword', {required: 'Please confirm your password', validate: (value)=> value === newPassword || 'Passwords do not match'})}
+                    className="dd-input pr-10" />
                     <button type="button" onClick={()=> setShowConfirmNewPassword(!showConfirmNewPassword)}
                         disabled={isChangingPassword}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
@@ -257,74 +251,75 @@ const SecurityPage = () => {
                 {errors.confirmNewPassword && <p className="text-xs text-rose-500">{errors.confirmNewPassword.message}</p>}
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex items-center justify-end gap-3 pt-2">
                 <button type="button" onClick={resetPasswordForm} disabled={isChangingPassword}
-                    className="flex-1 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors">
+                    className="dd-ghost-button">
                     Discard Changes
                 </button>
                 <button type="submit" disabled={isChangingPassword}
-                    className="flex-1 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-sm">
+                    className="dd-primary-button">
                     {isChangingPassword ? 'Saving...' : 'Save Changes'}
                 </button>
             </div>
         </form>
       </div>
 
-      {/* ── Two-Factor Authentication Card ── */}
-    <div className="bg-white/90 border border-blue-100 rounded-3xl p-6 shadow-[0_16px_45px_-35px_rgba(20,184,166,0.4)] space-y-4 backdrop-blur-sm">
-        <div className="flex items-center justify-between gap-4">
+      {/* Two-Factor Authentication Card */}
+    <div className="dd-section-card p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                    <ShieldCheck size={18} className="text-blue-500" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
+                    <ShieldCheck size={18} />
                 </div>
                 <div>
-                    <h3 className="text-base font-semibold text-slate-700">Two-Factor Authentication</h3>
-                    <p className="text-xs text-slate-500">Add an extra layer of security with OTP verification on login.</p>
+                    <h3 className="text-base font-bold text-slate-900">Two-Factor Authentication</h3>
+                    <p className="text-xs text-slate-500">Protect your account with OTP email confirmation during sign in.</p>
                 </div>
             </div>
-            <span className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-full ${twoFAEnabled ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+            <span className={`dd-badge shrink-0 ${twoFAEnabled ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-500'}`}>
                 {twoFAEnabled ? 'Enabled' : 'Disabled'}
             </span>
         </div>
-        <button onClick={handleEnableOrDisable2FA}
-            disabled={isRequestingTwoFAOtp}
-            className={`w-full py-2.5 text-sm font-medium rounded-xl transition-colors shadow-sm
-                ${twoFAEnabled
-                    ? 'text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200'
-                    : 'text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600'
-                }`}>
-            {isRequestingTwoFAOtp
-                ? (twoFAEnabled ? 'Sending disable OTP...' : 'Sending enable OTP...')
-                : (twoFAEnabled ? 'Disable 2FA' : 'Enable 2FA')}
-        </button>
+        <div className="pt-2">
+            <button onClick={handleEnableOrDisable2FA}
+                type="button"
+                disabled={isRequestingTwoFAOtp}
+                className={twoFAEnabled ? 'dd-danger-button w-full' : 'dd-primary-button w-full'}>
+                {isRequestingTwoFAOtp
+                    ? (twoFAEnabled ? 'Sending disable OTP...' : 'Sending enable OTP...')
+                    : (twoFAEnabled ? 'Disable 2FA' : 'Enable 2FA')}
+            </button>
+        </div>
       </div>
 
-      {/* ── 2FA Setup Popup ── */}
+      {/* 2FA Setup Popup */}
       {show2FASetup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm px-4 dd-fade-in"
             onClick={()=> {if(!isVerifyingTwoFA){setShow2FASetup(false); setOtp('')}}}>
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 space-y-4"
+            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 space-y-4 border border-slate-200 dd-fade-up"
                 onClick={(e) => e.stopPropagation()}>
-                <h4 className="text-base font-semibold text-slate-800">
+                <h4 className="text-base font-bold text-slate-900">
                     {twoFAMode === 'enable' ? 'Enable Two-Factor Authentication' : 'Disable Two-Factor Authentication'}
                 </h4>
-                <p className="text-sm text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-500 leading-relaxed">
                     {twoFAMode === 'enable'
-                        ? 'We have sent an OTP to your registered email. Enter it below to enable 2FA.'
-                        : 'We have sent an OTP to your registered email. Enter it below to disable 2FA.'}
+                        ? 'We have dispatched a verification code to your registered email address. Please enter it below to activate 2FA.'
+                        : 'We have dispatched a verification code to your registered email address. Please enter it below to disable 2FA.'}
                 </p>
 
-                <OTP value={otp} onChange={setOtp} />
+                <div className="py-1">
+                    <OTP value={otp} onChange={setOtp} />
+                </div>
 
-                <div className="flex gap-2.5">
+                <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
                     <button type="button" onClick={()=> {setShow2FASetup(false); setOtp('')}}
                         disabled={isVerifyingTwoFA}
-                        className="flex-1 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+                        className="dd-ghost-button">
                         Cancel
                     </button>
                     <button type="button" onClick={handleVerify2FA}
                         disabled={isVerifyingTwoFA}
-                        className="flex-1 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-teal-600 rounded-xl transition-all shadow-sm">
+                        className="dd-primary-button">
                         {isVerifyingTwoFA
                             ? 'Verifying...'
                             : (twoFAMode === 'enable' ? 'Verify & Enable' : 'Verify & Disable')}
@@ -334,16 +329,15 @@ const SecurityPage = () => {
         </div>
       )}
 
-      {/* ── Security Tips Card ── */}
-      <div className="flex gap-3 p-4 bg-sky-50 border border-sky-100 rounded-2xl">
-        <ShieldCheck size={18} className="text-sky-400 shrink-0 mt-0.5" />
+      {/* Security Tips Card */}
+      <div className="flex gap-3 p-4 bg-sky-50/70 border border-sky-100 rounded-2xl">
+        <ShieldCheck size={18} className="text-sky-600 shrink-0 mt-0.5" />
         <div className="space-y-1.5">
-          <p className="text-sm font-medium text-slate-700">Security Tips</p>
-          <ul className="space-y-1">
-            <li className="text-xs text-slate-500 flex items-start gap-1.5"><span className="text-sky-400 mt-0.5">•</span>Use a mix of uppercase, lowercase, numbers, and symbols</li>
-            <li className="text-xs text-slate-500 flex items-start gap-1.5"><span className="text-sky-400 mt-0.5">•</span>Avoid reusing passwords across multiple sites</li>
-            <li className="text-xs text-slate-500 flex items-start gap-1.5"><span className="text-sky-400 mt-0.5">•</span>Enable two-factor authentication for extra protection</li>
-            <li className="text-xs text-slate-500 flex items-start gap-1.5"><span className="text-sky-400 mt-0.5">•</span>Change your password regularly</li>
+          <p className="text-xs font-bold uppercase tracking-wider text-sky-900">Security Recommendations</p>
+          <ul className="space-y-1 list-none p-0 m-0">
+            <li className="text-xs text-slate-600 flex items-start gap-1.5"><span className="text-sky-500 font-bold">•</span>Use a mix of uppercase, lowercase, numbers, and symbols</li>
+            <li className="text-xs text-slate-600 flex items-start gap-1.5"><span className="text-sky-500 font-bold">•</span>Avoid reusing passwords across multiple platforms</li>
+            <li className="text-xs text-slate-600 flex items-start gap-1.5"><span className="text-sky-500 font-bold">•</span>Keep Two-Factor Authentication enabled for your account</li>
           </ul>
         </div>
       </div>

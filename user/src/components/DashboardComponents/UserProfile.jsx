@@ -131,142 +131,189 @@ const UserProfile = () => {
     }
 
     return (
-        <div className="mx-auto max-w-6xl space-y-6 pb-10 dd-fade-up">
-            <section className="dd-section-card overflow-hidden p-0">
-                <div className="bg-[linear-gradient(125deg,#315e8d,#4a7db0_45%,#86a9cb)] px-5 py-5 sm:px-7">
-                    <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                        <div className="flex items-end gap-4">
+        <div className="mx-auto max-w-6xl space-y-6 pb-12 dd-fade-up">
+            {/* Hero Profile Banner */}
+            <section className="dd-section-card overflow-hidden p-0 border border-slate-200/80 shadow-[0_4px_24px_rgba(15,23,42,0.04)]">
+                <div className="relative bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 px-6 py-8 sm:px-8">
+                    <div className="pointer-events-none absolute inset-0 [background-image:radial-gradient(circle_at_100%_0%,rgba(255,255,255,0.15),transparent_40%)]" />
+
+                    <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
                             <img
-                                src={profile.profilePicture || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&background=315e8d&color=fff&size=200`}
+                                src={profile.profilePicture || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&background=6366f1&color=fff&size=200`}
                                 alt={`${profile.firstName} avatar`}
-                                className="h-24 w-24 rounded-2xl border-4 border-white bg-white object-cover shadow-lg sm:h-28 sm:w-28"
+                                className="h-24 w-24 rounded-2xl border-4 border-white/90 bg-white object-cover shadow-xl sm:h-28 sm:w-28"
                             />
                             <div className="pb-1 text-white">
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-100">Public Profile</p>
-                                <h1 className="text-2xl font-black tracking-tight sm:text-3xl">{profile.firstName} {profile.lastName}</h1>
-                                <p className="text-sm font-semibold text-blue-100">@{profile.username}</p>
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white backdrop-blur-sm">
+                                    Public Profile
+                                </span>
+                                <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl text-white">
+                                    {profile.firstName} {profile.lastName}
+                                </h1>
+                                <p className="text-sm font-medium text-indigo-100">@{profile.username}</p>
                             </div>
                         </div>
 
                         {profile.isFriend && (
-                            <div className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-600 shadow-sm">
-                                <Heart size={16} className="fill-emerald-600" /> Friends
+                            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-white/95 px-3.5 py-1.5 text-xs font-semibold text-emerald-700 shadow-md backdrop-blur-md">
+                                <Heart size={14} className="fill-emerald-600 text-emerald-600" />
+                                Friends
                             </div>
                         )}
                     </div>
                 </div>
 
-                <div className="grid gap-4 border-t border-slate-200/80 bg-white p-5 sm:grid-cols-3 sm:p-6">
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Connections</p>
-                        <p className="mt-1 text-2xl font-black text-slate-900">{profile.friendCount || 0}</p>
+                {/* Profile Stats Bar */}
+                <div className="grid grid-cols-1 gap-3 border-t border-slate-100 bg-white p-5 sm:grid-cols-3 sm:p-6">
+                    <div className="rounded-2xl border border-slate-200/70 bg-slate-50/60 p-4 transition-all hover:bg-slate-50">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Connections</p>
+                        <p className="mt-1 text-2xl font-extrabold text-indigo-600">{profile.friendCount || 0}</p>
                     </div>
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Showcased Works</p>
-                        <p className="mt-1 text-2xl font-black text-slate-900">{showcaseWorks.length}</p>
+                    <div className="rounded-2xl border border-slate-200/70 bg-slate-50/60 p-4 transition-all hover:bg-slate-50">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Showcased Works</p>
+                        <p className="mt-1 text-2xl font-extrabold text-violet-600">{showcaseWorks.length}</p>
                     </div>
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Visibility</p>
-                        <p className="mt-1 text-base font-bold capitalize text-slate-900">{profile?.privacySettings?.profileVisibility || 'public'}</p>
+                    <div className="rounded-2xl border border-slate-200/70 bg-slate-50/60 p-4 transition-all hover:bg-slate-50">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Visibility</p>
+                        <p className="mt-1 text-base font-bold capitalize text-slate-800">{profile?.privacySettings?.profileVisibility || 'public'}</p>
                     </div>
                 </div>
             </section>
 
+            {/* Profile Content Grid */}
             <div className="grid gap-6 xl:grid-cols-3">
+                {/* Left Side: Bio & Links */}
                 <section className="space-y-6 xl:col-span-1">
                     <article className="dd-section-card">
-                        <h3 className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">About</h3>
-                        <p className="mt-3 text-sm leading-6 text-slate-700">
+                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">About</h3>
+                        <p className="mt-3 text-sm leading-relaxed text-slate-600">
                             {profile.bio || "This user hasn't added a bio yet."}
                         </p>
                     </article>
 
                     <article className="dd-section-card">
-                        <h3 className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Links and Contact</h3>
-                        <div className="mt-4 space-y-3">
+                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Links and Contact</h3>
+                        <div className="mt-4 space-y-2.5">
                             {profile.privacySettings?.showEmail !== false && profile.email ? (
-                                <a href={`mailto:${profile.email}`} className="group flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 no-underline transition hover:border-slate-300 hover:bg-white">
-                                    <span className="inline-flex items-center gap-2"><Mail size={14} /> {profile.email}</span>
-                                    <ExternalLink size={14} className="text-slate-400 group-hover:text-[#315e8d]" />
+                                <a
+                                    href={`mailto:${profile.email}`}
+                                    className="group flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-700 no-underline transition hover:border-indigo-300 hover:bg-white"
+                                >
+                                    <span className="inline-flex items-center gap-2 font-medium">
+                                        <Mail size={15} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                                        {profile.email}
+                                    </span>
+                                    <ExternalLink size={14} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
                                 </a>
                             ) : (
-                                <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm italic text-slate-500">
-                                    <Mail size={14} className="text-slate-400" /> Email hidden by privacy settings
+                                <div className="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/50 px-3.5 py-2.5 text-sm italic text-slate-400">
+                                    <Mail size={15} className="text-slate-400" /> Email hidden by privacy settings
                                 </div>
                             )}
 
                             {profile.githubUrl && (
-                                <a href={profile.githubUrl} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 no-underline transition hover:border-slate-300 hover:bg-white">
-                                    <span className="inline-flex items-center gap-2"><Github size={14} /> {safeHost(profile.githubUrl)}</span>
-                                    <ExternalLink size={14} className="text-slate-400 group-hover:text-[#315e8d]" />
+                                <a
+                                    href={profile.githubUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="group flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-700 no-underline transition hover:border-indigo-300 hover:bg-white"
+                                >
+                                    <span className="inline-flex items-center gap-2 font-medium">
+                                        <Github size={15} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                                        {safeHost(profile.githubUrl)}
+                                    </span>
+                                    <ExternalLink size={14} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
                                 </a>
                             )}
 
                             {profile.linkedinUrl && (
-                                <a href={profile.linkedinUrl} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 no-underline transition hover:border-slate-300 hover:bg-white">
-                                    <span className="inline-flex items-center gap-2"><Linkedin size={14} /> LinkedIn</span>
-                                    <ExternalLink size={14} className="text-slate-400 group-hover:text-[#315e8d]" />
+                                <a
+                                    href={profile.linkedinUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="group flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-700 no-underline transition hover:border-indigo-300 hover:bg-white"
+                                >
+                                    <span className="inline-flex items-center gap-2 font-medium">
+                                        <Linkedin size={15} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                                        LinkedIn
+                                    </span>
+                                    <ExternalLink size={14} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
                                 </a>
                             )}
 
                             {profile.portfolioUrl && (
-                                <a href={profile.portfolioUrl} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 no-underline transition hover:border-slate-300 hover:bg-white">
-                                    <span className="inline-flex items-center gap-2"><LinkIcon size={14} /> {safeHost(profile.portfolioUrl)}</span>
-                                    <ExternalLink size={14} className="text-slate-400 group-hover:text-[#315e8d]" />
+                                <a
+                                    href={profile.portfolioUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="group flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-700 no-underline transition hover:border-indigo-300 hover:bg-white"
+                                >
+                                    <span className="inline-flex items-center gap-2 font-medium">
+                                        <LinkIcon size={15} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                                        {safeHost(profile.portfolioUrl)}
+                                    </span>
+                                    <ExternalLink size={14} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
                                 </a>
                             )}
                         </div>
                     </article>
                 </section>
 
+                {/* Right Side: Work Showcase */}
                 <section className="space-y-4 xl:col-span-2">
                     <article className="dd-section-card">
-                        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/80 pb-4">
+                        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-5">
                             <div>
-                                <div className="dd-page-kicker w-fit">
-                                    <Briefcase size={14} />
+                                <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200/60 bg-indigo-50/70 px-3 py-1 text-xs font-semibold text-indigo-700">
+                                    <Briefcase size={13} />
                                     <span>Work Showcase</span>
                                 </div>
-                                <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Highlighted Work and Contributions</h2>
-                                <p className="mt-1 text-sm text-slate-600">Detailed projects, outcomes, and GitHub PR links this user wants to showcase.</p>
+                                <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">Highlighted Work and Contributions</h2>
+                                <p className="mt-1 text-xs text-slate-500">Detailed projects, outcomes, and GitHub PR links showcased by this user.</p>
                             </div>
-                            <span className="dd-badge border-blue-200 bg-blue-50 text-[#315e8d]">{showcaseWorks.length} entries</span>
+                            <span className="rounded-full border border-indigo-200/70 bg-indigo-50/70 px-3 py-1 text-xs font-bold text-indigo-700">
+                                {showcaseWorks.length} entries
+                            </span>
                         </div>
 
                         {showcaseWorks.length === 0 ? (
-                            <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50/80 p-6 text-center">
-                                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#315e8d] shadow-sm">
-                                    <Sparkles size={18} />
+                            <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
+                                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                                    <Sparkles size={20} />
                                 </div>
-                                <p className="text-sm font-semibold text-slate-700">No showcased work yet</p>
-                                <p className="mt-1 text-sm text-slate-500">This profile has not added project details yet.</p>
+                                <p className="text-sm font-semibold text-slate-800">No showcased work yet</p>
+                                <p className="mt-1 text-xs text-slate-500">This profile has not added project details yet.</p>
                             </div>
                         ) : (
-                            <div className="mt-5 space-y-4">
+                            <div className="mt-6 space-y-5">
                                 {showcaseWorks.map((work) => (
-                                    <article key={work.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                                    <article
+                                        key={work.id}
+                                        className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(15,23,42,0.03)] transition-all hover:border-indigo-200/80"
+                                    >
                                         <div className="flex flex-wrap items-start justify-between gap-2">
                                             <div>
                                                 <h3 className="text-lg font-bold text-slate-900">{work.title}</h3>
-                                                <p className="mt-1 text-sm text-slate-600">{work.summary}</p>
+                                                <p className="mt-1 text-sm text-slate-600 leading-relaxed">{work.summary}</p>
                                             </div>
-                                            <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-[#315e8d]">
+                                            <span className="rounded-full border border-indigo-100 bg-indigo-50/80 px-3 py-1 text-xs font-semibold text-indigo-700">
                                                 {work.role}
                                             </span>
                                         </div>
 
                                         {(work.duration || work.createdAt) && (
-                                            <p className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-slate-500">
-                                                <CalendarClock size={12} />
+                                            <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                                                <CalendarClock size={13} />
                                                 {work.duration || `Added ${new Date(work.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
                                             </p>
                                         )}
 
                                         {work.details.length > 0 && (
-                                            <ul className="mt-3 space-y-1.5 text-sm text-slate-700">
+                                            <ul className="mt-3 space-y-1.5 text-xs text-slate-600">
                                                 {work.details.map((detail, index) => (
                                                     <li key={`${work.id}-detail-${index}`} className="flex items-start gap-2">
-                                                        <CheckCircle2 size={14} className="mt-[2px] shrink-0 text-[#315e8d]" />
+                                                        <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-indigo-600" />
                                                         <span>{detail}</span>
                                                     </li>
                                                 ))}
@@ -274,9 +321,12 @@ const UserProfile = () => {
                                         )}
 
                                         {work.techStack.length > 0 && (
-                                            <div className="mt-3 flex flex-wrap gap-2">
+                                            <div className="mt-3 flex flex-wrap gap-1.5">
                                                 {work.techStack.map((tech, index) => (
-                                                    <span key={`${work.id}-tech-${index}`} className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                                                    <span
+                                                        key={`${work.id}-tech-${index}`}
+                                                        className="rounded-lg border border-slate-200/70 bg-slate-50/80 px-2.5 py-1 text-xs font-medium text-slate-700"
+                                                    >
                                                         {tech}
                                                     </span>
                                                 ))}
@@ -284,12 +334,12 @@ const UserProfile = () => {
                                         )}
 
                                         {work.outcomes.length > 0 && (
-                                            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3">
-                                                <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Impact and Outcomes</p>
-                                                <ul className="mt-2 space-y-1.5 text-sm text-slate-700">
+                                            <div className="mt-3 rounded-xl border border-slate-200/70 bg-slate-50/60 p-3.5">
+                                                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">Impact and Outcomes</p>
+                                                <ul className="mt-2 space-y-1.5 text-xs text-slate-600">
                                                     {work.outcomes.map((item, index) => (
                                                         <li key={`${work.id}-outcome-${index}`} className="flex items-start gap-2">
-                                                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#315e8d]" />
+                                                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" />
                                                             <span>{item}</span>
                                                         </li>
                                                     ))}
@@ -297,14 +347,14 @@ const UserProfile = () => {
                                             </div>
                                         )}
 
-                                        <div className="mt-4 flex flex-wrap gap-2">
+                                        <div className="mt-4 flex flex-wrap gap-2 pt-1 border-t border-slate-100">
                                             {work.prLinks.map((link, index) => (
                                                 <a
                                                     key={`${work.id}-pr-${index}`}
                                                     href={link.url}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-[#315e8d] no-underline transition hover:bg-blue-100"
+                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200/70 bg-indigo-50/60 px-3 py-1.5 text-xs font-semibold text-indigo-700 no-underline transition hover:bg-indigo-100 hover:border-indigo-300"
                                                 >
                                                     <Github size={13} /> {link.label}
                                                 </a>
@@ -315,7 +365,7 @@ const UserProfile = () => {
                                                     href={work.repoUrl}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 no-underline transition hover:border-slate-300 hover:bg-slate-50"
+                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 no-underline transition hover:border-slate-300 hover:bg-slate-50"
                                                 >
                                                     <Github size={13} /> Repository
                                                 </a>
@@ -326,7 +376,7 @@ const UserProfile = () => {
                                                     href={work.liveUrl}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 no-underline transition hover:border-slate-300 hover:bg-slate-50"
+                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 no-underline transition hover:border-slate-300 hover:bg-slate-50"
                                                 >
                                                     <ExternalLink size={13} /> Live Demo
                                                 </a>
