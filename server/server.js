@@ -27,11 +27,33 @@ const PORT = process.env.PORT || 5000;
 
 let server;
 
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 20,
+const getPositiveIntegerEnv = (name, fallback) => {
+    const value = Number.parseInt(process.env[name], 10);
+    return Number.isInteger(value) && value > 0 ? value : fallback;
+};
+
+const RATE_LIMIT_WINDOW_MS = getPositiveIntegerEnv("RATE_LIMIT_WINDOW_MS", 15 * 60 * 1000);
+
+// Applies to every non-auth API endpoint. Authentication has a stricter limiter
+// below because it is especially susceptible to credential-stuffing attempts.
+const apiLimiter = rateLimit({
+    windowMs: RATE_LIMIT_WINDOW_MS,
+    max: getPositiveIntegerEnv("API_RATE_LIMIT_MAX", 300),
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => req.method === "OPTIONS" || req.path.startsWith("/auth"),
+    message: {
+        success: false,
+        message: "Too many requests. Please try again later.",
+    },
+});
+
+const authLimiter = rateLimit({
+    windowMs: RATE_LIMIT_WINDOW_MS,
+    max: getPositiveIntegerEnv("AUTH_RATE_LIMIT_MAX", 20),
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => req.method === "OPTIONS",
     message: {
         success: false,
         message: "Too many requests. Please try again later.",
@@ -118,6 +140,9 @@ const startServer = async () => {
 
         app.use(morgan("dev"));
 
+        // Rate-limit the complete REST API surface. The auth router remains
+        // intentionally stricter than the rest of the application.
+        app.use("/api", apiLimiter);
         app.use("/api/auth", authLimiter);
 
         app.get("/", (req, res) => {

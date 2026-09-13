@@ -265,6 +265,11 @@ cd Project-Management-System
    
    # Port
    PORT=5000
+
+   # Optional API rate-limit overrides (per client IP, per 15 minutes by default)
+   RATE_LIMIT_WINDOW_MS=900000
+   API_RATE_LIMIT_MAX=300
+   AUTH_RATE_LIMIT_MAX=20
    ```
 
 4. **Start the backend server:**
