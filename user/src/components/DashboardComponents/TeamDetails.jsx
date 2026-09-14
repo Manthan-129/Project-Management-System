@@ -35,56 +35,56 @@ const COLUMNS = [
     key: 'todo',
     label: 'To Do',
     icon: ClipboardList,
-    accentColor: 'text-sky-600',
-    bgTint: 'bg-sky-50/40',
-    borderTint: 'border-sky-200/70',
-    badgeBg: 'bg-sky-100/80 text-sky-800',
-    headerBg: 'bg-gradient-to-r from-sky-50/90 via-sky-50/50 to-white',
-    stripColor: 'bg-sky-400',
+    accentColor: 'text-sky-400',
+    bgTint: 'bg-[#0c1f38]',
+    borderTint: 'border-[#1b3a5c]',
+    badgeBg: 'bg-[#132d52] text-slate-200',
+    headerBg: 'bg-[#0e2444] border-b border-[#1b3a5c]',
+    stripColor: 'bg-sky-500',
   },
   {
     key: 'in-progress',
     label: 'In Progress',
     icon: Clock,
-    accentColor: 'text-amber-600',
-    bgTint: 'bg-amber-50/30',
-    borderTint: 'border-amber-200/70',
-    badgeBg: 'bg-amber-100/80 text-amber-800',
-    headerBg: 'bg-gradient-to-r from-amber-50/90 via-amber-50/50 to-white',
-    stripColor: 'bg-amber-400',
+    accentColor: 'text-amber-400',
+    bgTint: 'bg-[#0c1f38]',
+    borderTint: 'border-[#1b3a5c]',
+    badgeBg: 'bg-[#132d52] text-slate-200',
+    headerBg: 'bg-[#0e2444] border-b border-[#1b3a5c]',
+    stripColor: 'bg-amber-500',
   },
   {
     key: 'in-review',
     label: 'In Review',
     icon: GitPullRequest,
     accentColor: 'text-indigo-400',
-    bgTint: 'bg-indigo-950/20',
-    borderTint: 'border-indigo-800/40',
-    badgeBg: 'bg-indigo-500/20 text-indigo-300',
-    headerBg: 'bg-gradient-to-r from-indigo-950/60 via-indigo-900/40 to-slate-900/40',
+    bgTint: 'bg-[#0c1f38]',
+    borderTint: 'border-[#1b3a5c]',
+    badgeBg: 'bg-[#132d52] text-slate-200',
+    headerBg: 'bg-[#0e2444] border-b border-[#1b3a5c]',
     stripColor: 'bg-indigo-500',
   },
   {
     key: 'completed',
     label: 'Done',
     icon: CheckCircle2,
-    accentColor: 'text-emerald-600',
-    bgTint: 'bg-emerald-50/30',
-    borderTint: 'border-emerald-200/70',
-    badgeBg: 'bg-emerald-100/80 text-emerald-800',
-    headerBg: 'bg-gradient-to-r from-emerald-50/90 via-emerald-50/50 to-white',
-    stripColor: 'bg-emerald-400',
+    accentColor: 'text-emerald-400',
+    bgTint: 'bg-[#0c1f38]',
+    borderTint: 'border-[#1b3a5c]',
+    badgeBg: 'bg-[#132d52] text-slate-200',
+    headerBg: 'bg-[#0e2444] border-b border-[#1b3a5c]',
+    stripColor: 'bg-emerald-500',
   },
   {
     key: 'deleted',
     label: 'Deleted',
     icon: AlertCircle,
-    accentColor: 'text-rose-600',
-    bgTint: 'bg-rose-50/30',
-    borderTint: 'border-rose-200/70',
-    badgeBg: 'bg-rose-100/80 text-rose-800',
-    headerBg: 'bg-gradient-to-r from-rose-50/90 via-rose-50/50 to-white',
-    stripColor: 'bg-rose-400',
+    accentColor: 'text-rose-400',
+    bgTint: 'bg-[#0c1f38]',
+    borderTint: 'border-[#1b3a5c]',
+    badgeBg: 'bg-[#132d52] text-slate-200',
+    headerBg: 'bg-[#0e2444] border-b border-[#1b3a5c]',
+    stripColor: 'bg-rose-500',
   },
 ];
 
@@ -1075,7 +1075,7 @@ const TeamDetails = () => {
     });
   };
 
-  if (loading) return <Loading inline />;
+  if (loading) return <Loading />;
 
   if (!team) {
     return (
@@ -1093,31 +1093,31 @@ const TeamDetails = () => {
   return (
     <div className="space-y-5 dd-fade-up">
       {/* Team Header Banner */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200/70 bg-gradient-to-r from-indigo-50/60 via-white to-slate-50/70 p-4 shadow-xs md:flex-row md:items-center md:justify-between md:p-5">
+      <div className="flex flex-col gap-4 rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-4 text-white shadow-xs md:flex-row md:items-center md:justify-between md:p-5">
         <div className="flex items-start gap-3.5">
           <button
             type="button"
             onClick={() => navigate('/dashboard/teams')}
-            className="mt-0.5 rounded-xl border border-slate-200 bg-white p-2 text-slate-600 shadow-xs transition-colors hover:bg-slate-50 hover:text-slate-900"
+            className="mt-0.5 rounded-xl border border-[#1b3a5c] bg-[#0a1829] p-2 text-slate-300 shadow-xs transition-colors hover:bg-[#132d52] hover:text-white"
           >
             <ArrowLeft size={16} />
           </button>
 
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-black tracking-tight text-slate-900 md:text-2xl">{team.name}</h1>
+              <h1 className="text-xl font-black tracking-tight text-white md:text-2xl">{team.name}</h1>
               {isLeader && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
                   <Crown size={10} /> Leader
                 </span>
               )}
               {isAdmin && !isLeader && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
+                <span className="inline-flex items-center gap-1 rounded-full border border-indigo-500/40 bg-indigo-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-300">
                   <Shield size={10} /> Admin
                 </span>
               )}
             </div>
-            <p className="text-xs font-medium text-slate-500">{team.title}</p>
+            <p className="text-xs font-medium text-slate-300">{team.title}</p>
             {team.description && <p className="mt-0.5 text-xs text-slate-400">{team.description}</p>}
           </div>
         </div>
@@ -1166,7 +1166,7 @@ const TeamDetails = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex flex-wrap gap-1.5 rounded-xl border border-slate-200/70 bg-slate-100/60 p-1.5">
+      <div className="flex flex-wrap gap-1.5 rounded-xl border border-[#1b3a5c] bg-[#081526] p-1.5">
         {[
           { key: 'board', label: 'Kanban Board', icon: FolderKanban },
           { key: 'members', label: `Members (${visibleMembers.length})`, icon: Users },
@@ -1181,7 +1181,7 @@ const TeamDetails = () => {
               type="button"
               onClick={() => setActiveTab(item.key)}
               className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
-                active ? 'bg-white text-indigo-700 shadow-xs ring-1 ring-slate-200/70' : 'text-slate-600 hover:text-slate-900'
+                active ? 'bg-[#0c1f38] text-sky-400 shadow-xs ring-1 ring-[#1b3a5c]' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <Icon size={14} />
@@ -1194,14 +1194,14 @@ const TeamDetails = () => {
       {activeTab === 'board' && (
         <div className="space-y-4">
           {/* Filters Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200/70 bg-white p-3 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#1b3a5c] bg-[#0c1f38] p-3 text-white shadow-xs">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-500"><Filter size={13} className="inline mr-1" /> Member:</span>
+                <span className="text-xs font-semibold text-slate-300"><Filter size={13} className="inline mr-1" /> Member:</span>
                 <select
                   value={filterMember}
                   onChange={(e) => setFilterMember(e.target.value)}
-                  className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 outline-none hover:border-slate-300 focus:border-indigo-400 focus:bg-white"
+                  className="rounded-lg border border-[#1b3a5c] bg-[#0a1829] px-2.5 py-1.5 text-xs font-medium text-slate-200 outline-none hover:border-slate-400 focus:border-sky-400 focus:bg-[#0c1f38]"
                 >
                   <option value="all">All Members</option>
                   {visibleMembers.map((member) => (
@@ -1213,7 +1213,7 @@ const TeamDetails = () => {
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-slate-500">Priority:</span>
+                <span className="text-xs font-semibold text-slate-300">Priority:</span>
                 <div className="flex gap-1">
                   {PRIORITIES.map((priority) => (
                     <button
@@ -1222,8 +1222,8 @@ const TeamDetails = () => {
                       onClick={() => setFilterPriority(priority)}
                       className={`rounded-lg px-2 py-1 text-xs font-semibold capitalize transition-all ${
                         filterPriority === priority
-                          ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200'
-                          : 'text-slate-600 hover:bg-slate-100'
+                          ? 'bg-[#132d52] text-sky-300 ring-1 ring-sky-400/40'
+                          : 'text-slate-400 hover:bg-[#0a1829] hover:text-slate-200'
                       }`}
                     >
                       {priority}
@@ -1237,7 +1237,7 @@ const TeamDetails = () => {
               <button
                 type="button"
                 onClick={() => { setFilterMember('all'); setFilterPriority('all'); }}
-                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                className="rounded-lg border border-[#1b3a5c] bg-[#0a1829] px-2.5 py-1 text-xs font-semibold text-slate-300 hover:bg-[#132d52] hover:text-white"
               >
                 Reset Filters
               </button>
@@ -1269,10 +1269,10 @@ const TeamDetails = () => {
                   {/* Column Header */}
                   <div className={`mb-3 flex items-center justify-between rounded-xl border ${column.borderTint} ${column.headerBg} px-3 py-2 shadow-xs`}>
                     <div className="flex items-center gap-2">
-                      <div className={`flex h-6 w-6 items-center justify-center rounded-lg bg-white shadow-xs ${column.accentColor}`}>
+                      <div className={`flex h-6 w-6 items-center justify-center rounded-lg bg-[#0a1829] border border-[#1b3a5c] shadow-xs ${column.accentColor}`}>
                         <Icon size={14} />
                       </div>
-                      <h3 className="text-xs font-bold text-slate-800">{column.label}</h3>
+                      <h3 className="text-xs font-bold text-white">{column.label}</h3>
                     </div>
                     <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${column.badgeBg}`}>
                       {tasks.length}
@@ -1361,7 +1361,7 @@ const TeamDetails = () => {
       {activeTab === 'progress' && (
         <div className="space-y-5">
           {progressLoading ? (
-            <Loading inline />
+            <Loading />
           ) : progressData ? (
             <>
               <div className="grid gap-4 lg:grid-cols-4">
@@ -1426,13 +1426,13 @@ const TeamDetails = () => {
 
       {activeTab === 'prs' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white p-4">
+          <div className="flex items-center justify-between rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-4 text-white shadow-xs">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Team Pull Requests</h3>
-              <p className="text-sm text-gray-500">Review and track pull requests submitted for this team</p>
+              <h3 className="text-lg font-bold text-white">Team Pull Requests</h3>
+              <p className="text-sm text-slate-300">Review and track pull requests submitted for this team</p>
             </div>
 
-            <select value={prFilter} onChange={(e) => setPrFilter(e.target.value)} className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 outline-none transition-all hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 min-w-[180px]">
+            <select value={prFilter} onChange={(e) => setPrFilter(e.target.value)} className="w-full appearance-none rounded-xl border border-[#1b3a5c] bg-[#0a1829] px-4 py-2.5 text-sm font-medium text-slate-200 outline-none transition-all hover:border-slate-400 focus:border-sky-400 focus:bg-[#0c1f38] min-w-[180px]">
               <option value="all">All</option>
               <option value="pending">Pending</option>
               <option value="accepted">Accepted</option>
@@ -1441,40 +1441,40 @@ const TeamDetails = () => {
           </div>
 
           {combinedPullRequests.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-gray-500">
+            <div className="rounded-2xl border border-dashed border-[#1b3a5c] bg-[#0c1f38] p-8 text-center text-slate-300">
               No pull requests found.
             </div>
           ) : (
             <div className="grid gap-4">
               {combinedPullRequests.map((pr) => (
-                <div key={pr._id} className="rounded-2xl border border-gray-200 bg-white p-5">
+                <div key={pr._id} className="rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-5 text-white shadow-xs">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <h4 className="font-bold text-gray-900">{pr.task?.title}</h4>
-                      <p className="text-sm text-gray-500">{pr.sender?.firstName} {pr.sender?.lastName} (@{pr.sender?.username})</p>
-                      <p className="mt-1 text-xs text-gray-400">Team: {pr.team?.name}</p>
+                      <h4 className="font-bold text-white text-base">{pr.task?.title}</h4>
+                      <p className="text-sm text-slate-300">{pr.sender?.firstName} {pr.sender?.lastName} (@{pr.sender?.username})</p>
+                      <p className="mt-1 text-xs text-slate-400">Team: {pr.team?.name}</p>
                     </div>
 
-                    <span className="rounded-lg border px-2.5 py-1 text-xs font-bold uppercase text-gray-600">
+                    <span className="rounded-lg border border-[#1b3a5c] bg-[#132d52] px-2.5 py-1 text-xs font-bold uppercase text-slate-200">
                       {pr.status}
                     </span>
                   </div>
 
-                  <a href={pr.githubPRLink} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-blue-600">
+                  <a href={pr.githubPRLink} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-sky-400 hover:text-sky-300">
                     <ExternalLink size={14} /> View on GitHub
                   </a>
 
-                  {pr.message && <p className="mt-3 text-sm text-gray-600">{pr.message}</p>}
+                  {pr.message && <p className="mt-3 text-sm text-slate-300 rounded-xl border border-[#1b3a5c] bg-[#081526] p-3">{pr.message}</p>}
 
                   {pr.status !== 'pending' && pr.reviewedBy && (
-                    <p className="mt-3 text-sm text-gray-600">
+                    <p className="mt-3 text-sm text-slate-300">
                       Reviewed by {pr.reviewedBy.firstName} {pr.reviewedBy.lastName}
-                      {pr.reviewNote ? <span className="italic"> - {pr.reviewNote}</span> : null}
+                      {pr.reviewNote ? <span className="italic text-slate-400"> - {pr.reviewNote}</span> : null}
                     </p>
                   )}
 
                   {pr.status === 'pending' && canManage && (
-                    <div className="mt-4 space-y-3 rounded-xl bg-gray-50 p-4">
+                    <div className="mt-4 space-y-3 rounded-xl border border-[#1b3a5c] bg-[#081526] p-4">
                       {reviewingPR === pr._id ? (
                         <>
                           <textarea
@@ -1482,22 +1482,22 @@ const TeamDetails = () => {
                             onChange={(e) => setReviewNote(e.target.value)}
                             placeholder="Review note (optional)"
                             rows={3}
-                            className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none"
+                            className="w-full rounded-xl border border-[#1b3a5c] bg-[#0c1f38] p-3 text-sm text-white placeholder-slate-400 outline-none focus:border-sky-400"
                           />
                           <div className="flex flex-wrap gap-2">
-                            <button disabled={isReviewingPR} type="button" onClick={() => handleReviewPR(pr._id, 'accepted')} className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                            <button disabled={isReviewingPR} type="button" onClick={() => handleReviewPR(pr._id, 'accepted')} className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50">
                               {isReviewingPR ? 'Accepting...' : 'Accept'}
                             </button>
-                            <button disabled={isReviewingPR} type="button" onClick={() => handleReviewPR(pr._id, 'rejected')} className="rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                            <button disabled={isReviewingPR} type="button" onClick={() => handleReviewPR(pr._id, 'rejected')} className="rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500 disabled:opacity-50">
                               {isReviewingPR ? 'Rejecting...' : 'Reject'}
                             </button>
-                            <button disabled={isReviewingPR} type="button" onClick={() => { setReviewingPR(null); setReviewNote(''); }} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
+                            <button disabled={isReviewingPR} type="button" onClick={() => { setReviewingPR(null); setReviewNote(''); }} className="rounded-xl border border-[#1b3a5c] bg-[#0c1f38] px-3 py-2 text-sm font-semibold text-slate-300 hover:text-white disabled:opacity-50">
                               Cancel
                             </button>
                           </div>
                         </>
                       ) : (
-                        <button disabled={isReviewingPR} type="button" onClick={() => setReviewingPR(pr._id)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 disabled:opacity-50">
+                        <button disabled={isReviewingPR} type="button" onClick={() => setReviewingPR(pr._id)} className="rounded-xl border border-[#1b3a5c] bg-[#0a1829] px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-[#132d52] hover:text-white disabled:opacity-50">
                           Review PR
                         </button>
                       )}
@@ -1691,12 +1691,12 @@ const TeamDetails = () => {
 
 const StatCard = ({ title, value, icon: Icon, tone = 'indigo' }) => {
   const tones = {
-    indigo: { border: 'border-indigo-100', bg: 'bg-indigo-50/50', text: 'text-indigo-700', iconBg: 'bg-indigo-100/70 text-indigo-700' },
-    sky: { border: 'border-sky-100', bg: 'bg-sky-50/50', text: 'text-sky-700', iconBg: 'bg-sky-100/70 text-sky-700' },
-    amber: { border: 'border-amber-100', bg: 'bg-amber-50/50', text: 'text-amber-700', iconBg: 'bg-amber-100/70 text-amber-700' },
-    purple: { border: 'border-purple-100', bg: 'bg-purple-50/50', text: 'text-purple-700', iconBg: 'bg-purple-100/70 text-purple-700' },
-    emerald: { border: 'border-emerald-100', bg: 'bg-emerald-50/50', text: 'text-emerald-700', iconBg: 'bg-emerald-100/70 text-emerald-700' },
-    rose: { border: 'border-rose-100', bg: 'bg-rose-50/50', text: 'text-rose-700', iconBg: 'bg-rose-100/70 text-rose-700' },
+    indigo: { border: 'border-[#1b3a5c]', bg: 'bg-[#0c1f38]', text: 'text-indigo-400', iconBg: 'bg-indigo-500/15 text-indigo-400' },
+    sky: { border: 'border-[#1b3a5c]', bg: 'bg-[#0c1f38]', text: 'text-sky-400', iconBg: 'bg-sky-500/15 text-sky-400' },
+    amber: { border: 'border-[#1b3a5c]', bg: 'bg-[#0c1f38]', text: 'text-amber-400', iconBg: 'bg-amber-500/15 text-amber-400' },
+    purple: { border: 'border-[#1b3a5c]', bg: 'bg-[#0c1f38]', text: 'text-purple-400', iconBg: 'bg-purple-500/15 text-purple-400' },
+    emerald: { border: 'border-[#1b3a5c]', bg: 'bg-[#0c1f38]', text: 'text-emerald-400', iconBg: 'bg-emerald-500/15 text-emerald-400' },
+    rose: { border: 'border-[#1b3a5c]', bg: 'bg-[#0c1f38]', text: 'text-rose-400', iconBg: 'bg-rose-500/15 text-rose-400' },
   };
   const t = tones[tone] || tones.indigo;
 
@@ -1705,7 +1705,7 @@ const StatCard = ({ title, value, icon: Icon, tone = 'indigo' }) => {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{title}</p>
-          <p className={`mt-0.5 text-xl font-black ${t.text}`}>{value}</p>
+          <p className="mt-0.5 text-xl font-black text-white">{value}</p>
         </div>
         <div className={`rounded-lg p-1.5 ${t.iconBg}`}>
           <Icon size={15} />

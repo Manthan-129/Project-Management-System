@@ -108,7 +108,7 @@ const UserProfile = () => {
         }
     }, [token, username, authHeaders]);
 
-    if (loading) return <Loading inline />;
+    if (loading) return <Loading />;
 
     if (error === 'PrivateProfile') {
         return (

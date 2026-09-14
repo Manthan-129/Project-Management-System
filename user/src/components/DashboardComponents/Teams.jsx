@@ -131,18 +131,18 @@ const Teams = () => {
         { gradient: 'from-cyan-500 to-blue-600', borderHover: 'hover:border-cyan-300', accent: 'border-l-cyan-500' },
     ];
 
-    if(loading) return <Loading inline />;
+    if(loading) return <Loading />;
   return (
     <div className="space-y-6">
-            <div className="dd-section-card dd-fade-up">
+            <div className="rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-5 text-white shadow-xs dd-fade-up">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
                 <div className="dd-page-kicker w-fit">
                     <Users size={18} />
                     <span>Team Management</span>
                 </div>
-                <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900">My Teams</h1>
-                <p className="mt-1 text-sm text-slate-600">Manage your teams and collaborate on projects.</p>
+                <h1 className="mt-3 text-3xl font-black tracking-tight text-white">My Teams</h1>
+                <p className="mt-1 text-sm text-slate-300">Manage your teams and collaborate on projects.</p>
             </div>
             <button className="dd-primary-button w-fit" onClick={()=> setShowCreate(true)}><Plus size ={16} /> New Team</button>
             </div>

@@ -275,11 +275,11 @@ const IntegrationPage = () => {
       })}
 
       {/* Info Card */}
-      <div className="flex gap-3 p-4 bg-sky-50/70 border border-sky-100 rounded-2xl">
-        <Info size={18} className="text-sky-600 shrink-0 mt-0.5" />
+      <div className="flex gap-3 p-4 bg-[#0c1f38] border border-[#1b3a5c] rounded-2xl text-slate-200 shadow-xs">
+        <Info size={18} className="text-sky-400 shrink-0 mt-0.5" />
         <div className="space-y-1">
-          <p className="text-xs font-bold uppercase tracking-wider text-sky-900">About Integrations</p>
-          <p className="text-xs text-slate-600 leading-relaxed">
+          <p className="text-xs font-bold uppercase tracking-wider text-sky-300">About Integrations</p>
+          <p className="text-xs text-slate-300 leading-relaxed">
             Linking your accounts allows DevDash to verify repositories and track pull request reviews automatically. We only request read access. You can unlink your account at any time.
           </p>
         </div>

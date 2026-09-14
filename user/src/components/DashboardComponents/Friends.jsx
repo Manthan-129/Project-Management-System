@@ -249,20 +249,20 @@ const Friends = () => {
         {key: 'sent', label: 'Sent', count: sent.length, icon: Send},
     ]
 
-    if(loading) return <Loading inline />;
+    if(loading) return <Loading />
 
   return (
         <div className="space-y-6 dd-fade-up">
-            <div className="dd-section-card dd-fade-up">
+            <div className="rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-5 text-white shadow-xs dd-fade-up">
                 <div className="dd-page-kicker w-fit">
                     <Heart size={18}></Heart>
                     <span>Connections</span>
                 </div>
-                <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900">Friends</h1>
-                <p className="mt-1 text-sm text-slate-600">Manage connections and send friend requests.</p>
+                <h1 className="mt-3 text-3xl font-black tracking-tight text-white">Friends</h1>
+                <p className="mt-1 text-sm text-slate-300">Manage connections and send friend requests.</p>
             </div>
 
-            <form onSubmit={sendRequest} className="dd-section-card flex flex-col gap-3 md:flex-row md:items-center">
+            <form onSubmit={sendRequest} className="rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-4 text-white flex flex-col gap-3 md:flex-row md:items-center shadow-xs">
                 <div className="relative flex-1">
                     <input className="dd-input" type="text" value={username} onChange={(e)=> setUsername(e.target.value)} placeholder="Enter username to add friend..." disabled={sending} />
                 </div>
@@ -272,14 +272,14 @@ const Friends = () => {
                 </button>
             </form>
 
-            <div className="dd-section-card p-3">
+            <div className="rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-3 text-white shadow-xs">
                 {tabs.map((t)=>{
                     const TabIcon= t.icon;
                     return (
-                        <button key={t.key} onClick={()=> setTab(t.key)} className={`mr-2 inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition ${tab === t.key ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                        <button key={t.key} onClick={()=> setTab(t.key)} className={`mr-2 inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition ${tab === t.key ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-xs' : 'bg-[#0a1829] text-slate-300 hover:bg-[#132d52] hover:text-white'}`}>
                             <TabIcon size={16} />
                             <span>{t.label}</span>
-                            {t.count > 0 && <span className={`rounded-full px-2 py-0.5 text-xs ${tab === t.key ? 'bg-white/20 text-white' : 'bg-white text-slate-600'}`}>{t.count}</span>}
+                            {t.count > 0 && <span className={`rounded-full px-2 py-0.5 text-xs ${tab === t.key ? 'bg-white/20 text-white' : 'bg-[#132d52] text-slate-300'}`}>{t.count}</span>}
                         </button>
                     )
                 })}

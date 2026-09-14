@@ -330,14 +330,14 @@ const SecurityPage = () => {
       )}
 
       {/* Security Tips Card */}
-      <div className="flex gap-3 p-4 bg-sky-50/70 border border-sky-100 rounded-2xl">
-        <ShieldCheck size={18} className="text-sky-600 shrink-0 mt-0.5" />
+      <div className="flex gap-3 p-4 bg-[#0c1f38] border border-[#1b3a5c] rounded-2xl text-slate-200 shadow-xs">
+        <ShieldCheck size={18} className="text-sky-400 shrink-0 mt-0.5" />
         <div className="space-y-1.5">
-          <p className="text-xs font-bold uppercase tracking-wider text-sky-900">Security Recommendations</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-sky-300">Security Recommendations</p>
           <ul className="space-y-1 list-none p-0 m-0">
-            <li className="text-xs text-slate-600 flex items-start gap-1.5"><span className="text-sky-500 font-bold">•</span>Use a mix of uppercase, lowercase, numbers, and symbols</li>
-            <li className="text-xs text-slate-600 flex items-start gap-1.5"><span className="text-sky-500 font-bold">•</span>Avoid reusing passwords across multiple platforms</li>
-            <li className="text-xs text-slate-600 flex items-start gap-1.5"><span className="text-sky-500 font-bold">•</span>Keep Two-Factor Authentication enabled for your account</li>
+            <li className="text-xs text-slate-300 flex items-start gap-1.5"><span className="text-sky-400 font-bold">•</span>Use a mix of uppercase, lowercase, numbers, and symbols</li>
+            <li className="text-xs text-slate-300 flex items-start gap-1.5"><span className="text-sky-400 font-bold">•</span>Avoid reusing passwords across multiple platforms</li>
+            <li className="text-xs text-slate-300 flex items-start gap-1.5"><span className="text-sky-400 font-bold">•</span>Keep Two-Factor Authentication enabled for your account</li>
           </ul>
         </div>
       </div>

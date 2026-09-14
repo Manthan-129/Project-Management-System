@@ -1,6 +1,6 @@
 import { SlidersHorizontal } from 'lucide-react'
 import { useContext, useEffect } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import Sidebar from '../components/SettingComponents/Sidebar'
 import { AppContext } from '../context/AppContext.jsx'
 
@@ -19,11 +19,11 @@ const SettingPage = () => {
         <Sidebar />
 
         <main className="min-w-0 flex-1">
-          <div className="min-h-[calc(100vh-3rem)] rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-[0_4px_24px_rgba(15,23,42,0.03)] backdrop-blur-md md:p-6">
-            <div className="mb-6 border-b border-slate-100 pb-5">
+          <div className="min-h-[calc(100vh-3rem)] rounded-2xl border border-[#1b3a5c] bg-[#071322]/80 p-4 shadow-[0_4px_24px_rgba(15,23,42,0.03)] backdrop-blur-md md:p-6">
+            <div className="mb-6 rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-5 text-white shadow-xs">
               <span className="dd-page-kicker"><SlidersHorizontal size={13} /> Workspace Settings</span>
-              <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-900 md:text-3xl">Shape your workspace</h1>
-              <p className="mt-1 text-sm text-slate-500">Tune account, privacy, security, and integrations from one place.</p>
+              <h1 className="mt-3 text-2xl font-black tracking-tight text-white md:text-3xl">Shape your workspace</h1>
+              <p className="mt-1 text-sm text-slate-300">Tune account, privacy, security, and integrations from one place.</p>
             </div>
 
             <div className="overflow-y-auto">

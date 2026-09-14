@@ -12,56 +12,56 @@ const KANBAN_COLUMNS= [
         key: 'todo',
         name: 'To Do',
         icon: ClipboardList,
-        accentColor: 'text-sky-600',
-        bgTint: 'bg-sky-50/40',
-        borderTint: 'border-sky-200/70',
-        badgeBg: 'bg-sky-100/80 text-sky-800',
-        headerBg: 'bg-gradient-to-r from-sky-50/90 via-sky-50/50 to-white',
-        stripColor: 'bg-sky-400',
+        accentColor: 'text-sky-400',
+        bgTint: 'bg-[#0c1f38]',
+        borderTint: 'border-[#1b3a5c]',
+        badgeBg: 'bg-[#132d52] text-slate-200',
+        headerBg: 'bg-[#0e2444] border-b border-[#1b3a5c]',
+        stripColor: 'bg-sky-500',
     },
     {
         key: 'in-progress',
         name: 'In Progress',
         icon: Clock,
-        accentColor: 'text-amber-600',
-        bgTint: 'bg-amber-50/30',
-        borderTint: 'border-amber-200/70',
-        badgeBg: 'bg-amber-100/80 text-amber-800',
-        headerBg: 'bg-gradient-to-r from-amber-50/90 via-amber-50/50 to-white',
-        stripColor: 'bg-amber-400',
+        accentColor: 'text-amber-400',
+        bgTint: 'bg-[#0c1f38]',
+        borderTint: 'border-[#1b3a5c]',
+        badgeBg: 'bg-[#132d52] text-slate-200',
+        headerBg: 'bg-[#0e2444] border-b border-[#1b3a5c]',
+        stripColor: 'bg-amber-500',
     },
     {
         key: 'in-review',
         name: 'In Review',
         icon: GitPullRequest,
         accentColor: 'text-indigo-400',
-        bgTint: 'bg-indigo-950/20',
-        borderTint: 'border-indigo-800/40',
-        badgeBg: 'bg-indigo-500/20 text-indigo-300',
-        headerBg: 'bg-gradient-to-r from-indigo-950/60 via-indigo-900/40 to-slate-900/40',
+        bgTint: 'bg-[#0c1f38]',
+        borderTint: 'border-[#1b3a5c]',
+        badgeBg: 'bg-[#132d52] text-slate-200',
+        headerBg: 'bg-[#0e2444] border-b border-[#1b3a5c]',
         stripColor: 'bg-indigo-500',
     },
     {
         key: 'completed',
         name: 'Completed',
         icon: CheckCircle2,
-        accentColor: 'text-emerald-600',
-        bgTint: 'bg-emerald-50/30',
-        borderTint: 'border-emerald-200/70',
-        badgeBg: 'bg-emerald-100/80 text-emerald-800',
-        headerBg: 'bg-gradient-to-r from-emerald-50/90 via-emerald-50/50 to-white',
-        stripColor: 'bg-emerald-400',
+        accentColor: 'text-emerald-400',
+        bgTint: 'bg-[#0c1f38]',
+        borderTint: 'border-[#1b3a5c]',
+        badgeBg: 'bg-[#132d52] text-slate-200',
+        headerBg: 'bg-[#0e2444] border-b border-[#1b3a5c]',
+        stripColor: 'bg-emerald-500',
     },
     {
         key: 'deleted',
         name: 'Deleted',
         icon: Trash2,
-        accentColor: 'text-rose-600',
-        bgTint: 'bg-rose-50/30',
-        borderTint: 'border-rose-200/70',
-        badgeBg: 'bg-rose-100/80 text-rose-800',
-        headerBg: 'bg-gradient-to-r from-rose-50/90 via-rose-50/50 to-white',
-        stripColor: 'bg-rose-400',
+        accentColor: 'text-rose-400',
+        bgTint: 'bg-[#0c1f38]',
+        borderTint: 'border-[#1b3a5c]',
+        badgeBg: 'bg-[#132d52] text-slate-200',
+        headerBg: 'bg-[#0e2444] border-b border-[#1b3a5c]',
+        stripColor: 'bg-rose-500',
     },
 ];
 
@@ -379,7 +379,7 @@ const TaskWorkspaceBoard = () => {
         return daysLeft;
     }
 
-    if(loading) return <Loading inline />;
+    if(loading) return <Loading />;
 
 
     const tabs= [
@@ -393,17 +393,17 @@ const TaskWorkspaceBoard = () => {
   return (
     <div className="space-y-5 dd-fade-up">
         {/* Header */}
-        <div className="flex flex-col gap-2 rounded-2xl border border-slate-200/70 bg-gradient-to-r from-indigo-50/60 via-white to-slate-50/70 p-4 shadow-xs md:p-5">
+        <div className="flex flex-col gap-2 rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-4 text-white shadow-xs md:p-5">
             <div className="dd-page-kicker w-fit">
                 <FolderKanban size={14} />
                 <span>Task Workspace</span>
             </div>
-            <h1 className="text-xl font-black tracking-tight text-slate-900 md:text-2xl">My Cross-Team Tasks</h1>
-            <p className="text-xs font-medium text-slate-500">Track and manage tasks assigned to or by you across all teams.</p>
+            <h1 className="text-xl font-black tracking-tight text-white md:text-2xl">My Cross-Team Tasks</h1>
+            <p className="text-xs font-medium text-slate-300">Track and manage tasks assigned to or by you across all teams.</p>
         </div>
 
         {/* Category Tabs */}
-        <div className="flex flex-wrap gap-1.5 rounded-xl border border-slate-200/70 bg-slate-100/60 p-1.5">
+        <div className="flex flex-wrap gap-1.5 rounded-xl border border-[#1b3a5c] bg-[#081526] p-1.5">
             {tabs.map((t)=>{
                 const TabIcon= t.icon;
                 const active = tab === t.key;
@@ -412,13 +412,13 @@ const TaskWorkspaceBoard = () => {
                         key={t.key}
                         onClick={()=> setTab(t.key)}
                         className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
-                            active ? 'bg-white text-indigo-700 shadow-xs ring-1 ring-slate-200/70' : 'text-slate-600 hover:text-slate-900'
+                            active ? 'bg-[#0c1f38] text-sky-400 shadow-xs ring-1 ring-[#1b3a5c]' : 'text-slate-400 hover:text-slate-200'
                         }`}
                     >
                         <TabIcon size={14} />
                         <span>{t.label}</span>
                         {t.count > 0 && (
-                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${active ? 'bg-indigo-100 text-indigo-800' : 'bg-white text-slate-600'}`}>{t.count}</span>
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${active ? 'bg-[#132d52] text-sky-300' : 'bg-[#0a1829] text-slate-300'}`}>{t.count}</span>
                         )}
                     </button>
                 )
@@ -439,10 +439,10 @@ const TaskWorkspaceBoard = () => {
                         {/* Column Header */}
                         <div className={`mb-3 flex items-center justify-between rounded-xl border ${col.borderTint} ${col.headerBg} px-3 py-2 shadow-xs`}>
                             <div className="flex items-center gap-2">
-                                <div className={`flex h-6 w-6 items-center justify-center rounded-lg bg-white shadow-xs ${col.accentColor}`}>
+                                <div className={`flex h-6 w-6 items-center justify-center rounded-lg bg-[#0a1829] border border-[#1b3a5c] shadow-xs ${col.accentColor}`}>
                                     <Icon size={14} />
                                 </div>
-                                <h3 className="text-xs font-bold text-slate-800">{col.name}</h3>
+                                <h3 className="text-xs font-bold text-white">{col.name}</h3>
                             </div>
                             <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${col.badgeBg}`}>
                                 {colTasks.length}

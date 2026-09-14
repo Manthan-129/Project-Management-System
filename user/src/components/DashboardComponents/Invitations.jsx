@@ -162,21 +162,21 @@ const Invitations = () => {
         },
     ]
 
-    if(loading) return <Loading inline />;
+    if(loading) return <Loading />;
 
   return (
     <div className="space-y-6 dd-fade-up">
-        <div className="dd-section-card dd-fade-up">
-            <h1 className="text-3xl font-black tracking-tight text-slate-900">Team Invitations</h1>
-            <p className="mt-1 text-sm text-slate-600">Manage your team invitations.</p>
+        <div className="rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-5 text-white shadow-xs dd-fade-up">
+            <h1 className="text-3xl font-black tracking-tight text-white">Team Invitations</h1>
+            <p className="mt-1 text-sm text-slate-300">Manage your team invitations.</p>
         </div>
 
         {/* Tabs */}
-        <div className="dd-section-card p-3">
+        <div className="rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-3 text-white shadow-xs">
             {tabs.map(t=> (
-                <button key= {t.key} onClick={()=> setTab(t.key)} className={`mr-2 inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition ${tab === t.key ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                <button key= {t.key} onClick={()=> setTab(t.key)} className={`mr-2 inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition ${tab === t.key ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-xs' : 'bg-[#0a1829] text-slate-300 hover:bg-[#132d52] hover:text-white'}`}>
                     {t.label}
-                    {t.count > 0 && <span className={`rounded-full px-2 py-0.5 text-xs ${tab === t.key ? 'bg-white/20 text-white' : 'bg-white text-slate-600'}`}>{t.count}</span>}
+                    {t.count > 0 && <span className={`rounded-full px-2 py-0.5 text-xs ${tab === t.key ? 'bg-white/20 text-white' : 'bg-[#132d52] text-slate-300'}`}>{t.count}</span>}
                 </button>
             ))}
         </div>

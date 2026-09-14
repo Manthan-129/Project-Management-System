@@ -216,7 +216,7 @@ const DashboardOverview = () => {
             .slice(0, 6);
     }, [allTasks]);
 
-    if (loading) return <Loading inline />;
+    if (loading) return <Loading />;
 
     if (teams.length === 0) {
         return (
@@ -274,24 +274,24 @@ const DashboardOverview = () => {
 
     return (
         <div className="space-y-5 dd-fade-up">
-            <section className="flex flex-col gap-4 rounded-2xl border border-slate-200/70 bg-gradient-to-r from-indigo-50/60 via-white to-slate-50/70 p-4 shadow-xs md:flex-row md:items-center md:justify-between md:p-5">
+            <section className="flex flex-col gap-4 rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-4 shadow-md md:flex-row md:items-center md:justify-between md:p-5">
                 <div className="space-y-1.5">
-                    <div className="dd-page-kicker w-fit">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-indigo-400/30 bg-indigo-500/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-indigo-300">
                         <Sparkles size={13} />
                         <span>Mission Control</span>
                     </div>
-                    <h1 className="text-xl font-black tracking-tight text-slate-900 md:text-2xl">Team Command Center</h1>
-                    <p className="text-xs font-medium text-slate-500">Real-time overview of tasks, priorities, workload, and deadlines.</p>
+                    <h1 className="text-xl font-black tracking-tight text-white md:text-2xl">Team Command Center</h1>
+                    <p className="text-xs font-medium text-slate-300">Real-time overview of tasks, priorities, workload, and deadlines.</p>
                 </div>
-                <div className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white p-2 shadow-xs">
+                <div className="flex items-center gap-2 rounded-xl border border-[#1b3a5c] bg-[#071322] p-2 shadow-xs">
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1.5">Team:</span>
                     <select
-                        className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800 outline-none hover:border-slate-300 focus:border-indigo-400 focus:bg-white min-w-[160px]"
+                        className="rounded-lg border border-[#1b3a5c] bg-[#0c1f38] px-3 py-1.5 text-xs font-semibold text-white outline-none hover:border-indigo-400 focus:border-indigo-400 min-w-[160px]"
                         value={selectedTeam}
                         onChange={(e) => setSelectedTeam(e.target.value)}
                     >
                         {teams.map((item) => (
-                            <option key={item._id} value={item._id}>
+                            <option key={item._id} value={item._id} className="bg-[#0c1f38] text-white">
                                 {item.name}
                             </option>
                         ))}
@@ -331,15 +331,15 @@ const DashboardOverview = () => {
                         {todayFocus.length === 0 && <p className="text-xs text-slate-400">No active focus items right now.</p>}
 
                         {todayFocus.map((task) => (
-                            <div key={task._id} className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-3 transition-all hover:bg-white hover:shadow-xs">
+                            <div key={task._id} className="rounded-xl border border-[#1b3a5c] bg-[#0c1f38] p-3 transition-all hover:border-[#264d79]">
                                 <div className="flex items-start justify-between gap-2">
-                                    <h3 className="text-xs font-bold text-slate-800 line-clamp-1">{task.title}</h3>
-                                    <span className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-600">
+                                    <h3 className="text-xs font-bold text-white line-clamp-1">{task.title}</h3>
+                                    <span className="rounded-md border border-slate-700 bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-300">
                                         {task.priority}
                                     </span>
                                 </div>
 
-                                <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+                                <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
                                     <span className="inline-flex items-center gap-1">
                                         <Users size={11} className="text-slate-400" /> {task.assignedTo?.firstName || 'Member'}
                                     </span>
@@ -389,28 +389,28 @@ const DashboardOverview = () => {
                     <div className="max-h-64 overflow-y-auto pr-1.5 custom-scrollbar space-y-2.5">
                         {memberLoad.length === 0 && <p className="text-xs text-slate-400">No workload data available.</p>}
                         {memberLoad.map((member) => (
-                            <div key={member.id} className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-3">
+                            <div key={member.id} className="rounded-xl border border-[#1b3a5c] bg-[#0c1f38] p-3">
                                 <div className="flex items-center justify-between gap-2">
-                                    <span className="text-xs font-bold text-slate-800">{member.name}</span>
-                                    <span className="text-[11px] font-medium text-slate-500">
+                                    <span className="text-xs font-bold text-white">{member.name}</span>
+                                    <span className="text-[11px] font-medium text-slate-400">
                                         {member.completed} done / {member.active} active
                                     </span>
                                 </div>
                                 <div className="mt-2 space-y-1">
                                     <div className="flex items-center justify-between text-[10px]">
                                         <span className="font-semibold text-slate-400">Capacity</span>
-                                        <span className="font-bold text-slate-600">
+                                        <span className="font-bold text-slate-300">
                                             {Math.min(100, Math.round((member.active / 8) * 100))}%
                                         </span>
                                     </div>
-                                    <div className="h-1.5 rounded-full bg-slate-200/70 overflow-hidden">
+                                    <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden">
                                         <div
                                             className={`h-full rounded-full transition-all duration-300 ${
                                                 member.active >= 6
                                                     ? 'bg-rose-500'
                                                     : member.active >= 4
-                                                      ? 'bg-amber-500'
-                                                      : 'bg-emerald-500'
+                                                       ? 'bg-amber-500'
+                                                       : 'bg-emerald-500'
                                             }`}
                                             style={{ width: `${Math.min(100, (member.active / 8) * 100)}%` }}
                                         />
@@ -438,10 +438,10 @@ const DashboardOverview = () => {
                     </div>
 
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-xl border border-sky-100 bg-sky-50/40 p-3">
+                        <div className="rounded-xl border border-[#1b3a5c] bg-[#081526]/90 p-3">
                             <div className="flex items-center justify-between gap-2 mb-2.5">
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-sky-700">Due Soon</p>
-                                <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-sky-700 shadow-xs">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-sky-400">Due Soon</p>
+                                <span className="rounded-full border border-sky-500/30 bg-sky-500/20 px-2 py-0.5 text-[10px] font-bold text-sky-300 shadow-xs">
                                     {upcomingDeadlines.length}
                                 </span>
                             </div>
@@ -459,13 +459,13 @@ const DashboardOverview = () => {
                                     const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
 
                                     return (
-                                        <div key={task._id} className="rounded-lg border border-slate-200/70 bg-white p-2.5 shadow-xs transition hover:shadow-sm">
+                                        <div key={task._id} className="rounded-lg border border-[#1b3a5c] bg-[#0c1f38] p-2.5 shadow-xs transition hover:border-[#264d79]">
                                             <div className="flex items-start justify-between gap-2">
                                                 <div className="min-w-0">
-                                                    <p className="truncate text-xs font-bold text-slate-800">{task.title}</p>
+                                                    <p className="truncate text-xs font-bold text-white">{task.title}</p>
                                                     <p className="mt-0.5 text-[10px] text-slate-400">Due {dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                                                 </div>
-                                                <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold ${daysLeft <= 1 ? 'bg-rose-50 text-rose-600 border border-rose-200' : daysLeft <= 3 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-sky-50 text-sky-700 border border-sky-200'}`}>
+                                                <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold ${daysLeft <= 1 ? 'bg-rose-950/40 text-rose-300 border border-rose-800/50' : daysLeft <= 3 ? 'bg-amber-950/40 text-amber-300 border border-amber-800/50' : 'bg-sky-950/40 text-sky-300 border border-sky-800/50'}`}>
                                                     {daysLeft < 0 ? `${Math.abs(daysLeft)}d late` : daysLeft === 0 ? 'Today' : `${daysLeft}d left`}
                                                 </span>
                                             </div>
@@ -475,10 +475,10 @@ const DashboardOverview = () => {
                             </div>
                         </div>
 
-                        <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-3">
+                        <div className="rounded-xl border border-[#1b3a5c] bg-[#081526]/90 p-3">
                             <div className="flex items-center justify-between gap-2 mb-2.5">
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Activity</p>
-                                <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-slate-600 shadow-xs">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Activity</p>
+                                <span className="rounded-full border border-slate-700 bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-300 shadow-xs">
                                     {recentUpdates.length}
                                 </span>
                             </div>
@@ -489,10 +489,10 @@ const DashboardOverview = () => {
                                 )}
 
                                 {recentUpdates.map((task) => (
-                                    <div key={task._id} className="rounded-lg border border-slate-200/70 bg-white p-2.5 shadow-xs transition hover:shadow-sm">
+                                    <div key={task._id} className="rounded-lg border border-[#1b3a5c] bg-[#0c1f38] p-2.5 shadow-xs transition hover:border-[#264d79]">
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0">
-                                                <p className="truncate text-xs font-bold text-slate-800">{task.title}</p>
+                                                <p className="truncate text-xs font-bold text-white">{task.title}</p>
                                                 <p className="mt-0.5 text-[10px] text-slate-400">
                                                     {new Date(task.updatedAt || task.createdAt).toLocaleDateString('en-US', {
                                                         month: 'short',
@@ -500,7 +500,7 @@ const DashboardOverview = () => {
                                                     })}
                                                 </p>
                                             </div>
-                                            <span className="rounded-md border border-indigo-100 bg-indigo-50 px-1.5 py-0.5 text-[9px] font-bold text-indigo-700 uppercase">
+                                            <span className="rounded-md border border-indigo-500/30 bg-indigo-500/20 px-1.5 py-0.5 text-[9px] font-bold text-indigo-300 uppercase">
                                                 {task.status}
                                             </span>
                                         </div>
@@ -517,17 +517,17 @@ const DashboardOverview = () => {
 
 const MetricCard = ({ icon, label, value, tone = 'indigo' }) => {
     const tones = {
-        indigo: { border: 'border-indigo-100', bg: 'bg-gradient-to-br from-indigo-50/70 via-white to-slate-50/50', text: 'text-indigo-700', iconBg: 'bg-indigo-100/80 text-indigo-600' },
-        sky: { border: 'border-sky-100', bg: 'bg-gradient-to-br from-sky-50/70 via-white to-slate-50/50', text: 'text-sky-700', iconBg: 'bg-sky-100/80 text-sky-600' },
-        amber: { border: 'border-amber-100', bg: 'bg-gradient-to-br from-amber-50/70 via-white to-slate-50/50', text: 'text-amber-700', iconBg: 'bg-amber-100/80 text-amber-600' },
-        emerald: { border: 'border-emerald-100', bg: 'bg-gradient-to-br from-emerald-50/70 via-white to-slate-50/50', text: 'text-emerald-700', iconBg: 'bg-emerald-100/80 text-emerald-600' },
-        rose: { border: 'border-rose-100', bg: 'bg-gradient-to-br from-rose-50/70 via-white to-slate-50/50', text: 'text-rose-700', iconBg: 'bg-rose-100/80 text-rose-600' },
-        slate: { border: 'border-slate-200', bg: 'bg-gradient-to-br from-slate-50/70 via-white to-slate-50/50', text: 'text-slate-700', iconBg: 'bg-slate-100/80 text-slate-600' },
+        indigo: { text: 'text-indigo-400', iconBg: 'bg-indigo-500/20 text-indigo-300' },
+        sky: { text: 'text-sky-400', iconBg: 'bg-sky-500/20 text-sky-300' },
+        amber: { text: 'text-amber-400', iconBg: 'bg-amber-500/20 text-amber-300' },
+        emerald: { text: 'text-emerald-400', iconBg: 'bg-emerald-500/20 text-emerald-300' },
+        rose: { text: 'text-rose-400', iconBg: 'bg-rose-500/20 text-rose-300' },
+        slate: { text: 'text-slate-200', iconBg: 'bg-slate-700/50 text-slate-300' },
     };
     const t = tones[tone] || tones.indigo;
 
     return (
-        <article className={`rounded-xl border ${t.border} ${t.bg} p-3.5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm`}>
+        <article className="rounded-xl border border-[#1b3a5c] bg-[#0c1f38] p-3.5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#254d7a]">
             <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</span>
                 <div className={`rounded-lg p-1.5 ${t.iconBg}`}>
