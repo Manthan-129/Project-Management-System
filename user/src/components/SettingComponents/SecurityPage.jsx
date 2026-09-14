@@ -294,14 +294,14 @@ const SecurityPage = () => {
 
       {/* 2FA Setup Popup */}
       {show2FASetup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm px-4 dd-fade-in"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm px-4 dd-fade-in"
             onClick={()=> {if(!isVerifyingTwoFA){setShow2FASetup(false); setOtp('')}}}>
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 space-y-4 border border-slate-200 dd-fade-up"
+            <div className="w-full max-w-md rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-6 space-y-4 text-white shadow-[0_25px_60px_rgba(0,0,0,0.5)] dd-fade-up"
                 onClick={(e) => e.stopPropagation()}>
-                <h4 className="text-base font-bold text-slate-900">
+                <h4 className="text-base font-bold text-white">
                     {twoFAMode === 'enable' ? 'Enable Two-Factor Authentication' : 'Disable Two-Factor Authentication'}
                 </h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-300 leading-relaxed">
                     {twoFAMode === 'enable'
                         ? 'We have dispatched a verification code to your registered email address. Please enter it below to activate 2FA.'
                         : 'We have dispatched a verification code to your registered email address. Please enter it below to disable 2FA.'}
@@ -311,15 +311,15 @@ const SecurityPage = () => {
                     <OTP value={otp} onChange={setOtp} />
                 </div>
 
-                <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#1b3a5c]">
                     <button type="button" onClick={()=> {setShow2FASetup(false); setOtp('')}}
                         disabled={isVerifyingTwoFA}
-                        className="dd-ghost-button">
+                        className="rounded-xl border border-[#1b3a5c] bg-[#0a1829] px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-[#132d52] hover:text-white disabled:opacity-50">
                         Cancel
                     </button>
                     <button type="button" onClick={handleVerify2FA}
                         disabled={isVerifyingTwoFA}
-                        className="dd-primary-button">
+                        className="rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition disabled:opacity-50">
                         {isVerifyingTwoFA
                             ? 'Verifying...'
                             : (twoFAMode === 'enable' ? 'Verify & Enable' : 'Verify & Disable')}

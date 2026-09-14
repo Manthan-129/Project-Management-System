@@ -150,44 +150,44 @@ const Teams = () => {
 
         {/* Create Team Modal */}
         {showCreate && (
-                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/35 px-4 dd-fade-in">
-                    <div className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_30px_80px_rgba(15,23,42,0.2)] dd-fade-up">
-                    <div className="mb-4 flex items-center justify-between gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                            <Sparkles size={18} className="text-blue-600" />
+            <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm dd-fade-in" onClick={() => { setShowCreate(false); reset(); }}>
+                <div className="w-full max-w-xl rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-6 text-white shadow-[0_25px_60px_rgba(0,0,0,0.5)] dd-fade-up" onClick={(e) => e.stopPropagation()}>
+                    <div className="mb-5 flex items-center justify-between gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1b3a5c] bg-[#132d52] text-indigo-400">
+                            <Sparkles size={18} />
                         </div>
-                        <h2 className="flex-1 text-lg font-bold text-slate-900">Create New Team</h2>
-                        <button className="rounded-xl border border-slate-200 p-2 text-slate-600" onClick={()=> {setShowCreate(false); reset();}}><X size={16}/></button>
+                        <h2 className="flex-1 text-lg font-bold tracking-tight text-white">Create New Team</h2>
+                        <button type="button" className="rounded-lg p-2 text-slate-400 transition hover:bg-[#132d52] hover:text-white" onClick={()=> {setShowCreate(false); reset();}}><X size={16}/></button>
                     </div>
 
-                   <form onSubmit={handleSubmit(createTeam)} className="space-y-4">
-                    {/* Team Name */}
-                    <div className="space-y-1">
-                        <label className="text-sm font-semibold text-slate-700">Team Name *</label>
-                        <input className="dd-input" type="text" {...register('name', { required: true })} placeholder="e.g. DevDash Core"/>
-                        {errors.name && <p className="text-xs text-rose-600">{errors.name.message}</p>}
-                    </div>
+                    <form onSubmit={handleSubmit(createTeam)} className="space-y-4">
+                        {/* Team Name */}
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">Team Name *</label>
+                            <input className="dd-input" type="text" {...register('name', { required: true })} placeholder="e.g. DevDash Core"/>
+                            {errors.name && <p className="text-xs text-rose-400">{errors.name.message}</p>}
+                        </div>
 
-                    {/* Team Title */}
-                    <div className="space-y-1">
-                        <label className="text-sm font-semibold text-slate-700">Team Title *</label>
-                        <input className="dd-input" type="text" {...register('title', { required: true })} placeholder="e.g. DevDash Developers"/>
-                        {errors.title && <p className="text-xs text-rose-600">{errors.title.message}</p>}
-                    </div>
+                        {/* Team Title */}
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">Team Title *</label>
+                            <input className="dd-input" type="text" {...register('title', { required: true })} placeholder="e.g. DevDash Developers"/>
+                            {errors.title && <p className="text-xs text-rose-400">{errors.title.message}</p>}
+                        </div>
 
-                    {/* Team Description */}
-                    <div className="space-y-1">
-                        <label className="text-sm font-semibold text-slate-700">Team Description</label>
-                        <textarea className="dd-input min-h-[90px]" {...register('description')} placeholder="Describe your team's purpose and goals..."/>
-                    </div>
+                        {/* Team Description */}
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">Team Description</label>
+                            <textarea className="dd-input min-h-[90px]" {...register('description')} placeholder="Describe your team's purpose and goals..."/>
+                        </div>
 
-                    <div className="flex justify-end gap-2">
-                        <button className="dd-ghost-button" type="button" onClick={()=>{setShowCreate(false); reset();}}>Cancel</button>
-                        <button className="dd-primary-button" type="submit" disabled={creating}>
-                            {creating ? 'Creating...' : 'Create Team'}
-                        </button>
-                    </div>
-                   </form>
+                        <div className="flex justify-end gap-2.5 pt-2">
+                            <button className="rounded-xl border border-[#1b3a5c] bg-[#0a1829] px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-[#132d52] hover:text-white" type="button" onClick={()=>{setShowCreate(false); reset();}}>Cancel</button>
+                            <button className="rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition disabled:opacity-50" type="submit" disabled={creating}>
+                                {creating ? 'Creating...' : 'Create Team'}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         )}

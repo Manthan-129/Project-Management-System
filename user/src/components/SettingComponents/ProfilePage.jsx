@@ -336,25 +336,25 @@ const ProfilePage = () => {
             {/* Password Confirmation Popup */}
             {showPasswordPopup && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm px-4 dd-fade-in"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm px-4 dd-fade-in"
                     onClick={handleClosePopup}
                 >
                     <div
-                        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 space-y-4 border border-slate-200 dd-fade-up"
+                        className="w-full max-w-md rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-6 space-y-4 text-white shadow-[0_25px_60px_rgba(0,0,0,0.5)] dd-fade-up"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Popup Header */}
-                        <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div className="flex items-start justify-between gap-3 border-b border-[#1b3a5c] pb-3">
                             <div>
-                                <h4 className="text-base font-bold text-slate-900">Confirm Changes</h4>
-                                <p className="text-xs text-slate-500 mt-0.5">
+                                <h4 className="text-base font-bold text-white">Confirm Changes</h4>
+                                <p className="text-xs text-slate-300 mt-0.5">
                                     Enter your password to verify and save profile updates.
                                 </p>
                             </div>
                             <button
                                 type="button"
                                 onClick={handleClosePopup}
-                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                                className="p-1.5 text-slate-400 hover:text-white hover:bg-[#132d52] rounded-lg transition"
                             >
                                 <X size={16} />
                             </button>
@@ -362,7 +362,7 @@ const ProfilePage = () => {
 
                         {/* Password Input */}
                         <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-slate-700">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
                                 Your Password
                             </label>
                             <div className="relative">
@@ -379,7 +379,7 @@ const ProfilePage = () => {
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     disabled={isSaving}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition"
                                 >
                                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
@@ -387,12 +387,12 @@ const ProfilePage = () => {
                         </div>
 
                         {/* Popup Action Buttons */}
-                        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+                        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#1b3a5c]">
                             <button
                                 type="button"
                                 onClick={handleClosePopup}
                                 disabled={isSaving}
-                                className="dd-ghost-button"
+                                className="rounded-xl border border-[#1b3a5c] bg-[#0a1829] px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-[#132d52] hover:text-white"
                             >
                                 Cancel
                             </button>
@@ -400,7 +400,7 @@ const ProfilePage = () => {
                                 type="button"
                                 onClick={onConfirm}
                                 disabled={!password || isSaving}
-                                className="dd-primary-button"
+                                className="rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition disabled:opacity-50"
                             >
                                 {isSaving ? 'Saving...' : 'Confirm & Save'}
                             </button>

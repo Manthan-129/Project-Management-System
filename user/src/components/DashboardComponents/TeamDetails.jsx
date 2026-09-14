@@ -1514,10 +1514,10 @@ const TeamDetails = () => {
         <Modal title="Create New Task" icon={<Sparkles size={18} />} onClose={() => { setShowCreateTask(false); setTaskForm(emptyTaskForm); }}>
           <form onSubmit={handleCreateTask} className="space-y-4">
             <Field label="Title">
-              <input value={taskForm.title} onChange={(e) => setTaskForm((prev) => ({ ...prev, title: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-3 py-2" required />
+              <input value={taskForm.title} onChange={(e) => setTaskForm((prev) => ({ ...prev, title: e.target.value }))} className="w-full rounded-xl border border-[#1b3a5c] bg-[#081526] px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" required />
             </Field>
             <Field label="Description">
-              <textarea value={taskForm.description} onChange={(e) => setTaskForm((prev) => ({ ...prev, description: e.target.value }))} rows={3} className="w-full rounded-xl border border-gray-200 px-3 py-2" />
+              <textarea value={taskForm.description} onChange={(e) => setTaskForm((prev) => ({ ...prev, description: e.target.value }))} rows={3} className="w-full rounded-xl border border-[#1b3a5c] bg-[#081526] px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
             </Field>
             <div className="grid gap-3 md:grid-cols-2">
               <Field label="Priority">
@@ -1528,7 +1528,7 @@ const TeamDetails = () => {
                 </select>
               </Field>
               <Field label="Due Date">
-                <input type="date" value={taskForm.dueDate} onChange={(e) => setTaskForm((prev) => ({ ...prev, dueDate: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-3 py-2" />
+                <input type="date" value={taskForm.dueDate} onChange={(e) => setTaskForm((prev) => ({ ...prev, dueDate: e.target.value }))} className="w-full rounded-xl border border-[#1b3a5c] bg-[#081526] px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
               </Field>
             </div>
             <Field label="Assigned To">
@@ -1539,11 +1539,11 @@ const TeamDetails = () => {
                 ))}
               </select>
             </Field>
-            <div className="flex justify-end gap-2">
-              <button disabled={isCreatingTask} type="button" onClick={() => { setShowCreateTask(false); setTaskForm(emptyTaskForm); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
+            <div className="flex justify-end gap-2.5 pt-2">
+              <button disabled={isCreatingTask} type="button" onClick={() => { setShowCreateTask(false); setTaskForm(emptyTaskForm); }} className="rounded-xl border border-[#1b3a5c] bg-[#0a1829] px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-[#132d52] hover:text-white disabled:opacity-50">
                 Cancel
               </button>
-              <button disabled={isCreatingTask} type="submit" className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+              <button disabled={isCreatingTask} type="submit" className="rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition disabled:opacity-50">
                 {isCreatingTask ? 'Creating...' : 'Create Task'}
               </button>
             </div>
@@ -1555,10 +1555,10 @@ const TeamDetails = () => {
         <Modal title="Update Task" icon={<Sparkles size={18} />} onClose={() => { setEditingTask(null); setEditingTaskForm(emptyTaskForm); }}>
           <form onSubmit={updateTaskDetails} className="space-y-4">
             <Field label="Title">
-              <input value={editingTaskForm.title} onChange={(e) => setEditingTaskForm((prev) => ({ ...prev, title: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-3 py-2" required />
+              <input value={editingTaskForm.title} onChange={(e) => setEditingTaskForm((prev) => ({ ...prev, title: e.target.value }))} className="w-full rounded-xl border border-[#1b3a5c] bg-[#081526] px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" required />
             </Field>
             <Field label="Description">
-              <textarea value={editingTaskForm.description} onChange={(e) => setEditingTaskForm((prev) => ({ ...prev, description: e.target.value }))} rows={3} className="w-full rounded-xl border border-gray-200 px-3 py-2" />
+              <textarea value={editingTaskForm.description} onChange={(e) => setEditingTaskForm((prev) => ({ ...prev, description: e.target.value }))} rows={3} className="w-full rounded-xl border border-[#1b3a5c] bg-[#081526] px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
             </Field>
             <div className="grid gap-3 md:grid-cols-2">
               <Field label="Priority">
@@ -1569,7 +1569,7 @@ const TeamDetails = () => {
                 </select>
               </Field>
               <Field label="Due Date">
-                <input type="date" value={editingTaskForm.dueDate} onChange={(e) => setEditingTaskForm((prev) => ({ ...prev, dueDate: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-3 py-2" />
+                <input type="date" value={editingTaskForm.dueDate} onChange={(e) => setEditingTaskForm((prev) => ({ ...prev, dueDate: e.target.value }))} className="w-full rounded-xl border border-[#1b3a5c] bg-[#081526] px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
               </Field>
             </div>
             <Field label="Assigned To">
@@ -1580,11 +1580,11 @@ const TeamDetails = () => {
                 ))}
               </select>
             </Field>
-            <div className="flex justify-end gap-2">
-              <button disabled={isUpdatingTask} type="button" onClick={() => setEditingTask(null)} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
+            <div className="flex justify-end gap-2.5 pt-2">
+              <button disabled={isUpdatingTask} type="button" onClick={() => setEditingTask(null)} className="rounded-xl border border-[#1b3a5c] bg-[#0a1829] px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-[#132d52] hover:text-white disabled:opacity-50">
                 Cancel
               </button>
-              <button disabled={isUpdatingTask} type="submit" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+              <button disabled={isUpdatingTask} type="submit" className="rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition disabled:opacity-50">
                 {isUpdatingTask ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
@@ -1596,16 +1596,16 @@ const TeamDetails = () => {
         <Modal title="Invite to Team" icon={<UserPlus size={18} />} onClose={() => { setShowInvite(false); setInviteForm(emptyInviteForm); }}>
           <form onSubmit={handleInvite} className="space-y-4">
             <Field label="Username">
-              <input value={inviteForm.username} onChange={(e) => setInviteForm((prev) => ({ ...prev, username: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-3 py-2" required />
+              <input value={inviteForm.username} onChange={(e) => setInviteForm((prev) => ({ ...prev, username: e.target.value }))} className="w-full rounded-xl border border-[#1b3a5c] bg-[#081526] px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" required />
             </Field>
             <Field label="Message">
-              <textarea value={inviteForm.message} onChange={(e) => setInviteForm((prev) => ({ ...prev, message: e.target.value }))} rows={3} className="w-full rounded-xl border border-gray-200 px-3 py-2" />
+              <textarea value={inviteForm.message} onChange={(e) => setInviteForm((prev) => ({ ...prev, message: e.target.value }))} rows={3} className="w-full rounded-xl border border-[#1b3a5c] bg-[#081526] px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
             </Field>
-            <div className="flex justify-end gap-2">
-              <button disabled={isInviting} type="button" onClick={() => { setShowInvite(false); setInviteForm(emptyInviteForm); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
+            <div className="flex justify-end gap-2.5 pt-2">
+              <button disabled={isInviting} type="button" onClick={() => { setShowInvite(false); setInviteForm(emptyInviteForm); }} className="rounded-xl border border-[#1b3a5c] bg-[#0a1829] px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-[#132d52] hover:text-white disabled:opacity-50">
                 Cancel
               </button>
-              <button disabled={isInviting} type="submit" className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+              <button disabled={isInviting} type="submit" className="rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition disabled:opacity-50">
                 {isInviting ? 'Inviting...' : 'Send Invite'}
               </button>
             </div>
@@ -1617,13 +1617,13 @@ const TeamDetails = () => {
         <Modal title="Submit Pull Request" icon={<GitPullRequest size={18} />} onClose={() => { setShowPRModal(false); setSelectedTaskForPR(null); setPrForm(emptyPrForm); }}>
           <form onSubmit={handleSubmitPR} className="space-y-4">
             <Field label="GitHub PR Link">
-              <input type="url" value={prForm.githubPRLink} onChange={(e) => setPrForm((prev) => ({ ...prev, githubPRLink: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-3 py-2" required />
+              <input type="url" value={prForm.githubPRLink} onChange={(e) => setPrForm((prev) => ({ ...prev, githubPRLink: e.target.value }))} className="w-full rounded-xl border border-[#1b3a5c] bg-[#081526] px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" required />
             </Field>
             <Field label="Message">
-              <textarea value={prForm.message} onChange={(e) => setPrForm((prev) => ({ ...prev, message: e.target.value }))} rows={3} className="w-full rounded-xl border border-gray-200 px-3 py-2" />
+              <textarea value={prForm.message} onChange={(e) => setPrForm((prev) => ({ ...prev, message: e.target.value }))} rows={3} className="w-full rounded-xl border border-[#1b3a5c] bg-[#081526] px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
             </Field>
-            <div className="flex justify-end gap-2">
-              <button disabled={isSubmittingPR} type="button" onClick={() => { setShowPRModal(false); setSelectedTaskForPR(null); setPrForm(emptyPrForm); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
+            <div className="flex justify-end gap-2.5 pt-2">
+              <button disabled={isSubmittingPR} type="button" onClick={() => { setShowPRModal(false); setSelectedTaskForPR(null); setPrForm(emptyPrForm); }} className="rounded-xl border border-[#1b3a5c] bg-[#0a1829] px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-[#132d52] hover:text-white disabled:opacity-50">
                 Cancel
               </button>
               <button disabled={isSubmittingPR} type="submit" className="dd-primary-button px-4 py-2 text-sm font-semibold disabled:opacity-50">
@@ -1637,16 +1637,18 @@ const TeamDetails = () => {
       {confirmPopup.open && (
         <Modal
           title={confirmPopup.title}
-          icon={<AlertCircle size={18} />}
+          icon={<AlertCircle size={18} className={confirmPopup.intent === 'danger' ? 'text-rose-400' : 'text-amber-400'} />}
           onClose={() => setConfirmPopup({ open: false, title: '', message: '', intent: 'neutral', onConfirm: null })}
         >
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">{confirmPopup.message}</p>
-            <div className="flex justify-end gap-2">
+            <div className="rounded-xl border border-[#1b3a5c] bg-[#081526] p-3.5 text-sm leading-relaxed text-slate-200">
+              {confirmPopup.message}
+            </div>
+            <div className="flex items-center justify-end gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setConfirmPopup({ open: false, title: '', message: '', intent: 'neutral', onConfirm: null })}
-                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600"
+                className="rounded-xl border border-[#1b3a5c] bg-[#0a1829] px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-[#132d52] hover:text-white"
               >
                 Cancel
               </button>
@@ -1659,7 +1661,7 @@ const TeamDetails = () => {
                     await action();
                   }
                 }}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold text-white ${confirmPopup.intent === 'danger' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-amber-500 hover:bg-amber-600'}`}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition ${confirmPopup.intent === 'danger' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-amber-600 hover:bg-amber-500'}`}
               >
                 Confirm
               </button>
@@ -1669,16 +1671,27 @@ const TeamDetails = () => {
       )}
 
       {showTransfer && transferTarget && (
-        <Modal title="Transfer Leadership" icon={<ArrowRightLeft size={18} />} onClose={() => { setShowTransfer(false); setTransferTarget(null); }}>
+        <Modal title="Transfer Leadership" icon={<ArrowRightLeft size={18} className="text-amber-400" />} onClose={() => { setShowTransfer(false); setTransferTarget(null); }}>
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Transfer leadership to <strong>{transferTarget.firstName} {transferTarget.lastName}</strong> (@{transferTarget.username}).
+            <p className="text-sm leading-relaxed text-slate-300">
+              Are you sure you want to transfer ownership and leadership of this workspace? You will retain standard member access.
             </p>
-            <div className="flex justify-end gap-2">
-              <button disabled={isTransferringLeadership} type="button" onClick={() => { setShowTransfer(false); setTransferTarget(null); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
+            <div className="flex items-center gap-3 rounded-xl border border-[#1b3a5c] bg-[#081526] p-3">
+              <img
+                src={transferTarget.profilePicture || `https://ui-avatars.com/api/?name=${transferTarget.firstName}+${transferTarget.lastName}&background=f59e0b&color=fff`}
+                alt=""
+                className="h-10 w-10 rounded-xl object-cover ring-1 ring-[#1b3a5c]"
+              />
+              <div>
+                <p className="font-bold text-white">{transferTarget.firstName} {transferTarget.lastName}</p>
+                <p className="text-xs text-sky-400">@{transferTarget.username}</p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2.5 pt-2">
+              <button disabled={isTransferringLeadership} type="button" onClick={() => { setShowTransfer(false); setTransferTarget(null); }} className="rounded-xl border border-[#1b3a5c] bg-[#0a1829] px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-[#132d52] hover:text-white disabled:opacity-50">
                 Cancel
               </button>
-              <button disabled={isTransferringLeadership} type="button" onClick={handleTransferLeadership} className="rounded-xl bg-yellow-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+              <button disabled={isTransferringLeadership} type="button" onClick={handleTransferLeadership} className="rounded-xl bg-amber-600 hover:bg-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition disabled:opacity-50">
                 {isTransferringLeadership ? 'Transferring...' : 'Confirm Transfer'}
               </button>
             </div>
@@ -1736,8 +1749,8 @@ const StatChip = ({ label, value }) => (
 );
 
 const Field = ({ label, children }) => (
-  <label className="block space-y-1">
-    <span className="text-sm font-semibold text-gray-700">{label}</span>
+  <label className="block space-y-1.5">
+    <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">{label}</span>
     {children}
   </label>
 );
@@ -1974,14 +1987,14 @@ const TaskCard = ({
 };
 
 const Modal = ({ title, icon, onClose, children }) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
-    <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm dd-fade-in" onClick={onClose}>
+    <div className="w-full max-w-lg rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-6 text-white shadow-[0_25px_60px_rgba(0,0,0,0.5)] dd-fade-up" onClick={(e) => e.stopPropagation()}>
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {icon && <div className="rounded-xl bg-gray-100 p-2">{icon}</div>}
-          <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+          {icon && <div className="rounded-xl border border-[#1b3a5c] bg-[#132d52] p-2 text-indigo-400">{icon}</div>}
+          <h2 className="text-lg font-bold tracking-tight text-white">{title}</h2>
         </div>
-        <button type="button" onClick={onClose} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"><X size={18} /></button>
+        <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-400 transition hover:bg-[#132d52] hover:text-white"><X size={18} /></button>
       </div>
       {children}
     </div>

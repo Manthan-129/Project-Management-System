@@ -10,10 +10,10 @@ import AlertModal from './AlertModal.jsx'
 
 const EmptyState = ({ icon: Icon, text }) => (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-100 to-slate-100 flex items-center justify-center mb-4 shadow-sm">
-            <Icon size={28} className="text-gray-300" />
+        <div className="w-16 h-16 rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] flex items-center justify-center mb-4 shadow-sm">
+            <Icon size={28} className="text-slate-400" />
         </div>
-        <p className="text-sm text-gray-500 max-w-xs">{text}</p>
+        <p className="text-sm text-slate-400 max-w-xs">{text}</p>
     </div>
 );
 
@@ -31,7 +31,17 @@ const Friends = () => {
     const [isResponding, setIsResponding]= useState(false);
     const [isCancelling, setIsCancelling]= useState(false);
     const [isUnfriending, setIsUnfriending]= useState(false);
-    const [alert, setAlert]= useState({ isOpen: false, title: '', message: '', type: 'info' });
+    const [alert, setAlert]= useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        isDecision: false,
+        confirmText: 'Confirm',
+        cancelText: 'Cancel',
+        details: null,
+        onConfirm: null,
+    });
 
     const fetchFriends = async ()=>{
         try{
@@ -243,6 +253,98 @@ const Friends = () => {
         }
     }
 
+    const closeAlert = () => {
+        setAlert({
+            isOpen: false,
+            title: '',
+            message: '',
+            type: 'info',
+            isDecision: false,
+            confirmText: 'Confirm',
+            cancelText: 'Cancel',
+            details: null,
+            onConfirm: null,
+        });
+    };
+
+    const handlePromptUnfriend = (f) => {
+        setAlert({
+            isOpen: true,
+            title: `Unfriend ${f.firstName} ${f.lastName}?`,
+            message: `Are you sure you want to remove @${f.username} from your friends list? You will no longer share direct collaboration activity with them.`,
+            type: 'danger',
+            isDecision: true,
+            confirmText: 'Confirm Unfriend',
+            cancelText: 'Cancel',
+            details: (
+                <div className="flex items-center gap-3">
+                    <img
+                        src={f.profilePicture || `https://ui-avatars.com/api/?name=${f.firstName}+${f.lastName}&background=6366f1&color=fff`}
+                        alt=""
+                        className="h-10 w-10 rounded-xl object-cover ring-1 ring-[#1b3a5c]"
+                    />
+                    <div>
+                        <p className="font-bold text-white">{f.firstName} {f.lastName}</p>
+                        <p className="text-xs text-slate-400">@{f.username}</p>
+                    </div>
+                </div>
+            ),
+            onConfirm: () => unfriend(f._id),
+        });
+    };
+
+    const handlePromptCancelRequest = (s) => {
+        setAlert({
+            isOpen: true,
+            title: 'Cancel Friend Request?',
+            message: `Are you sure you want to cancel the pending friend request sent to @${s.receiver?.username}?`,
+            type: 'warning',
+            isDecision: true,
+            confirmText: 'Cancel Request',
+            cancelText: 'Keep Request',
+            details: (
+                <div className="flex items-center gap-3">
+                    <img
+                        src={s.receiver?.profilePicture || `https://ui-avatars.com/api/?name=${s.receiver?.firstName}+${s.receiver?.lastName}&background=6366f1&color=fff`}
+                        alt=""
+                        className="h-10 w-10 rounded-xl object-cover ring-1 ring-[#1b3a5c]"
+                    />
+                    <div>
+                        <p className="font-bold text-white">{s.receiver?.firstName} {s.receiver?.lastName}</p>
+                        <p className="text-xs text-slate-400">@{s.receiver?.username}</p>
+                    </div>
+                </div>
+            ),
+            onConfirm: () => cancelRequest(s._id),
+        });
+    };
+
+    const handlePromptRejectRequest = (r) => {
+        setAlert({
+            isOpen: true,
+            title: 'Decline Friend Request?',
+            message: `Are you sure you want to decline the friend request from @${r.sender?.username}?`,
+            type: 'danger',
+            isDecision: true,
+            confirmText: 'Decline Request',
+            cancelText: 'Keep Request',
+            details: (
+                <div className="flex items-center gap-3">
+                    <img
+                        src={r.sender?.profilePicture || `https://ui-avatars.com/api/?name=${r.sender?.firstName}+${r.sender?.lastName}&background=6366f1&color=fff`}
+                        alt=""
+                        className="h-10 w-10 rounded-xl object-cover ring-1 ring-[#1b3a5c]"
+                    />
+                    <div>
+                        <p className="font-bold text-white">{r.sender?.firstName} {r.sender?.lastName}</p>
+                        <p className="text-xs text-slate-400">@{r.sender?.username}</p>
+                    </div>
+                </div>
+            ),
+            onConfirm: () => respondRequest(r._id, 'rejected'),
+        });
+    };
+
     const tabs= [
         {key: 'friends', label: 'Friends', count: friends.length, icon: Heart},
         {key: 'received', label: 'Received', count: received.length, icon: Clock},
@@ -293,32 +395,32 @@ const Friends = () => {
                         friends.map((f)=>{
                             const showGreenBadge = f.privacySettings?.showOnlineStatus !== false;
                             return (
-                            <div key={f._id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/50 p-4 transition-all hover:bg-white hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                            <div key={f._id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-4 text-white transition-all hover:bg-[#0f2746] hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
                                 <div className="flex items-center gap-4">
                                     <div className="relative">
                                         <img
                                             src={f.profilePicture || `https://ui-avatars.com/api/?name=${f.firstName}+${f.lastName}&background=6366f1&color=fff`}
                                             alt=""
-                                            className="w-12 h-12 rounded-xl object-cover shadow-sm ring-2 ring-slate-100"
+                                            className="w-12 h-12 rounded-xl object-cover shadow-sm ring-2 ring-[#1b3a5c]"
                                         />
                                         {showGreenBadge && (
                                             <span className="absolute -bottom-1 -right-1 flex h-4 w-4">
                                                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                                                <span className="relative inline-flex h-4 w-4 rounded-full border-2 border-white bg-emerald-500"></span>
+                                                <span className="relative inline-flex h-4 w-4 rounded-full border-2 border-[#0c1f38] bg-emerald-500"></span>
                                             </span>
                                         )}
                                     </div>
                                     <div>
-                                        <p className="font-bold text-slate-800">{f.firstName} {f.lastName}</p>
-                                        <p className="text-sm font-medium text-slate-500">@{f.username}</p>
+                                        <p className="font-bold text-white">{f.firstName} {f.lastName}</p>
+                                        <p className="text-sm font-medium text-slate-400">@{f.username}</p>
                                     </div>
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <button type="button" onClick={() => navigate(`/dashboard/user/${f.username}`)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-indigo-600 transition-colors">
+                                    <button type="button" onClick={() => navigate(`/dashboard/user/${f.username}`)} className="rounded-xl border border-[#1b3a5c] bg-[#0a1829] px-3 py-2 text-sm font-semibold text-slate-200 shadow-sm hover:bg-[#132d52] hover:text-white transition-colors">
                                         View Profile
                                     </button>
-                                    <button disabled={isUnfriending} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition-colors disabled:opacity-50" onClick={()=> unfriend(f._id)}>
+                                    <button disabled={isUnfriending} className="rounded-xl border border-rose-500/30 bg-rose-500/15 px-3 py-2 text-sm font-semibold text-rose-300 hover:bg-rose-500/25 transition-colors disabled:opacity-50" onClick={()=> handlePromptUnfriend(f)}>
                                         <UserMinus size={14} className="inline-block" /> {isUnfriending ? 'Unfriending...' : 'Unfriend'}
                                     </button>
                                 </div>
@@ -334,16 +436,16 @@ const Friends = () => {
                         <EmptyState icon= {Clock} text="No pending requests. When someone sends you a friend request, it will appear here." />
                     ) : (
                         received.map((r)=>(
-                            <div key={r._id} className="dd-section-card flex flex-wrap items-center justify-between gap-3 p-4">
+                            <div key={r._id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-4 text-white shadow-xs">
                                 <div className="flex items-center gap-3">
                                      <img
                                         src={r.sender?.profilePicture || `https://ui-avatars.com/api/?name=${r.sender?.firstName}+${r.sender?.lastName}&background=6366f1&color=fff`}
                                         alt=""
-                                        className="w-11 h-11 rounded-xl object-cover ring-2 ring-gray-100"
+                                        className="w-11 h-11 rounded-xl object-cover ring-2 ring-[#1b3a5c]"
                                     />
                                     <div>
-                                        <p className="font-semibold text-slate-900">{r.sender?.firstName} {r.sender?.lastName}</p>
-                                        <p className="text-sm text-slate-500">@{r.sender?.username}</p>
+                                        <p className="font-semibold text-white">{r.sender?.firstName} {r.sender?.lastName}</p>
+                                        <p className="text-sm text-slate-400">@{r.sender?.username}</p>
                                     </div>
                                 </div>
 
@@ -351,7 +453,7 @@ const Friends = () => {
                                     <button disabled={isResponding} className="dd-primary-button !px-3 !py-2 disabled:opacity-50" onClick={()=> respondRequest(r._id, 'accepted')}>
                                         {isResponding ? 'Accepting...' : <><Check size={14} /> Accept</>}
                                     </button>
-                                    <button disabled={isResponding} className="dd-ghost-button !px-3 !py-2 border-rose-200 text-rose-600 hover:bg-rose-50 disabled:opacity-50" onClick={()=> respondRequest(r._id, 'rejected')}>
+                                    <button disabled={isResponding} className="rounded-xl border border-rose-500/30 bg-rose-500/15 px-3 py-2 text-sm font-semibold text-rose-300 hover:bg-rose-500/25 transition-colors disabled:opacity-50" onClick={()=> handlePromptRejectRequest(r)}>
                                         {isResponding ? 'Rejecting...' : <><X size={14} /> Reject</>}
                                     </button>
                                 </div>
@@ -367,20 +469,20 @@ const Friends = () => {
                         <EmptyState icon={Send} text="No sent requests. When you send a friend request, it will appear here until accepted or rejected." />
                     ) : (
                         sent.map((s)=> (
-                            <div key= {s._id} className="dd-section-card flex flex-wrap items-center justify-between gap-3 p-4">
+                            <div key= {s._id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1b3a5c] bg-[#0c1f38] p-4 text-white shadow-xs">
                                 <div className="flex items-center gap-3">
                                     <img
                                         src={s.receiver?.profilePicture || `https://ui-avatars.com/api/?name=${s.receiver?.firstName}+${s.receiver?.lastName}&background=6366f1&color=fff`}
                                         alt=""
-                                        className="w-11 h-11 rounded-xl object-cover ring-2 ring-gray-100"
+                                        className="w-11 h-11 rounded-xl object-cover ring-2 ring-[#1b3a5c]"
                                     />
                                     <div>
-                                        <p className="font-semibold text-slate-900">{s.receiver?.firstName} {s.receiver?.lastName}</p>
-                                        <p className="text-sm text-slate-500">@{s.receiver?.username}</p>
+                                        <p className="font-semibold text-white">{s.receiver?.firstName} {s.receiver?.lastName}</p>
+                                        <p className="text-sm text-slate-400">@{s.receiver?.username}</p>
                                     </div>
                                 </div>
-                                <button disabled={isCancelling} className="dd-ghost-button border-rose-200 text-rose-600 hover:bg-rose-50 disabled:opacity-50" onClick={()=> cancelRequest(s._id)}>
-                                    {isCancelling ? 'Cancelling...' : <><X size={14} />Cancel</>}
+                                <button disabled={isCancelling} className="rounded-xl border border-rose-500/30 bg-rose-500/15 px-3 py-2 text-sm font-semibold text-rose-300 hover:bg-rose-500/25 transition-colors disabled:opacity-50" onClick={()=> handlePromptCancelRequest(s)}>
+                                    {isCancelling ? 'Cancelling...' : <><X size={14} /> Cancel</>}
                                 </button>
                             </div>
                         ))
@@ -393,7 +495,14 @@ const Friends = () => {
                 title={alert.title}
                 message={alert.message}
                 type={alert.type}
-                onClose={() => setAlert({ isOpen: false, title: '', message: '', type: 'info' })}
+                isDecision={alert.isDecision}
+                confirmText={alert.confirmText}
+                cancelText={alert.cancelText}
+                confirmLoading={isUnfriending || isCancelling || isResponding}
+                details={alert.details}
+                onConfirm={alert.onConfirm}
+                onCancel={closeAlert}
+                onClose={closeAlert}
             />
         </div>
   )
