@@ -17,18 +17,18 @@ const iconByType= {
 };
 
 const iconColorByType = {
-    'task-added': 'text-blue-600 bg-blue-50',
-    'task-removed': 'text-red-600 bg-red-50',
-    'task-assigned': 'text-emerald-600 bg-emerald-50',
-    'task-unassigned': 'text-amber-600 bg-amber-50',
-    'task-assigned-to-me': 'text-emerald-600 bg-emerald-50',
-    'team-invitation': 'text-violet-600 bg-violet-50',
-    'team-member-removed': 'text-rose-600 bg-rose-50',
-    'friend-request': 'text-pink-600 bg-pink-50',
-    'friend-request-received': 'text-pink-600 bg-pink-50',
-    'friend-request-accepted': 'text-teal-600 bg-teal-50',
-    'pr-created': 'text-purple-600 bg-purple-50',
-    'pr-reviewed': 'text-indigo-600 bg-indigo-50',
+    'task-added': 'text-sky-400 bg-sky-500/15',
+    'task-removed': 'text-rose-400 bg-rose-500/15',
+    'task-assigned': 'text-emerald-400 bg-emerald-500/15',
+    'task-unassigned': 'text-amber-400 bg-amber-500/15',
+    'task-assigned-to-me': 'text-emerald-400 bg-emerald-500/15',
+    'team-invitation': 'text-indigo-400 bg-indigo-500/15',
+    'team-member-removed': 'text-rose-400 bg-rose-500/15',
+    'friend-request': 'text-pink-400 bg-pink-500/15',
+    'friend-request-received': 'text-pink-400 bg-pink-500/15',
+    'friend-request-accepted': 'text-emerald-400 bg-emerald-500/15',
+    'pr-created': 'text-indigo-400 bg-indigo-500/15',
+    'pr-reviewed': 'text-cyan-400 bg-cyan-500/15',
 };
 
 const formatTimeAgo= (dateString) => {
@@ -49,39 +49,39 @@ const NotificationPopup = ({notifications, unreadCount, onItemClick, onMarkAllAs
     const hasUnread= useMemo(()=> unreadCount > 0, [unreadCount]);
 
     return (
-    <div className="w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.14)]">
-        <div className="border-b border-slate-100 bg-gradient-to-r from-indigo-50/70 via-violet-50/40 to-white px-4 py-3">
+    <div className="w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-slate-800/90 bg-slate-900 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
+        <div className="border-b border-slate-800 bg-slate-950/70 px-4 py-3">
             <div className="flex items-center justify-between gap-2">
                 <div>
-                    <p className="text-sm font-bold text-slate-900">Notifications</p>
-                    <p className="text-xs text-slate-500">All app activity updates</p>
+                    <p className="text-sm font-bold text-slate-100">Notifications</p>
+                    <p className="text-xs text-slate-400">All app activity updates</p>
                 </div>
-                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-600">
+                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-slate-700 bg-slate-800 px-2 text-[11px] font-semibold text-slate-300">
                     {notifications.length}
                 </span>
             </div>
         </div>
 
-        <div className="max-h-[360px] overflow-y-auto">
+        <div className="max-h-[360px] overflow-y-auto custom-scrollbar">
             {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
-                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800 text-slate-400">
                         <Bell size={18} />
                     </div>
-                    <p className="text-sm font-semibold text-slate-700">No notifications yet</p>
+                    <p className="text-sm font-semibold text-slate-200">No notifications yet</p>
                     <p className="mt-1 text-xs text-slate-500">New team and task updates will appear here</p>
-                    </div>
+                </div>
             )
             :
             (
                 notifications.map((item) => {
                     const Icon= iconByType[item.type] || Bell;
-                    const iconColorClass = iconColorByType[item.type] || 'text-gray-600 bg-gray-100';
+                    const iconColorClass = iconColorByType[item.type] || 'text-slate-400 bg-slate-800';
 
                     return (
                         <button key={item._id}
                         onClick={() => onItemClick(item)}
-                        className={`w-full cursor-pointer border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50 ${item.isRead ? 'opacity-75' : ''}`}>
+                        className={`w-full cursor-pointer border-b border-slate-800/70 px-4 py-3 text-left transition-colors hover:bg-slate-800/50 ${item.isRead ? 'opacity-70' : ''}`}>
                             
                             <div className="flex items-start gap-3">
                                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${iconColorClass}`}>
@@ -90,11 +90,11 @@ const NotificationPopup = ({notifications, unreadCount, onItemClick, onMarkAllAs
 
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2">
-                                        <p className="truncate text-sm font-semibold text-slate-800">{item.title}</p>
-                                        {!item.isRead && <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0"></span>}
+                                        <p className="truncate text-sm font-semibold text-slate-200">{item.title}</p>
+                                        {!item.isRead && <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></span>}
                                     </div>
-                                    <p className="mt-0.5 line-clamp-2 text-xs text-slate-600">{item.message}</p>
-                                    <p className="mt-1 text-[11px] text-slate-400">{formatTimeAgo(item.createdAt)}</p>
+                                    <p className="mt-0.5 line-clamp-2 text-xs text-slate-400">{item.message}</p>
+                                    <p className="mt-1 text-[11px] text-slate-500">{formatTimeAgo(item.createdAt)}</p>
                                 </div>
                             </div>
                         </button>
@@ -103,7 +103,7 @@ const NotificationPopup = ({notifications, unreadCount, onItemClick, onMarkAllAs
             )}
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-slate-200/80 bg-slate-50/70 px-4 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-slate-800/80 bg-slate-950/70 px-4 py-3">
             <button
                 className="dd-ghost-button !px-3 !py-2 text-xs"
                 onClick={onMarkAllAsRead}

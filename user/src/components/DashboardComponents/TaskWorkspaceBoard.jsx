@@ -34,12 +34,12 @@ const KANBAN_COLUMNS= [
         key: 'in-review',
         name: 'In Review',
         icon: GitPullRequest,
-        accentColor: 'text-purple-600',
-        bgTint: 'bg-purple-50/30',
-        borderTint: 'border-purple-200/70',
-        badgeBg: 'bg-purple-100/80 text-purple-800',
-        headerBg: 'bg-gradient-to-r from-purple-50/90 via-purple-50/50 to-white',
-        stripColor: 'bg-purple-400',
+        accentColor: 'text-indigo-400',
+        bgTint: 'bg-indigo-950/20',
+        borderTint: 'border-indigo-800/40',
+        badgeBg: 'bg-indigo-500/20 text-indigo-300',
+        headerBg: 'bg-gradient-to-r from-indigo-950/60 via-indigo-900/40 to-slate-900/40',
+        stripColor: 'bg-indigo-500',
     },
     {
         key: 'completed',
@@ -379,7 +379,7 @@ const TaskWorkspaceBoard = () => {
         return daysLeft;
     }
 
-    if(loading) return <Loading />;
+    if(loading) return <Loading inline />;
 
 
     const tabs= [

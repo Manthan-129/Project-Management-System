@@ -308,6 +308,15 @@
   box-shadow: 0 0 0 4px rgba(204, 255, 102, .11) !important;
 }
 
+.aurora-app button,
+.aurora-app [role="button"] {
+  cursor: pointer;
+}
+.aurora-app button:disabled,
+.aurora-app [role="button"]:disabled {
+  cursor: not-allowed;
+}
+
 .aurora-app .dd-primary-button,
 .aurora-app button[class*='bg-gradient-to-r'] {
   color: #091323 !important;
@@ -325,7 +334,27 @@
   background: rgba(8, 20, 35, .46) !important;
   border-color: var(--aurora-line) !important;
 }
-.aurora-app .dd-danger-button { color: var(--aurora-coral) !important; }
+.aurora-app .dd-ghost-button:hover {
+  background: rgba(18, 38, 62, 0.8) !important;
+  border-color: rgba(114, 241, 197, 0.35) !important;
+  color: #fff !important;
+  transform: translateY(-1px);
+}
+.aurora-app .dd-danger-button { 
+  color: var(--aurora-coral) !important; 
+}
+.aurora-app .dd-danger-button:hover {
+  background: rgba(244, 63, 94, 0.18) !important;
+  border-color: rgba(244, 63, 94, 0.45) !important;
+  color: #ff9b9b !important;
+  transform: translateY(-1px);
+}
+
+.online-status-dot {
+  background-color: #10b981 !important;
+  box-shadow: 0 0 8px 2px rgba(16, 185, 129, 0.75) !important;
+  border: 2px solid #071221 !important;
+}
 
 /* Landing: editorial, high-contrast, product-led. */
 .aurora-landing {
@@ -412,13 +441,6 @@
   background: rgba(204,255,102,.09) !important;
 }
 .aurora-workspace [class*='hover:bg-slate-']:hover { background-color: rgba(204,255,102,.08) !important; }
-.aurora-workspace [class*='bg-emerald-'],
-.aurora-workspace [class*='bg-sky-'],
-.aurora-workspace [class*='bg-amber-'],
-.aurora-workspace [class*='bg-rose-'] { background-color: rgba(114,241,197,.09) !important; }
-.aurora-workspace [class*='text-emerald-'],
-.aurora-workspace [class*='text-sky-'],
-.aurora-workspace [class*='text-amber-'] { color: var(--aurora-mint) !important; }
 
 /* Quiet motion and a refined selection treatment. */
 .aurora-app ::selection { background: var(--aurora-lime); color: #06101d; }

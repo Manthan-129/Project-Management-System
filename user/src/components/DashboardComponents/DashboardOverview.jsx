@@ -216,7 +216,7 @@ const DashboardOverview = () => {
             .slice(0, 6);
     }, [allTasks]);
 
-    if (loading) return <Loading />;
+    if (loading) return <Loading inline />;
 
     if (teams.length === 0) {
         return (
@@ -368,7 +368,7 @@ const DashboardOverview = () => {
                             <h2 className="text-sm font-bold text-slate-800">Risk Radar</h2>
                         </div>
                     </div>
-                    <ul className="space-y-2">
+                    <ul className="max-h-64 overflow-y-auto pr-1.5 custom-scrollbar space-y-2">
                         <RiskItem label="Overdue Tasks" count={riskRadar.overDue.length} />
                         <RiskItem label="In Review Queue" count={riskRadar.longReview.length} />
                         <RiskItem label="Deleted Tasks" count={riskRadar.deleted.length} />
@@ -541,9 +541,9 @@ const MetricCard = ({ icon, label, value, tone = 'indigo' }) => {
 
 const RiskItem = ({ label, count }) => {
     return (
-        <li className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/60 px-3.5 py-2 text-xs font-semibold text-slate-700">
+        <li className="flex items-center justify-between rounded-xl border border-slate-700/60 bg-slate-900/50 px-3.5 py-2 text-xs font-semibold text-slate-200">
             <span>{label}</span>
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${count > 0 ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-500'}`}>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${count > 0 ? 'bg-rose-950/60 border border-rose-800/60 text-rose-300' : 'bg-slate-800 border border-slate-700 text-slate-400'}`}>
                 {count}
             </span>
         </li>

@@ -270,33 +270,33 @@ const AccountPage = () => {
             </div>
 
             {/* Danger Zone Card */}
-            <div className="dd-section-card border-rose-200/80 p-6 space-y-4">
-                <h3 className="flex items-center gap-2 text-base font-bold text-rose-700">
-                    <AlertTriangle size={16} className="text-rose-500" /> Danger Zone
+            <div className="dd-section-card border-rose-900/40 bg-slate-900/60 p-6 space-y-4">
+                <h3 className="flex items-center gap-2 text-base font-bold text-rose-400">
+                    <AlertTriangle size={16} className="text-rose-400" /> Danger Zone
                 </h3>
 
                 {/* Deactivate */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-amber-50/70 border border-amber-200/80">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-amber-950/20 border border-amber-900/30">
                     <div>
-                        <p className="text-sm font-bold text-amber-900">Deactivate Account</p>
-                        <p className="text-xs text-amber-700 mt-0.5">
+                        <p className="text-sm font-bold text-amber-200">Deactivate Account</p>
+                        <p className="text-xs text-amber-200/70 mt-0.5">
                             Temporarily hide your profile. Your project data stays intact and can be reactivated on next sign in.
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={() => setShowDeactivatePopup(true)}
-                        className="shrink-0 px-3.5 py-2 text-xs font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-xl transition-colors whitespace-nowrap"
+                        className="shrink-0 px-3.5 py-2 text-xs font-bold text-amber-200 bg-amber-900/30 hover:bg-amber-800/40 border border-amber-700/40 rounded-xl transition-all whitespace-nowrap"
                     >
                         Deactivate
                     </button>
                 </div>
 
                 {/* Delete */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-rose-50/70 border border-rose-200/80">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-rose-950/25 border border-rose-900/35">
                     <div>
-                        <p className="text-sm font-bold text-rose-900">Delete Account</p>
-                        <p className="text-xs text-rose-700 mt-0.5">
+                        <p className="text-sm font-bold text-rose-200">Delete Account</p>
+                        <p className="text-xs text-rose-200/70 mt-0.5">
                             Permanently remove your account, profile, and associated permissions. This action cannot be undone.
                         </p>
                     </div>

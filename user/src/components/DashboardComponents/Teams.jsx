@@ -131,7 +131,7 @@ const Teams = () => {
         { gradient: 'from-cyan-500 to-blue-600', borderHover: 'hover:border-cyan-300', accent: 'border-l-cyan-500' },
     ];
 
-    if(loading) return <Loading />;
+    if(loading) return <Loading inline />;
   return (
     <div className="space-y-6">
             <div className="dd-section-card dd-fade-up">

@@ -49,13 +49,13 @@ const DashboardSidebar = () => {
 
   return (
     <aside className="relative z-30 flex w-full flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white/80 p-3.5 shadow-[0_4px_24px_rgba(15,23,42,0.03)] backdrop-blur-md lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] lg:w-[18.5rem] lg:shrink-0 lg:self-start">
-        <div className="rounded-xl border border-slate-200/70 bg-gradient-to-br from-indigo-50/60 via-white to-slate-50/70 p-3.5 shadow-sm">
+        <div className="rounded-xl border border-slate-700/60 bg-slate-900/60 p-3.5 shadow-sm">
             <NavLink to='/' className="flex items-center gap-3 no-underline">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 shadow-sm shadow-indigo-500/20 ring-2 ring-indigo-100/80">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 shadow-sm shadow-indigo-500/20 ring-1 ring-white/20">
                     <Sparkles size={18} className="text-white" />
                 </div>
                 <div>
-                    <h1 className="text-base font-black tracking-tight text-slate-900">Dev<span className="text-indigo-600">Dash</span></h1>
+                    <h1 className="text-base font-black tracking-tight text-white">Dev<span className="text-indigo-400">Dash</span></h1>
                     <p className="text-[11px] font-medium text-slate-400">Team Workspace</p>
                 </div>
             </NavLink>
@@ -109,34 +109,34 @@ const DashboardSidebar = () => {
         </nav>
 
         {user && (
-            <div className="rounded-xl border border-slate-200/70 bg-slate-50/60 p-2.5">
-                <div className="flex items-center gap-2.5 rounded-lg border border-slate-200/70 bg-white p-2.5 shadow-xs">
+            <div className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-2.5">
+                <div className="flex items-center gap-2.5 rounded-lg border border-slate-800/60 bg-slate-950/60 p-2.5 shadow-xs">
                     <div className="relative">
                         <img
                             src={user.profilePicture || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=6366f1&color=fff`}
                             alt="avatar"
-                            className="h-9 w-9 rounded-xl object-cover ring-1 ring-slate-200 shadow-xs"
+                            className="h-9 w-9 rounded-xl object-cover ring-1 ring-slate-750 shadow-xs"
                         />
-                        <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+                        <span className="online-status-dot absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full"></span>
                     </div>
                     <div className="min-w-0 flex-1">
-                        <NavLink to={`/dashboard/user/${user.username}`} title="View Public Profile" className="block truncate text-xs font-bold text-slate-800 transition-colors hover:text-indigo-600">
+                        <NavLink to={`/dashboard/user/${user.username}`} title="View Public Profile" className="block truncate text-xs font-bold text-slate-200 transition-colors hover:text-indigo-400">
                             {user.firstName} {user.lastName}
                         </NavLink>
                         <p className="truncate text-[11px] text-slate-400">@{user.username}</p>
                     </div>
                     <div className="relative" ref={notificationRef}>
-                        <button onClick={handleToggleNotifications} className="relative rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 shadow-xs transition hover:border-slate-300 hover:text-slate-800">
+                        <button onClick={handleToggleNotifications} className="relative rounded-lg border border-slate-700 bg-slate-800/80 p-1.5 text-slate-300 shadow-xs transition hover:border-slate-600 hover:text-white">
                             <Bell size={14} />
                             {unreadNotificationsCount > 0 && (
-                                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-600 px-1 text-[9px] font-bold text-white shadow">
+                                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-500 px-1 text-[9px] font-bold text-white shadow">
                                     {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
                                 </span>
                             )}
                         </button>
 
                         {isNotificationOpen && (
-                            <div className="absolute bottom-[calc(100%+0.75rem)] -right-2 z-[130] w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl sm:-left-4 sm:right-auto">
+                            <div className="absolute bottom-[calc(100%+0.75rem)] -right-2 z-[130] w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl sm:-left-4 sm:right-auto">
                                 <NotificationPopup
                                     notifications={notifications}
                                     unreadCount={unreadNotificationsCount}

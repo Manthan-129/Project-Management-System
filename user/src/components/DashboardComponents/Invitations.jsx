@@ -162,7 +162,7 @@ const Invitations = () => {
         },
     ]
 
-    if(loading) return <Loading />;
+    if(loading) return <Loading inline />;
 
   return (
     <div className="space-y-6 dd-fade-up">

@@ -88,7 +88,7 @@ const PullRequests = () => {
         if (status === 'rejected') return 'border-l-red-400';
   }
 
-  if(loading) return <Loading />;
+  if(loading) return <Loading inline />;
   return (
     <div className="space-y-6 dd-fade-up">
       <div className="dd-section-card dd-fade-up">

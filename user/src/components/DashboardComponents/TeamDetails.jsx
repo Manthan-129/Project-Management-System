@@ -57,12 +57,12 @@ const COLUMNS = [
     key: 'in-review',
     label: 'In Review',
     icon: GitPullRequest,
-    accentColor: 'text-purple-600',
-    bgTint: 'bg-purple-50/30',
-    borderTint: 'border-purple-200/70',
-    badgeBg: 'bg-purple-100/80 text-purple-800',
-    headerBg: 'bg-gradient-to-r from-purple-50/90 via-purple-50/50 to-white',
-    stripColor: 'bg-purple-400',
+    accentColor: 'text-indigo-400',
+    bgTint: 'bg-indigo-950/20',
+    borderTint: 'border-indigo-800/40',
+    badgeBg: 'bg-indigo-500/20 text-indigo-300',
+    headerBg: 'bg-gradient-to-r from-indigo-950/60 via-indigo-900/40 to-slate-900/40',
+    stripColor: 'bg-indigo-500',
   },
   {
     key: 'completed',
@@ -1075,7 +1075,7 @@ const TeamDetails = () => {
     });
   };
 
-  if (loading) return <Loading />;
+  if (loading) return <Loading inline />;
 
   if (!team) {
     return (
@@ -1250,7 +1250,7 @@ const TeamDetails = () => {
               <StatCard title="Visible" value={totalFilteredTasks} icon={Target} tone="indigo" />
               <StatCard title="To Do" value={teamStats.byStatus?.todo || 0} icon={ClipboardList} tone="sky" />
               <StatCard title="In Progress" value={teamStats.byStatus?.['in-progress'] || 0} icon={Clock} tone="amber" />
-              <StatCard title="In Review" value={teamStats.byStatus?.['in-review'] || 0} icon={GitPullRequest} tone="purple" />
+              <StatCard title="In Review" value={teamStats.byStatus?.['in-review'] || 0} icon={GitPullRequest} tone="indigo" />
               <StatCard title="Done" value={teamStats.byStatus?.completed || 0} icon={CheckCircle2} tone="emerald" />
               <StatCard title="Deleted" value={teamStats.deletedTasks?.length || 0} icon={AlertCircle} tone="rose" />
             </div>
@@ -1361,7 +1361,7 @@ const TeamDetails = () => {
       {activeTab === 'progress' && (
         <div className="space-y-5">
           {progressLoading ? (
-            <Loading />
+            <Loading inline />
           ) : progressData ? (
             <>
               <div className="grid gap-4 lg:grid-cols-4">
@@ -1371,41 +1371,41 @@ const TeamDetails = () => {
                 <ProgressCard title="Members" value={progressData.teamSummary?.membersCount || 0} subtitle="in the leaderboard" icon={Users} />
               </div>
 
-              <div className="rounded-2xl border border-gray-200 bg-white p-5">
+              <div className="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">Member Leaderboard</h3>
-                    <p className="text-sm text-gray-500">Ranked by completion rate</p>
+                    <h3 className="text-lg font-bold text-slate-100">Member Leaderboard</h3>
+                    <p className="text-sm text-slate-400">Ranked by completion rate</p>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   {(progressData.memberProgress || []).map((entry, index) => (
-                    <div key={entry.user._id} className="rounded-2xl border border-gray-200 p-4">
+                    <div key={entry.user._id} className="rounded-2xl border border-slate-800/80 bg-slate-950/40 p-4">
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-sm font-bold text-gray-500">#{index + 1}</div>
+                          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 border border-slate-700 text-sm font-bold text-slate-300">#{index + 1}</div>
                           <img
-                            src={entry.user.profilePicture || `https://ui-avatars.com/api/?name=${entry.user.firstName}+${entry.user.lastName}&background=6366f1&color=fff`}
+                            src={entry.user.profilePicture || `https://ui-avatars.com/api/?name=${entry.user.firstName}+${entry.user.lastName}&background=1e293b&color=fff`}
                             alt=""
-                            className="h-11 w-11 rounded-xl object-cover"
+                            className="h-11 w-11 rounded-xl object-cover ring-1 ring-slate-700"
                           />
                           <div>
                             <div className="flex items-center gap-2">
-                              <p className="font-semibold text-gray-900">{entry.user.firstName} {entry.user.lastName}</p>
-                              <span className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500">{entry.role}</span>
+                              <p className="font-semibold text-slate-100">{entry.user.firstName} {entry.user.lastName}</p>
+                              <span className="rounded-lg border border-slate-700 bg-slate-800/80 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-300">{entry.role}</span>
                             </div>
-                            <p className="text-sm text-gray-500">@{entry.user.username}</p>
+                            <p className="text-sm text-slate-400">@{entry.user.username}</p>
                           </div>
                         </div>
 
                         <div className="text-right">
-                          <p className="text-2xl font-extrabold text-gray-900">{entry.stats.completionRate}%</p>
-                          <p className="text-xs text-gray-500">completion rate</p>
+                          <p className="text-2xl font-extrabold text-slate-100">{entry.stats.completionRate}%</p>
+                          <p className="text-xs text-slate-400">completion rate</p>
                         </div>
                       </div>
 
-                      <div className="mt-4 grid gap-2 text-sm text-gray-600 md:grid-cols-4">
+                      <div className="mt-4 grid gap-2 text-sm text-slate-300 md:grid-cols-4">
                         <StatChip label="Completed" value={entry.stats.completed} />
                         <StatChip label="In Progress" value={entry.stats.inProgress} />
                         <StatChip label="In Review" value={entry.stats.inReview} />
@@ -1417,7 +1417,7 @@ const TeamDetails = () => {
               </div>
             </>
           ) : (
-            <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-gray-500">
+            <div className="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/40 p-8 text-center text-slate-400">
               No progress data available yet.
             </div>
           )}
@@ -1626,7 +1626,7 @@ const TeamDetails = () => {
               <button disabled={isSubmittingPR} type="button" onClick={() => { setShowPRModal(false); setSelectedTaskForPR(null); setPrForm(emptyPrForm); }} className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">
                 Cancel
               </button>
-              <button disabled={isSubmittingPR} type="submit" className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+              <button disabled={isSubmittingPR} type="submit" className="dd-primary-button px-4 py-2 text-sm font-semibold disabled:opacity-50">
                 {isSubmittingPR ? 'Submitting...' : 'Submit PR'}
               </button>
             </div>
@@ -1716,22 +1716,22 @@ const StatCard = ({ title, value, icon: Icon, tone = 'indigo' }) => {
 };
 
 const ProgressCard = ({ title, value, subtitle, icon: Icon }) => (
-  <div className="rounded-2xl border border-gray-200 bg-white p-4">
+  <div className="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4">
     <div className="flex items-center gap-3">
-      <div className="rounded-xl bg-gray-100 p-2 text-gray-500"><Icon size={16} /></div>
+      <div className="rounded-xl bg-slate-800 border border-slate-700/70 p-2 text-indigo-400"><Icon size={16} /></div>
       <div>
-        <p className="text-sm font-semibold text-gray-500">{title}</p>
-        <p className="text-xl font-extrabold text-gray-900">{value}</p>
-        <p className="text-xs text-gray-400">{subtitle}</p>
+        <p className="text-sm font-semibold text-slate-400">{title}</p>
+        <p className="text-xl font-extrabold text-slate-100">{value}</p>
+        <p className="text-xs text-slate-500">{subtitle}</p>
       </div>
     </div>
   </div>
 );
 
 const StatChip = ({ label, value }) => (
-  <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
-    <p className="text-xs text-gray-400">{label}</p>
-    <p className="text-sm font-bold text-gray-800">{value}</p>
+  <div className="rounded-xl border border-slate-800/80 bg-slate-900/50 px-3 py-2">
+    <p className="text-xs text-slate-400">{label}</p>
+    <p className="text-sm font-bold text-slate-200">{value}</p>
   </div>
 );
 
@@ -1916,7 +1916,7 @@ const TaskCard = ({
                 disabled={isActionPending}
                 type="button"
                 onClick={() => onSubmitPR(task._id)}
-                className="rounded-md border border-purple-200 bg-purple-50 px-1.5 py-0.5 text-[9px] font-bold text-purple-700 transition-colors hover:bg-purple-100 disabled:opacity-50"
+                className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-1.5 py-0.5 text-[9px] font-bold text-indigo-300 transition-colors hover:bg-indigo-500/20 disabled:opacity-50"
               >
                 PR
               </button>
