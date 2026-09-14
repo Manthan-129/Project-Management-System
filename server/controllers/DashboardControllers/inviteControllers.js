@@ -64,6 +64,16 @@ const sendRequestToMakeFriend = async (req, res) => {
             emitToUser(receiver._id, 'friend:list_updated', {});
             emitToUser(userId, 'friend:list_updated', {});
 
+            const senderUser = await User.findById(userId).select('firstName lastName username profilePicture').lean();
+            createNotification({
+                recipient: receiver._id,
+                actor: userId,
+                type: 'friend-request-accepted',
+                title: 'Friend Request Accepted',
+                message: `${senderUser?.firstName || 'A user'} ${senderUser?.lastName || ''} accepted your friend request.`.trim(),
+                metadata: { friendId: userId, inviteId: pendingRequestFromReceiver._id },
+            });
+
             return res.status(200).json({
                 success: true,
                 message: 'Friend request accepted successfully',
@@ -184,6 +194,16 @@ const respondToFriendRequest = async (req, res) => {
         if (status === 'accepted') {
             emitToUser(invitation.sender._id, 'friend:list_updated', {});
             emitToUser(userId, 'friend:list_updated', {});
+
+            const responder = await User.findById(userId).select('firstName lastName username profilePicture').lean();
+            createNotification({
+                recipient: invitation.sender._id || invitation.sender,
+                actor: userId,
+                type: 'friend-request-accepted',
+                title: 'Friend Request Accepted',
+                message: `${responder?.firstName || 'A user'} ${responder?.lastName || ''} accepted your friend request.`.trim(),
+                metadata: { friendId: userId, inviteId },
+            });
         }
 
         emitToUser(invitation.sender._id, 'friend:request_responded', { inviteId, status, responder: userId });

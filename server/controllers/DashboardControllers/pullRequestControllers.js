@@ -3,6 +3,7 @@ const Task= require('../../models/Task');
 const User= require('../../models/User');
 const PullRequest= require('../../models/PullRequest');
 const { enqueueEmail } = require('../../queues/emailQueue');
+const { enqueueNotification } = require('../../queues/notificationQueue');
 const { pullRequestTemplate, pullRequestReviewTemplate } = require('../../utils/emailTemplates');
 const { emitToTeam, emitToUser } = require('../../configs/socket');
 const { runInTransaction } = require('../../utils/transactionHelper');
@@ -71,6 +72,20 @@ const createPullRequest= async (req, res) => {
         };
 
         enqueueEmail(mailOptions);
+
+        enqueueNotification({
+            recipient: team.leader._id || team.leader,
+            actor: userId,
+            type: 'pr-created',
+            title: 'New Pull Request submitted',
+            message: `${task.assignedTo.firstName} ${task.assignedTo.lastName} submitted a PR for "${task.title}".`,
+            metadata: {
+                taskId: task._id,
+                teamId: task.team,
+                pullRequestId: newPR._id,
+                prLink: trimmedLink,
+            },
+        });
 
         const teamIdStr = task.team.toString();
         emitToTeam(teamIdStr, "pr:created", { pullRequest: newPR, teamId: teamIdStr });
@@ -168,6 +183,20 @@ const reviewPullRequest= async (req, res) => {
         };
         
         enqueueEmail(mailOptions);
+
+        enqueueNotification({
+            recipient: pullRequest.sender._id || pullRequest.sender,
+            actor: userId,
+            type: 'pr-reviewed',
+            title: `Pull Request ${status}`,
+            message: `Your PR for "${pullRequest.task.title}" was ${status}${reviewNote ? `: "${reviewNote}"` : '.'}`,
+            metadata: {
+                taskId: pullRequest.task._id,
+                teamId: team._id,
+                pullRequestId: pullRequest._id,
+                status,
+            },
+        });
 
         const teamIdStr = (team._id || team).toString();
         emitToTeam(teamIdStr, "pr:reviewed", { pullRequest, teamId: teamIdStr });

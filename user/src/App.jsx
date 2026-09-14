@@ -41,7 +41,7 @@ const ProtectedRoute = ({ children })=>{
 
 const App = () => {
   return (
-    <div>
+    <div className="aurora-app">
       <ToastContainer />
         <Routes>
 

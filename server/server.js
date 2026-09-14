@@ -13,6 +13,8 @@ const { connectCloudinary } = require("./configs/cloudinary");
 const { initSocket } = require("./configs/socket");
 const { initEmailQueue, closeEmailQueue } = require("./queues/emailQueue");
 const { initEmailWorker, closeEmailWorker } = require("./workers/emailWorker");
+const { initNotificationQueue, closeNotificationQueue } = require("./queues/notificationQueue");
+const { initNotificationWorker, closeNotificationWorker } = require("./workers/notificationWorker");
 
 const { authRouter } = require("./routes/AuthRoutes");
 const settingsRouter = require("./routes/SettingsRoutes");
@@ -62,7 +64,12 @@ const authLimiter = rateLimit({
 
 async function shutdown(exitCode = 0) {
     try {
-        await Promise.all([closeEmailWorker(), closeEmailQueue()]);
+        await Promise.all([
+            closeEmailWorker(),
+            closeEmailQueue(),
+            closeNotificationWorker(),
+            closeNotificationQueue(),
+        ]);
     } catch (err) {
         // Silently continue shutdown
     }
@@ -101,9 +108,11 @@ const startServer = async () => {
         await connectDB();
         connectCloudinary();
 
-        // Initialize BullMQ email queue and background worker
+        // Initialize BullMQ queues and background workers
         initEmailQueue();
         initEmailWorker();
+        initNotificationQueue();
+        initNotificationWorker();
 
         app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 

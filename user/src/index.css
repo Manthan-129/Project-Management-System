@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @layer base {
@@ -228,4 +229,201 @@
 		transition-duration: 0.01ms !important;
 		scroll-behavior: auto !important;
 	}
+}
+
+/* --------------------------------------------------------------------------
+   AURORA — 2026 visual language
+   The application previously used a familiar indigo/slate SaaS treatment.
+   This layer introduces a calmer editorial workspace: midnight ink surfaces,
+   warm ivory type, and acid-lime actions. Existing component behaviour stays
+   intact while every route inherits the new visual system.
+   -------------------------------------------------------------------------- */
+:root {
+  --aurora-ink: #07111f;
+  --aurora-deep: #0b1727;
+  --aurora-panel: rgba(18, 34, 54, 0.82);
+  --aurora-panel-strong: rgba(24, 43, 67, 0.94);
+  --aurora-line: rgba(177, 199, 220, 0.16);
+  --aurora-text: #f6f2e9;
+  --aurora-muted: #9cabbc;
+  --aurora-lime: #ccff66;
+  --aurora-mint: #72f1c5;
+  --aurora-coral: #ff9b82;
+  color-scheme: dark;
+}
+
+.aurora-app {
+  min-height: 100vh;
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
+  color: var(--aurora-text);
+  background:
+    radial-gradient(circle at 6% 5%, rgba(114, 241, 197, 0.13), transparent 24rem),
+    radial-gradient(circle at 92% 3%, rgba(204, 255, 102, 0.11), transparent 20rem),
+    radial-gradient(circle at 55% 80%, rgba(99, 155, 255, 0.12), transparent 32rem),
+    var(--aurora-ink);
+}
+
+.aurora-app h1,
+.aurora-app h2,
+.aurora-app h3,
+.aurora-app h4 {
+  letter-spacing: -0.035em;
+}
+
+.aurora-app [class*='text-slate-900'],
+.aurora-app [class*='text-slate-800'],
+.aurora-app [class*='text-slate-700'] { color: var(--aurora-text) !important; }
+.aurora-app [class*='text-slate-600'],
+.aurora-app [class*='text-slate-500'],
+.aurora-app [class*='text-slate-400'] { color: var(--aurora-muted) !important; }
+.aurora-app [class*='border-slate-'] { border-color: var(--aurora-line) !important; }
+.aurora-app [class*='bg-white'],
+.aurora-app [class*='bg-slate-50'],
+.aurora-app [class*='bg-slate-100'],
+.aurora-app [class*='bg-slate-800'],
+.aurora-app [class*='bg-slate-900'],
+.aurora-app [class*='bg-slate-950'] { background-color: var(--aurora-panel) !important; }
+.aurora-app [class*='from-indigo-'],
+.aurora-app [class*='from-violet-'] { --tw-gradient-from: var(--aurora-lime) var(--tw-gradient-from-position) !important; --tw-gradient-to: rgba(204, 255, 102, 0) var(--tw-gradient-to-position) !important; }
+.aurora-app [class*='to-violet-'],
+.aurora-app [class*='to-indigo-'] { --tw-gradient-to: var(--aurora-mint) var(--tw-gradient-to-position) !important; }
+.aurora-app [class*='text-indigo-'] { color: var(--aurora-lime) !important; }
+.aurora-app [class*='bg-indigo-'] { background-color: rgba(204, 255, 102, 0.11) !important; }
+.aurora-app [class*='border-indigo-'] { border-color: rgba(204, 255, 102, 0.24) !important; }
+
+.aurora-app input,
+.aurora-app textarea,
+.aurora-app select {
+  color: var(--aurora-text) !important;
+  border-color: rgba(177, 199, 220, 0.2) !important;
+  background: rgba(5, 15, 28, 0.5) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+.aurora-app input::placeholder,
+.aurora-app textarea::placeholder { color: #758499 !important; }
+.aurora-app input:focus,
+.aurora-app textarea:focus,
+.aurora-app select:focus {
+  border-color: var(--aurora-lime) !important;
+  box-shadow: 0 0 0 4px rgba(204, 255, 102, .11) !important;
+}
+
+.aurora-app .dd-primary-button,
+.aurora-app button[class*='bg-gradient-to-r'] {
+  color: #091323 !important;
+  border: 0 !important;
+  background: linear-gradient(110deg, var(--aurora-lime), var(--aurora-mint)) !important;
+  box-shadow: 0 14px 30px rgba(114, 241, 197, .16) !important;
+}
+.aurora-app .dd-primary-button:hover,
+.aurora-app button[class*='bg-gradient-to-r']:hover {
+  filter: brightness(1.07);
+  transform: translateY(-2px);
+}
+.aurora-app .dd-ghost-button,
+.aurora-app .dd-danger-button {
+  background: rgba(8, 20, 35, .46) !important;
+  border-color: var(--aurora-line) !important;
+}
+.aurora-app .dd-danger-button { color: var(--aurora-coral) !important; }
+
+/* Landing: editorial, high-contrast, product-led. */
+.aurora-landing {
+  background:
+    linear-gradient(180deg, rgba(7,17,31,.12), rgba(7,17,31,.9)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 92px);
+}
+.aurora-landing > nav {
+  border-color: rgba(204,255,102,.15) !important;
+  background: rgba(7,17,31,.72) !important;
+  box-shadow: none !important;
+}
+.aurora-landing > nav h1 { font-weight: 800; letter-spacing: -.07em; }
+.aurora-landing > section:first-of-type {
+  min-height: 96vh !important;
+  padding-top: 8.5rem !important;
+}
+.aurora-landing > section:first-of-type h1 {
+  max-width: 13ch;
+  font-size: clamp(3.3rem, 7vw, 7.2rem) !important;
+  line-height: .92 !important;
+  font-weight: 800 !important;
+}
+.aurora-landing > section:first-of-type h1 span {
+  background-image: linear-gradient(115deg, var(--aurora-lime), var(--aurora-mint)) !important;
+}
+.aurora-landing > section > div > div > article,
+.aurora-landing article {
+  border-color: var(--aurora-line) !important;
+  background: linear-gradient(145deg, rgba(25,44,67,.84), rgba(9,22,39,.68)) !important;
+  box-shadow: none !important;
+}
+.aurora-landing section { border-color: rgba(177,199,220,.08); }
+.aurora-landing [class*='rounded-2xl'] { border-radius: 1.45rem; }
+.aurora-landing a[class*='bg-gradient-to-r'] {
+  color: #091323 !important;
+  background: linear-gradient(110deg, var(--aurora-lime), var(--aurora-mint)) !important;
+  box-shadow: 0 14px 30px rgba(114,241,197,.15);
+}
+.aurora-landing footer { background: #040b14 !important; border-color: var(--aurora-line) !important; }
+
+/* Auth: a focused, theatrical split-screen experience. */
+.aurora-auth {
+  background:
+    radial-gradient(circle at 12% 12%, rgba(114,241,197,.16), transparent 26rem),
+    radial-gradient(circle at 83% 78%, rgba(204,255,102,.12), transparent 23rem),
+    var(--aurora-ink) !important;
+}
+.aurora-auth [class*='rounded-3xl'] {
+  border-color: rgba(204,255,102,.22) !important;
+  background: linear-gradient(150deg, rgba(28,49,74,.9), rgba(10,24,42,.92)) !important;
+  box-shadow: 0 32px 90px rgba(0,0,0,.32) !important;
+}
+.aurora-auth [class*='bg-gradient-to-tr'] { background-image: linear-gradient(135deg, var(--aurora-lime), var(--aurora-mint)) !important; }
+.aurora-auth [class*='text-white'] { color: #06101d !important; }
+.aurora-auth .fixed > div > div { background: var(--aurora-panel-strong) !important; border-color: var(--aurora-line) !important; }
+
+/* Workspace: dense but breathable command centre. */
+.aurora-workspace {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 95% 0%, rgba(114,241,197,.12), transparent 28rem),
+    linear-gradient(135deg, #07111f, #0a1728 55%, #07111f);
+}
+.aurora-workspace > div > aside,
+.aurora-workspace > div > main > div {
+  border-color: var(--aurora-line) !important;
+  background: rgba(11, 26, 45, .73) !important;
+  box-shadow: 0 25px 60px rgba(0,0,0,.18) !important;
+}
+.aurora-workspace aside {
+  border-radius: 1.5rem !important;
+}
+.aurora-workspace .dd-section-card,
+.aurora-workspace .dd-card,
+.aurora-workspace .dd-card-soft {
+  border-color: var(--aurora-line) !important;
+  background: linear-gradient(145deg, rgba(27,48,73,.86), rgba(12,27,46,.78)) !important;
+  box-shadow: none !important;
+}
+.aurora-workspace .dd-page-kicker {
+  color: var(--aurora-lime) !important;
+  border-color: rgba(204,255,102,.24) !important;
+  background: rgba(204,255,102,.09) !important;
+}
+.aurora-workspace [class*='hover:bg-slate-']:hover { background-color: rgba(204,255,102,.08) !important; }
+.aurora-workspace [class*='bg-emerald-'],
+.aurora-workspace [class*='bg-sky-'],
+.aurora-workspace [class*='bg-amber-'],
+.aurora-workspace [class*='bg-rose-'] { background-color: rgba(114,241,197,.09) !important; }
+.aurora-workspace [class*='text-emerald-'],
+.aurora-workspace [class*='text-sky-'],
+.aurora-workspace [class*='text-amber-'] { color: var(--aurora-mint) !important; }
+
+/* Quiet motion and a refined selection treatment. */
+.aurora-app ::selection { background: var(--aurora-lime); color: #06101d; }
+.aurora-app .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(204,255,102,.35); }
+@media (max-width: 768px) {
+  .aurora-landing > section:first-of-type h1 { font-size: clamp(3rem, 16vw, 4.5rem) !important; }
+  .aurora-workspace > div { padding: .75rem !important; }
 }

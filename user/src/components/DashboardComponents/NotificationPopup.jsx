@@ -1,20 +1,34 @@
-import { Bell, FolderPlus, Trash2, UserCheck, UserPlus, Users } from 'lucide-react';
+import { Bell, FolderPlus, GitPullRequest, Trash2, UserCheck, UserMinus, UserPlus, Users } from 'lucide-react';
 import { useMemo } from 'react';
 
 const iconByType= {
     'task-added' : FolderPlus,
     'task-removed' : Trash2,
+    'task-assigned' : UserCheck,
+    'task-unassigned' : UserMinus,
     'task-assigned-to-me' : UserCheck,
     'team-invitation' : Users,
+    'team-member-removed' : UserMinus,
+    'friend-request' : UserPlus,
     'friend-request-received' : UserPlus,
+    'friend-request-accepted' : UserCheck,
+    'pr-created' : GitPullRequest,
+    'pr-reviewed' : GitPullRequest,
 };
 
 const iconColorByType = {
     'task-added': 'text-blue-600 bg-blue-50',
     'task-removed': 'text-red-600 bg-red-50',
+    'task-assigned': 'text-emerald-600 bg-emerald-50',
+    'task-unassigned': 'text-amber-600 bg-amber-50',
     'task-assigned-to-me': 'text-emerald-600 bg-emerald-50',
     'team-invitation': 'text-violet-600 bg-violet-50',
+    'team-member-removed': 'text-rose-600 bg-rose-50',
+    'friend-request': 'text-pink-600 bg-pink-50',
     'friend-request-received': 'text-pink-600 bg-pink-50',
+    'friend-request-accepted': 'text-teal-600 bg-teal-50',
+    'pr-created': 'text-purple-600 bg-purple-50',
+    'pr-reviewed': 'text-indigo-600 bg-indigo-50',
 };
 
 const formatTimeAgo= (dateString) => {

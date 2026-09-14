@@ -160,7 +160,7 @@ const LoginPage = () => {
     }
 
     return (
-        <div className={`relative min-h-screen overflow-hidden transition-colors duration-300 ${isDarkTheme ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+        <div className={`aurora-auth relative min-h-screen overflow-hidden transition-colors duration-300 ${isDarkTheme ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
             {/* Ambient Background Glows */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 <div className={`absolute -top-32 -left-32 h-96 w-96 rounded-full blur-3xl transition-opacity duration-500 ${isDarkTheme ? 'bg-indigo-900/20' : 'bg-indigo-200/40'}`} />

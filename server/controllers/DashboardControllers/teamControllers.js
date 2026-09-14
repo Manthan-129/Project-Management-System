@@ -570,6 +570,15 @@ const removeTeamMember= async (req, res) => {
         emitToTeam(teamId.toString(), "team:member_removed", { teamId, memberId });
         emitToUser(memberId, "team:removed_from_team", { teamId });
 
+        createNotification({
+            recipient: memberId,
+            actor: userId,
+            type: 'team-member-removed',
+            title: 'Removed from team',
+            message: `You were removed from ${team.name || 'the team'}.`,
+            metadata: { teamId: team._id, teamName: team.name },
+        });
+
         return res.status(200).json({success: true, message: 'Member removed from the team successfully'});
 
     }catch(error){

@@ -72,6 +72,8 @@ const createTask = async (req, res) => {
         }
 
         let newTask;
+        let taskAddedNotifications = [];
+
         await runInTransaction(async (session) => {
             const opts = session ? { session } : {};
 
@@ -93,7 +95,7 @@ const createTask = async (req, res) => {
                 ...team.members.map((member) => member.user.toString()),
             ]);
 
-            const taskAddedNotifications = Array.from(teamMemberRecipients)
+            taskAddedNotifications = Array.from(teamMemberRecipients)
                 .filter((recipientId) => recipientId !== userIdStr)
                 .map((recipientId) => ({
                     recipient: recipientId,
@@ -103,11 +105,11 @@ const createTask = async (req, res) => {
                     message: `A new task was added: ${newTask.title}`,
                     metadata: { taskId: newTask._id, teamId: team._id, teamName: team.name },
                 }));
-
-            if (taskAddedNotifications.length > 0) {
-                await createNotifications(taskAddedNotifications, opts);
-            }
         });
+
+        if (taskAddedNotifications.length > 0) {
+            createNotifications(taskAddedNotifications);
+        }
 
         await newTask.populate([
             { path: 'assignedTo', select: 'username firstName lastName profilePicture email' },
@@ -585,34 +587,34 @@ const updateTask= async (req, res) => {
         await runInTransaction(async (session) => {
             const opts = session ? { session } : {};
             await task.save(opts);
-
-            if (assignmentChanged) {
-                const currentAssignedToId = task.assignedTo ? task.assignedTo.toString() : '';
-                const teamIdStr = (team._id || team).toString();
-
-                if (previousAssignedToId && previousAssignedToId !== currentAssignedToId) {
-                    await createNotification({
-                        recipient: previousAssignedToId,
-                        actor: userId,
-                        type: "task-unassigned",
-                        title: "Task unassigned",
-                        message: `You were unassigned from task: ${task.title}`,
-                        metadata: { taskId: task._id, teamId: teamIdStr, teamName: team.name },
-                    }, opts);
-                }
-
-                if (currentAssignedToId) {
-                    await createNotification({
-                        recipient: currentAssignedToId,
-                        actor: userId,
-                        type: "task-assigned",
-                        title: "Task assigned",
-                        message: `You were assigned task: ${task.title}`,
-                        metadata: { taskId: task._id, teamId: teamIdStr, teamName: team.name },
-                    }, opts);
-                }
-            }
         });
+
+        if (assignmentChanged) {
+            const currentAssignedToId = task.assignedTo ? task.assignedTo.toString() : '';
+            const teamIdStr = (team._id || team).toString();
+
+            if (previousAssignedToId && previousAssignedToId !== currentAssignedToId) {
+                createNotification({
+                    recipient: previousAssignedToId,
+                    actor: userId,
+                    type: "task-unassigned",
+                    title: "Task unassigned",
+                    message: `You were unassigned from task: ${task.title}`,
+                    metadata: { taskId: task._id, teamId: teamIdStr, teamName: team.name },
+                });
+            }
+
+            if (currentAssignedToId) {
+                createNotification({
+                    recipient: currentAssignedToId,
+                    actor: userId,
+                    type: "task-assigned",
+                    title: "Task assigned",
+                    message: `You were assigned task: ${task.title}`,
+                    metadata: { taskId: task._id, teamId: teamIdStr, teamName: team.name },
+                });
+            }
+        }
 
         const populatedTask = await task.populate([
             { path: 'assignedTo', select: 'firstName lastName username profilePicture email' },
@@ -791,11 +793,11 @@ const deleteTask= async (req, res) => {
                 ],
                 isRead: false
             }, opts);
-
-            if (removalNotifications.length > 0) {
-                await createNotifications(removalNotifications, opts);
-            }
         });
+
+        if (removalNotifications.length > 0) {
+            createNotifications(removalNotifications);
+        }
 
         await task.populate([
             { path: 'assignedTo', select: 'username firstName lastName profilePicture email' },

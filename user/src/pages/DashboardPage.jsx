@@ -13,7 +13,7 @@ const DashboardPage = () => {
   const isSidebarRight = user?.appearanceSettings?.sidebarPosition === 'right';
 
   return (
-    <div className="dd-app-shell">
+    <div className="dd-app-shell aurora-workspace">
       <div className={`mx-auto flex min-h-screen w-full max-w-[1600px] flex-col gap-5 px-4 py-4 lg:px-6 lg:py-6 ${isSidebarRight ? 'lg:flex-row-reverse' : 'lg:flex-row'}`}>
         <DashboardSidebar />
 
