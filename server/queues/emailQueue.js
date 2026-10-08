@@ -68,7 +68,12 @@ const enqueueEmail = (mailOptions) => {
     transporter.sendMail(mailOptions).then((info) => {
         console.log("Direct email sent successfully to", mailOptions.to, info.messageId || info.response);
     }).catch((err) => {
-        console.error("Email delivery failed (direct):", err.message);
+        console.warn(`Initial email delivery to ${mailOptions.to} failed (${err.message}), retrying...`);
+        transporter.sendMail(mailOptions).then((info) => {
+            console.log("Retry email sent successfully to", mailOptions.to, info.messageId || info.response);
+        }).catch((retryErr) => {
+            console.error("Retry email delivery failed (direct):", retryErr.message);
+        });
     });
 };
 
