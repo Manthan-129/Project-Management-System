@@ -1,10 +1,13 @@
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 
+const port = Number(process.env.SMTP_PORT) || 465;
+const secure = process.env.SMTP_SECURE !== undefined ? process.env.SMTP_SECURE === "true" : port === 465;
+
 const transporter = nodemailer.createTransport({
-    host: 'smtp-relay.brevo.com',
-    port: 587,
-    secure: false,
+    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+    port: port,
+    secure: secure,
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
