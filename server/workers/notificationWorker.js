@@ -1,5 +1,5 @@
 const { Worker } = require("bullmq");
-const { getRedisConfig } = require("../configs/redis");
+const { getRedisConfig, isRedisConfigured, getQueuePrefix } = require("../configs/redis");
 const Notification = require("../models/Notification");
 const { emitToUser } = require("../configs/socket");
 
@@ -43,8 +43,17 @@ const processBatchNotifications = async (notifications) => {
 };
 
 const initNotificationWorker = (redisConfig) => {
+    if (!isRedisConfigured()) {
+        notificationWorker = null;
+        return null;
+    }
+
     try {
         const connection = redisConfig || getRedisConfig();
+        if (!connection) {
+            notificationWorker = null;
+            return null;
+        }
 
         notificationWorker = new Worker(
             QUEUE_NAME,
@@ -59,27 +68,23 @@ const initNotificationWorker = (redisConfig) => {
             },
             {
                 connection,
+                prefix: getQueuePrefix(),
                 concurrency: 5,
             }
         );
 
-        notificationWorker.on("completed", (job) => {
-            // Completed job processed
-        });
-
         notificationWorker.on("failed", (job, err) => {
-            console.warn(
-                `Notification job ${job?.id} (${job?.name}) attempt ${job?.attemptsMade} failed: ${err.message}`
-            );
+            console.warn(`Notification job ${job?.id} failed: ${err.message}`);
         });
 
-        notificationWorker.on("error", () => {
-            // Gracefully handled without crashing server
+        notificationWorker.on("error", (err) => {
+            console.warn(`Notification worker warning: ${err.message}`);
         });
 
         return notificationWorker;
     } catch (err) {
         notificationWorker = null;
+        console.warn(`Notification worker disabled: ${err.message}`);
         return null;
     }
 };
@@ -88,7 +93,7 @@ const closeNotificationWorker = async () => {
     if (notificationWorker) {
         try {
             await notificationWorker.close();
-        } catch (err) {
+        } catch {
             // Silently handle close errors during shutdown
         }
     }

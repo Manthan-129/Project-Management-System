@@ -4,6 +4,8 @@ node_modules/
 # Environment variables (secrets)
 .env
 .env.*
+!server/.env.example
+!user/.env.example
 
 # Logs
 logs

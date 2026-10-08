@@ -34,17 +34,6 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
-        if(error.response) {
-            if(error.response.status === 401) {
-                console.log('Unauthorized access - perhaps redirect to login?');
-            }
-            else if(error.response.status === 500){
-                console.log('Server error - please try again later.');
-            }
-        } else if(error.code === 'ECONNABORTED'){
-            console.log('Request timeout. Please try again.');
-        }
-
         return Promise.reject(error);
     }
 );

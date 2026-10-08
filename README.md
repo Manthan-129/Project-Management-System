@@ -241,7 +241,7 @@ cd Project-Management-System
    npm install
    ```
 
-3. **Create a `.env` file** in the server folder with the following variables:
+3. **Create a `.env` file** in the server folder (or copy `server/.env.example`) with the following variables:
    ```env
    # Database
    MONGO_URL=mongodb://localhost:27017/project-management
@@ -254,9 +254,17 @@ cd Project-Management-System
    OTP_PURPOSE_LOGIN_2FA=login_2fa
    OTP_PURPOSE_FORGET_PASSWORD=forget_password
    
-   # Email Configuration (Nodemailer)
-   SENDER_EMAIL=your_email@gmail.com
-   SENDER_PASSWORD=your_app_password
+   # Email Configuration (Brevo SMTP via Nodemailer)
+   SMTP_HOST=smtp-relay.brevo.com
+   SMTP_PORT=587
+   SMTP_SECURE=false
+   SMTP_USER=your_brevo_smtp_login
+   SMTP_PASS=your_brevo_smtp_key
+   SENDER_EMAIL=verified_sender@example.com
+
+   # Redis (optional, used by background queues)
+   # REDIS_URL=******host:6379
+   REDIS_KEY_PREFIX=devdash
    
    # Cloudinary
    CLOUDINARY_NAME=your_cloudinary_name
@@ -293,9 +301,9 @@ cd Project-Management-System
    npm install
    ```
 
-3. **Create a `.env` file** in the user folder:
+3. **Create a `.env` file** in the user folder (or copy `user/.env.example`):
    ```env
-   VITE_API_URL=http://localhost:5000/api
+   VITE_BACKEND_URL=http://localhost:5000
    ```
 
 4. **Start the development server:**
@@ -324,10 +332,16 @@ The application uses MongoDB for data persistence. Configure your MongoDB connec
 - Tokens expire in **7 days** for regular authentication
 - 2FA tokens expire in **10 minutes**
 
-### Email Service (Nodemailer)
-- Configure your email provider (Gmail, Outlook, etc.)
-- For Gmail, use App Passwords instead of regular password
-- Set `SENDER_EMAIL` and `SENDER_PASSWORD` in `.env`
+### Email Service (Brevo SMTP + Nodemailer)
+- This project sends OTP email via SMTP, not Brevo HTTP API.
+- Required vars: `SMTP_USER`, `SMTP_PASS`, `SENDER_EMAIL` (plus `SMTP_HOST`/`SMTP_PORT` as needed).
+- `SENDER_EMAIL` must be a verified sender/inbox in Brevo.
+- If email config is missing, OTP endpoints return a clear setup error instead of silently succeeding.
+
+### Redis / Queue Behavior
+- Redis is optional for OTP delivery. If Redis is unavailable, email falls back to direct SMTP send.
+- Configure either `REDIS_URL` **or** `REDIS_HOST`/`REDIS_PORT`/`REDIS_PASSWORD`.
+- On Render/Vercel-style deployments, keep SMTP vars in runtime environment variables and avoid committing `.env` files.
 
 ### Cloudinary Setup
 - Create a Cloudinary account at https://cloudinary.com
@@ -339,13 +353,13 @@ The application uses MongoDB for data persistence. Configure your MongoDB connec
 ## 🔗 API Endpoints
 
 ### Authentication Endpoints (`/api/auth`)
-- `POST /sendOTP` - Send registration OTP
-- `POST /verifyOTP` - Verify registration OTP and create user
+- `POST /send-registration-otp` (alias: `/send-otp`) - Send registration OTP
+- `POST /verify-registration-otp` - Verify registration OTP and create user
 - `POST /login` - User login
-- `POST /verify-2fa` - Verify two-factor authentication
+- `POST /verify-login-2fa` (alias: `/verify-2fa`) - Verify two-factor authentication
 - `GET /user-info` - Get current user information
-- `POST /forget-password-otp` - Request password reset OTP
-- `POST /verify-forget-password` - Reset password with OTP
+- `POST /forget-password/send-otp` - Request password reset OTP
+- `POST /forget-password/verify-otp` - Reset password with OTP
 
 ### Settings Endpoints (`/api/settings`)
 - Various endpoints for user settings, profile management, and preferences
