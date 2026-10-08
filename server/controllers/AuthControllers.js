@@ -83,7 +83,6 @@ const sendRegistrationOTP= async (req, res)=>{
                     from: getSenderAddress("DevDash Support"),
                     to: email,
                     subject: tmpl.subject,
-                    text: tmpl.html.replace(/<[^>]+>/g, ''),
                     html: tmpl.html,
                 };
             },
@@ -211,7 +210,6 @@ const loginUser= async (req, res)=>{
                         from: getSenderAddress("DevDash Security"),
                         to: user.email,
                         subject: mailTemplate.subject,
-                        text: mailTemplate.html.replace(/<[^>]+>/g, ''),
                         html: mailTemplate.html,
                     };
                 },
@@ -338,7 +336,6 @@ const forgetPasswordOTPRequest= async (req, res)=>{
                     from: getSenderAddress("DevDash Support"),
                     to: email,
                     subject: tmpl.subject,
-                    text: tmpl.html.replace(/<[^>]+>/g, ''),
                     html: tmpl.html,
                 };
             },
