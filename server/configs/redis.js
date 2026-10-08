@@ -1,39 +1,67 @@
 const Redis = require("ioredis");
 
-const isRedisConfigured = () => {
-    return Boolean(process.env.REDIS_URL || process.env.REDIS_HOST);
+const REDIS_PING_TIMEOUT_MS = 3000;
+const DEFAULT_REDIS_PORT = 6379;
+
+const parsePositiveInteger = (value, fallback) => {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 };
 
-const getQueuePrefix = () => process.env.REDIS_KEY_PREFIX || "devdash";
+const parseRedisUrlToOptions = (redisUrl) => {
+    const parsed = new URL(redisUrl);
+    const dbSegment = parsed.pathname.replace("/", "");
+    const db = dbSegment ? Number.parseInt(dbSegment, 10) : undefined;
 
-const getRedisConfig = () => {
-    if (!isRedisConfigured()) {
+    return {
+        host: parsed.hostname,
+        port: parsePositiveInteger(parsed.port, DEFAULT_REDIS_PORT),
+        username: parsed.username ? decodeURIComponent(parsed.username) : undefined,
+        password: parsed.password ? decodeURIComponent(parsed.password) : undefined,
+        db: Number.isInteger(db) ? db : undefined,
+        tls: parsed.protocol === "rediss:" ? {} : undefined,
+    };
+};
+
+const isRedisConfigured = (env = process.env) => {
+    return Boolean(env.REDIS_URL || env.REDIS_HOST);
+};
+
+const getQueuePrefix = (env = process.env) => env.QUEUE_PREFIX || env.REDIS_KEY_PREFIX || "devdash";
+
+const getRedisConfig = (env = process.env) => {
+    if (!isRedisConfigured(env)) {
         return null;
     }
 
-    if (process.env.REDIS_URL) {
-        return process.env.REDIS_URL;
-    }
-
-    return {
-        host: process.env.REDIS_HOST,
-        port: Number(process.env.REDIS_PORT) || 6379,
-        password: process.env.REDIS_PASSWORD || undefined,
+    const baseOptions = {
         maxRetriesPerRequest: null,
         enableReadyCheck: false,
         lazyConnect: true,
     };
+
+    if (env.REDIS_URL) {
+        return {
+            ...parseRedisUrlToOptions(env.REDIS_URL),
+            ...baseOptions,
+        };
+    }
+
+    return {
+        host: env.REDIS_HOST,
+        port: parsePositiveInteger(env.REDIS_PORT, DEFAULT_REDIS_PORT),
+        password: env.REDIS_PASSWORD || undefined,
+        username: env.REDIS_USERNAME || undefined,
+        ...baseOptions,
+    };
 };
 
-const createRedisConnection = () => {
-    const config = getRedisConfig();
+const createRedisConnection = (config = getRedisConfig()) => {
     if (!config) {
         return null;
     }
 
-    const client = typeof config === "string"
-        ? new Redis(config, { maxRetriesPerRequest: null, enableReadyCheck: false, lazyConnect: true })
-        : new Redis(config);
+    const client = new Redis(config);
 
     client.on("error", (err) => {
         console.warn(`Redis connection warning: ${err.message}`);
@@ -42,9 +70,55 @@ const createRedisConnection = () => {
     return client;
 };
 
+const checkRedisHealth = async ({
+    env = process.env,
+    timeoutMs = REDIS_PING_TIMEOUT_MS,
+    logger = console,
+} = {}) => {
+    if (!isRedisConfigured(env)) {
+        logger.info("Redis health: unavailable (not configured)");
+        return { configured: false, status: "unavailable" };
+    }
+
+    const client = createRedisConnection(getRedisConfig(env));
+    if (!client) {
+        logger.info("Redis health: unavailable (config invalid)");
+        return { configured: true, status: "unavailable" };
+    }
+
+    let timeout;
+    try {
+        timeout = setTimeout(() => {
+            client.disconnect();
+        }, timeoutMs);
+
+        await client.connect();
+        const ping = await client.ping();
+        const isConnected = ping === "PONG";
+        logger.info(`Redis health: ${isConnected ? "connected" : "unavailable"}`);
+        return { configured: true, status: isConnected ? "connected" : "unavailable" };
+    } catch (error) {
+        logger.warn(`Redis health: unavailable (${error.message})`);
+        return { configured: true, status: "unavailable" };
+    } finally {
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+        try {
+            await client.quit();
+        } catch {
+            client.disconnect();
+        }
+    }
+};
+
 module.exports = {
+    DEFAULT_REDIS_PORT,
     isRedisConfigured,
     getQueuePrefix,
+    parseRedisUrlToOptions,
+    parsePositiveInteger,
     getRedisConfig,
     createRedisConnection,
+    checkRedisHealth,
 };
