@@ -44,7 +44,9 @@ const enqueueEmail = (mailOptions) => {
         return;
     }
 
-    if (emailQueue) {
+    const hasRedis = Boolean(process.env.REDIS_URL || process.env.REDIS_HOST);
+
+    if (emailQueue && hasRedis) {
         emailQueue
             .add("send-email", { mailOptions })
             .then((job) => {
@@ -53,7 +55,7 @@ const enqueueEmail = (mailOptions) => {
             .catch((err) => {
                 console.warn("Queue add failed, falling back to direct send:", err.message);
                 transporter.sendMail(mailOptions).then((info) => {
-                    console.log("Fallback email sent successfully to", mailOptions.to, info.messageId);
+                    console.log("Fallback email sent successfully to", mailOptions.to, info.messageId || info.response);
                 }).catch((sendErr) => {
                     console.error("Email delivery failed (fallback):", sendErr.message);
                 });
@@ -61,10 +63,10 @@ const enqueueEmail = (mailOptions) => {
         return;
     }
 
-    // Direct async fallback delivery
-    console.log(`Sending email directly to ${mailOptions.to}...`);
+    // Direct async delivery when Redis is not configured or disabled
+    console.log(`Sending email directly via Brevo SMTP to ${mailOptions.to}...`);
     transporter.sendMail(mailOptions).then((info) => {
-        console.log("Direct email sent successfully to", mailOptions.to, info.messageId);
+        console.log("Direct email sent successfully to", mailOptions.to, info.messageId || info.response);
     }).catch((err) => {
         console.error("Email delivery failed (direct):", err.message);
     });
