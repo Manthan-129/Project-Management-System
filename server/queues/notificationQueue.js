@@ -1,5 +1,5 @@
 const { Queue } = require("bullmq");
-const { getRedisConfig } = require("../configs/redis");
+const { getRedisConfig, isRedisConfigured, getQueuePrefix } = require("../configs/redis");
 const Notification = require("../models/Notification");
 const { emitToUser } = require("../configs/socket");
 
@@ -8,10 +8,20 @@ const QUEUE_NAME = "notification-queue";
 let notificationQueue = null;
 
 const initNotificationQueue = (redisConfig) => {
+    if (!isRedisConfigured()) {
+        notificationQueue = null;
+        return null;
+    }
+
     try {
         const connection = redisConfig || getRedisConfig();
+        if (!connection) {
+            notificationQueue = null;
+            return null;
+        }
         notificationQueue = new Queue(QUEUE_NAME, {
             connection,
+            prefix: getQueuePrefix(),
             defaultJobOptions: {
                 attempts: 3,
                 backoff: {
@@ -23,21 +33,18 @@ const initNotificationQueue = (redisConfig) => {
             },
         });
 
-        notificationQueue.on("error", () => {
-            // Gracefully handled without uncaught exceptions
+        notificationQueue.on("error", (err) => {
+            console.warn(`Notification queue warning: ${err.message}`);
         });
 
         return notificationQueue;
     } catch (err) {
         notificationQueue = null;
+        console.warn(`Notification queue disabled: ${err.message}`);
         return null;
     }
 };
 
-/**
- * Fallback direct delivery if Redis is offline or unavailable.
- * Runs asynchronously without blocking the calling thread.
- */
 const fallbackDispatchSingle = async (notificationData) => {
     try {
         const { recipient, actor, type, title, message, metadata = {} } = notificationData;
@@ -59,7 +66,7 @@ const fallbackDispatchSingle = async (notificationData) => {
 
         emitToUser(recipient, "notification:received", populated || doc);
     } catch (err) {
-        console.error("Direct notification fallback failed:", err.message);
+        console.error(`Direct notification fallback failed: ${err.message}`);
     }
 };
 
@@ -75,23 +82,17 @@ const fallbackDispatchBatch = async (notifications) => {
             emitToUser(doc.recipient, "notification:received", doc);
         }
     } catch (err) {
-        console.error("Batch notification fallback failed:", err.message);
+        console.error(`Batch notification fallback failed: ${err.message}`);
     }
 };
 
-/**
- * Non-blocking asynchronous single notification enqueueing.
- * Pushes notification job to BullMQ queue.
- * Falls back to direct async delivery if queue or Redis is unavailable.
- */
 const enqueueNotification = (notificationData) => {
     if (!notificationData || !notificationData.recipient) return;
 
     if (notificationQueue) {
         notificationQueue
             .add("single-notification", { notification: notificationData })
-            .catch((err) => {
-                // Redis is offline; execute async fallback without blocking
+            .catch(() => {
                 fallbackDispatchSingle(notificationData);
             });
         return;
@@ -100,19 +101,13 @@ const enqueueNotification = (notificationData) => {
     fallbackDispatchSingle(notificationData);
 };
 
-/**
- * Non-blocking asynchronous batch notification enqueueing.
- * Pushes batch notification job to BullMQ queue.
- * Falls back to direct async delivery if queue or Redis is unavailable.
- */
 const enqueueNotifications = (notificationsArray) => {
     if (!Array.isArray(notificationsArray) || notificationsArray.length === 0) return;
 
     if (notificationQueue) {
         notificationQueue
             .add("batch-notifications", { notifications: notificationsArray })
-            .catch((err) => {
-                // Redis is offline; execute async fallback without blocking
+            .catch(() => {
                 fallbackDispatchBatch(notificationsArray);
             });
         return;
@@ -125,7 +120,7 @@ const closeNotificationQueue = async () => {
     if (notificationQueue) {
         try {
             await notificationQueue.close();
-        } catch (err) {
+        } catch {
             // Silently handle close errors during shutdown
         }
     }

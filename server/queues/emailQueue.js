@@ -1,16 +1,27 @@
 const { Queue } = require("bullmq");
-const { getRedisConfig } = require("../configs/redis");
-const { transporter } = require("../configs/nodemailer");
+const { getRedisConfig, isRedisConfigured, getQueuePrefix } = require("../configs/redis");
+const { getTransporter } = require("../configs/nodemailer");
 
 const QUEUE_NAME = "email-queue";
 
 let emailQueue = null;
 
 const initEmailQueue = (redisConfig) => {
+    if (!isRedisConfigured()) {
+        emailQueue = null;
+        return null;
+    }
+
     try {
         const connection = redisConfig || getRedisConfig();
+        if (!connection) {
+            emailQueue = null;
+            return null;
+        }
+
         emailQueue = new Queue(QUEUE_NAME, {
             connection,
+            prefix: getQueuePrefix(),
             defaultJobOptions: {
                 attempts: 3,
                 backoff: {
@@ -22,66 +33,63 @@ const initEmailQueue = (redisConfig) => {
             },
         });
 
-        emailQueue.on("error", () => {
-            // Handled gracefully without uncaught exceptions
+        emailQueue.on("error", (err) => {
+            console.warn(`Email queue warning: ${err.message}`);
         });
 
         return emailQueue;
     } catch (err) {
         emailQueue = null;
+        console.warn(`Email queue disabled: ${err.message}`);
         return null;
     }
 };
 
-/**
- * Non-blocking asynchronous email enqueueing.
- * Pushes email payload to BullMQ queue.
- * Falls back to direct async SMTP delivery if queue or Redis is unavailable.
- */
-const enqueueEmail = (mailOptions) => {
+const sendDirectEmail = async (mailOptions) => {
+    const transporter = getTransporter();
+    return transporter.sendMail(mailOptions);
+};
+
+const enqueueEmail = async (mailOptions, options = {}) => {
+    const { requireDelivery = false } = options;
+
     if (!mailOptions || !mailOptions.to) {
-        console.error("enqueueEmail error: mailOptions or mailOptions.to is missing", mailOptions);
-        return;
+        const err = new Error("Email payload is invalid. 'to' is required.");
+        if (requireDelivery) {
+            throw err;
+        }
+        console.warn(err.message);
+        return { delivered: false, queued: false };
     }
 
-    const hasRedis = Boolean(process.env.REDIS_URL || process.env.REDIS_HOST);
-
-    if (emailQueue && hasRedis) {
-        emailQueue
-            .add("send-email", { mailOptions })
-            .then((job) => {
-                console.log(`Email job ${job.id} queued for ${mailOptions.to}`);
-            })
-            .catch((err) => {
-                console.warn("Queue add failed, falling back to direct send:", err.message);
-                transporter.sendMail(mailOptions).then((info) => {
-                    console.log("Fallback email sent successfully to", mailOptions.to, info.messageId || info.response);
-                }).catch((sendErr) => {
-                    console.error("Email delivery failed (fallback):", sendErr.message);
-                });
-            });
-        return;
+    if (requireDelivery) {
+        await sendDirectEmail(mailOptions);
+        return { delivered: true, queued: false };
     }
 
-    // Direct async delivery when Redis is not configured or disabled
-    console.log(`Sending email directly via Brevo SMTP to ${mailOptions.to}...`);
-    transporter.sendMail(mailOptions).then((info) => {
-        console.log("Direct email sent successfully to", mailOptions.to, info.messageId || info.response);
-    }).catch((err) => {
-        console.warn(`Initial email delivery to ${mailOptions.to} failed (${err.message}), retrying...`);
-        transporter.sendMail(mailOptions).then((info) => {
-            console.log("Retry email sent successfully to", mailOptions.to, info.messageId || info.response);
-        }).catch((retryErr) => {
-            console.error("Retry email delivery failed (direct):", retryErr.message);
-        });
-    });
+    if (emailQueue) {
+        try {
+            await emailQueue.add("send-email", { mailOptions });
+            return { delivered: false, queued: true };
+        } catch (err) {
+            console.warn(`Email queue add failed, using direct send: ${err.message}`);
+        }
+    }
+
+    try {
+        await sendDirectEmail(mailOptions);
+        return { delivered: true, queued: false };
+    } catch (err) {
+        console.error(`Email delivery failed: ${err.message}`);
+        return { delivered: false, queued: false };
+    }
 };
 
 const closeEmailQueue = async () => {
     if (emailQueue) {
         try {
             await emailQueue.close();
-        } catch (err) {
+        } catch {
             // Silently handle close errors during shutdown
         }
     }

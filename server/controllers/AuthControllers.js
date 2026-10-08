@@ -1,16 +1,33 @@
 const User = require('../models/User');
-const OTP= require('../models/OTP');
 const bcrypt= require('bcrypt');
 const jwt= require('jsonwebtoken');
 const validator= require('validator');
 const { enqueueEmail } = require('../queues/emailQueue');
 const { getSenderAddress } = require('../configs/nodemailer');
+const { EmailConfigError } = require('../configs/emailConfig');
+const { issueOtp, verifyOtp } = require('../services/otpService');
 const {registrationTemplate, forgetPasswordTemplate, twoFactorTemplate}= require('../utils/emailTemplates.js');
 
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 const REGISTRATION_OTP_PURPOSE = process.env.OTP_PURPOSE_REGISTRATION || 'registration';
 const LOGIN_2FA_OTP_PURPOSE = process.env.OTP_PURPOSE_LOGIN_2FA || 'login_2fa';
 const FORGET_PASSWORD_OTP_PURPOSE = process.env.OTP_PURPOSE_FORGET_PASSWORD || 'forget_password';
+
+const sendOtpEmailOrThrow = async (mailOptions) => {
+    try {
+        await enqueueEmail(mailOptions, { requireDelivery: true });
+    } catch (error) {
+        if (error instanceof EmailConfigError) {
+            const configError = new Error(error.message);
+            configError.status = 503;
+            throw configError;
+        }
+
+        const deliveryError = new Error("Unable to send OTP email right now. Please try again later.");
+        deliveryError.status = 502;
+        throw deliveryError;
+    }
+};
 
 // Create a Token 
 const createToken = (id)=>{
@@ -56,33 +73,28 @@ const sendRegistrationOTP= async (req, res)=>{
             return res.status(400).json({success: false, message: msg});
         }
 
-        // Generate OTP and send email
-        const otp = Math.floor(100000 + Math.random()*900000).toString();
-        const otpHash= await bcrypt.hash(otp, 10);
-        
-        await OTP.deleteMany({ email, purpose: REGISTRATION_OTP_PURPOSE });
-        
-        await OTP.create({
+        await issueOtp({
             email,
             purpose: REGISTRATION_OTP_PURPOSE,
-            otp: otpHash,
-            expiresAt: new Date(Date.now() + 5*60*1000), // OTP valid for 5 minutes
+            sendEmail: sendOtpEmailOrThrow,
+            buildMailOptions: (otp, expiresInMinutes) => {
+                const tmpl = registrationTemplate(otp, expiresInMinutes);
+                return {
+                    from: getSenderAddress("DevDash Support"),
+                    to: email,
+                    subject: tmpl.subject,
+                    text: tmpl.html.replace(/<[^>]+>/g, ''),
+                    html: tmpl.html,
+                };
+            },
         });
-
-        const tmpl = registrationTemplate(otp, 5);
-        const mailOptions= {
-            from: getSenderAddress("DevDash Support"),
-            to: email,
-            subject: tmpl.subject,
-            text: tmpl.html.replace(/<[^>]+>/g, ''),
-            html: tmpl.html,
-        }
-
-        enqueueEmail(mailOptions);
         return res.status(200).json({success: true, message: "OTP sent to email successfully"});
 
     }catch(error){
-        console.error("Error in registrationOTP:", error);
+        if (error.status) {
+            return res.status(error.status).json({ success: false, message: error.message });
+        }
+        console.error("Error in registrationOTP:", error.message);
         return res.status(500).json({success: false, message: "Send OTP for Signup Error"});
     }
 }
@@ -111,20 +123,20 @@ const verifyRegistrationOTP= async (req, res)=>{
             return res.status(409).json({success: false, message: "Email or username is already in use"});
         }
         
-        const otpRecord = await OTP.findOne({email, purpose: REGISTRATION_OTP_PURPOSE}).sort({createdAt: -1});
+        const otpVerification = await verifyOtp({
+            email,
+            purpose: REGISTRATION_OTP_PURPOSE,
+            otp,
+        });
 
-        if(!otpRecord){
+        if(!otpVerification.valid){
+            if (otpVerification.reason === "expired") {
+                return res.status(404).json({success: false, message: "OTP has expired. Please request a new one."});
+            }
+            if (otpVerification.reason === "invalid") {
+                return res.status(400).json({success: false, message: "Invalid OTP. Please try again."});
+            }
             return res.status(404).json({success: false, message: "OTP expired or invalid"});
-        }
-        
-        if(otpRecord.expiresAt < new Date()){
-            return res.status(404).json({success: false, message: "OTP has expired. Please request a new one."});
-        }
-
-        const isOTPValid= await bcrypt.compare(otp, otpRecord.otp);
-
-        if(!isOTPValid){
-            return res.status(400).json({success: false, message: "Invalid OTP. Please try again."});
         }
 
         const hashPassword= await bcrypt.hash(password, 10);
@@ -132,8 +144,6 @@ const verifyRegistrationOTP= async (req, res)=>{
         const newUser= await User.create({
             firstName, lastName, email, username, password: hashPassword
         });
-
-        await OTP.deleteOne({_id: otpRecord._id});
 
         const token= createToken(newUser._id);
 
@@ -191,25 +201,20 @@ const loginUser= async (req, res)=>{
         }
 
         if(user.twoFactorEnabled){
-            const loginOtp= Math.floor(100000 + Math.random()*900000).toString();
-            const loginOtpHash= await bcrypt.hash(loginOtp, 10);
-
-            await OTP.deleteMany({email: user.email, purpose: LOGIN_2FA_OTP_PURPOSE});
-            await OTP.create({
+            await issueOtp({
                 email: user.email,
                 purpose: LOGIN_2FA_OTP_PURPOSE,
-                otp: loginOtpHash,
-                expiresAt: new Date(Date.now() + 5*60*1000),
-            });
-
-            const mailTemplate= twoFactorTemplate(loginOtp, 5, 'login verification');
-
-            enqueueEmail({
-                from: getSenderAddress("DevDash Security"),
-                to: user.email,
-                subject: mailTemplate.subject,
-                text: mailTemplate.html.replace(/<[^>]+>/g, ''),
-                html: mailTemplate.html,
+                sendEmail: sendOtpEmailOrThrow,
+                buildMailOptions: (otp, expiresInMinutes) => {
+                    const mailTemplate = twoFactorTemplate(otp, expiresInMinutes, 'login verification');
+                    return {
+                        from: getSenderAddress("DevDash Security"),
+                        to: user.email,
+                        subject: mailTemplate.subject,
+                        text: mailTemplate.html.replace(/<[^>]+>/g, ''),
+                        html: mailTemplate.html,
+                    };
+                },
             });
 
             return res.status(200).json({
@@ -225,6 +230,9 @@ const loginUser= async (req, res)=>{
         return res.status(200).json({success: true, message: "User login Successfully", token});
         
     }catch(error){
+        if (error.status) {
+            return res.status(error.status).json({ success: false, message: error.message });
+        }
         console.error("Error in loginUser:", error);
         return res.status(500).json({success: false, message: "Error in Login User function"});
     }
@@ -262,22 +270,21 @@ const verifyLoginTwoFactor= async (req, res)=>{
             return res.status(404).json({success: false, message: "User not found"});
         }
 
-        const otpRecord = await OTP.findOne({email: user.email, purpose: LOGIN_2FA_OTP_PURPOSE}).sort({createdAt: -1});
+        const otpVerification = await verifyOtp({
+            email: user.email,
+            purpose: LOGIN_2FA_OTP_PURPOSE,
+            otp,
+        });
 
-        if(!otpRecord){
+        if(!otpVerification.valid){
+            if (otpVerification.reason === "expired") {
+                return res.status(404).json({success: false, message: "OTP has expired. Please login again."});
+            }
+            if (otpVerification.reason === "invalid") {
+                return res.status(400).json({success: false, message: "Invalid OTP. Please try again."});
+            }
             return res.status(404).json({success: false, message: "OTP expired or invalid"});
         }
-        if(otpRecord.expiresAt < new Date()){
-            return res.status(404).json({success: false, message: "OTP has expired. Please login again."});
-        }
-
-        const isOTPValid= await bcrypt.compare(otp, otpRecord.otp);
-
-        if(!isOTPValid){
-            return res.status(400).json({success: false, message: "Invalid OTP. Please try again."});
-        }
-
-        await OTP.deleteOne({_id: otpRecord._id});
 
         return res.status(200).json({success: true, message: "2FA verification successful", token: createToken(user._id)});
 
@@ -321,30 +328,27 @@ const forgetPasswordOTPRequest= async (req, res)=>{
             return res.status(404).json({success: false, message: "User with this email not found"});
         }
 
-        const otp= Math.floor(100000 + Math.random()*900000).toString();
-        const otpHash= await bcrypt.hash(otp, 10);
-
-        await OTP.deleteMany({email, purpose: FORGET_PASSWORD_OTP_PURPOSE});
-        await OTP.create({
+        await issueOtp({
             email,
             purpose: FORGET_PASSWORD_OTP_PURPOSE,
-            otp: otpHash,
-            expiresAt: new Date(Date.now() + 5*60*1000),
-        })
-
-        const tmpl = forgetPasswordTemplate(otp, 5);
-        const mailOptions= {
-            from: getSenderAddress("DevDash Support"),
-            to: email,
-            subject: tmpl.subject,
-            text: tmpl.html.replace(/<[^>]+>/g, ''),
-            html: tmpl.html,
-        }
-
-        enqueueEmail(mailOptions);
+            sendEmail: sendOtpEmailOrThrow,
+            buildMailOptions: (otp, expiresInMinutes) => {
+                const tmpl = forgetPasswordTemplate(otp, expiresInMinutes);
+                return {
+                    from: getSenderAddress("DevDash Support"),
+                    to: email,
+                    subject: tmpl.subject,
+                    text: tmpl.html.replace(/<[^>]+>/g, ''),
+                    html: tmpl.html,
+                };
+            },
+        });
         return res.status(200).json({success: true, message: "OTP sent to email successfully"});
 
     }catch(error){
+        if (error.status) {
+            return res.status(error.status).json({ success: false, message: error.message });
+        }
         return res.status(500).json({success: false, message: "Error in Forget Password OTP Request"});
     }
 }
@@ -368,27 +372,26 @@ const verifyForgetPasswordOTPAndUpdate= async (req, res)=>{
             return res.status(404).json({message: "User with this email not found", success: false});
         }
 
-        const otpRecord = await OTP.findOne({email, purpose: FORGET_PASSWORD_OTP_PURPOSE}).sort({createdAt: -1});
+        const otpVerification = await verifyOtp({
+            email,
+            purpose: FORGET_PASSWORD_OTP_PURPOSE,
+            otp,
+        });
 
-        if(!otpRecord){
+        if(!otpVerification.valid){
+            if (otpVerification.reason === "expired") {
+                return res.status(404).json({success: false, message: "OTP has expired. Please request a new one."});
+            }
+            if (otpVerification.reason === "invalid") {
+                return res.status(400).json({success: false, message: "Invalid OTP. Please try again."});
+            }
             return res.status(404).json({success: false, message: "OTP expired or invalid"});
-        }
-        
-        if(otpRecord.expiresAt < new Date()){
-            return res.status(404).json({success: false, message: "OTP has expired. Please request a new one."});
-        }
-
-        const isOTPValid= await bcrypt.compare(otp, otpRecord.otp);
-
-        if(!isOTPValid){
-            return res.status(400).json({success: false, message: "Invalid OTP. Please try again."});
         }
 
         const hashPassword= await bcrypt.hash(newPass, 10);
         user.password= hashPassword;
         await user.save();
 
-        await OTP.deleteOne({_id: otpRecord._id});
 
         const token= createToken(user._id);
         return res.status(200).json({success: true, message: "OTP verified successfully. Password updated.", token})
