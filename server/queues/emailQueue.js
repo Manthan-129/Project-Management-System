@@ -39,23 +39,34 @@ const initEmailQueue = (redisConfig) => {
  * Falls back to direct async SMTP delivery if queue or Redis is unavailable.
  */
 const enqueueEmail = (mailOptions) => {
-    if (!mailOptions || !mailOptions.to) return;
+    if (!mailOptions || !mailOptions.to) {
+        console.error("enqueueEmail error: mailOptions or mailOptions.to is missing", mailOptions);
+        return;
+    }
 
     if (emailQueue) {
         emailQueue
             .add("send-email", { mailOptions })
+            .then((job) => {
+                console.log(`Email job ${job.id} queued for ${mailOptions.to}`);
+            })
             .catch((err) => {
-                // Redis is offline or unreachable; fall back to direct async dispatch
-                transporter.sendMail(mailOptions).catch((sendErr) => {
-                    console.error("Email delivery failed:", sendErr.message);
+                console.warn("Queue add failed, falling back to direct send:", err.message);
+                transporter.sendMail(mailOptions).then((info) => {
+                    console.log("Fallback email sent successfully to", mailOptions.to, info.messageId);
+                }).catch((sendErr) => {
+                    console.error("Email delivery failed (fallback):", sendErr.message);
                 });
             });
         return;
     }
 
     // Direct async fallback delivery
-    transporter.sendMail(mailOptions).catch((err) => {
-        console.error("Email delivery failed:", err.message);
+    console.log(`Sending email directly to ${mailOptions.to}...`);
+    transporter.sendMail(mailOptions).then((info) => {
+        console.log("Direct email sent successfully to", mailOptions.to, info.messageId);
+    }).catch((err) => {
+        console.error("Email delivery failed (direct):", err.message);
     });
 };
 

@@ -25,6 +25,7 @@ const pullRequestRouter = require("./routes/DashboardRoutes/PullRequestRoutes");
 const notificationRouter = require("./routes/DashboardRoutes/NotificationRoutes");
 
 const app = express();
+app.set("trust proxy", 1);
 const PORT = process.env.PORT || 5000;
 
 let server;
