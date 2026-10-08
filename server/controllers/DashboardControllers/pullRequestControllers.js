@@ -3,6 +3,7 @@ const Task= require('../../models/Task');
 const User= require('../../models/User');
 const PullRequest= require('../../models/PullRequest');
 const { enqueueEmail } = require('../../queues/emailQueue');
+const { getSenderAddress } = require('../../configs/nodemailer');
 const { enqueueNotification } = require('../../queues/notificationQueue');
 const { pullRequestTemplate, pullRequestReviewTemplate } = require('../../utils/emailTemplates');
 const { emitToTeam, emitToUser } = require('../../configs/socket');
@@ -63,15 +64,17 @@ const createPullRequest= async (req, res) => {
             message: trimmedMessage || '',
         });
 
-        const mailOptions= {
-            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
-            to: team.leader.email,
-            subject: emailTemplate.subject,
-            text: emailTemplate.html.replace(/<[^>]+>/g, ''),
-            html: emailTemplate.html,
-        };
+        if (team && team.leader && team.leader.email) {
+            const mailOptions= {
+                from: getSenderAddress("DevDash Support"),
+                to: team.leader.email,
+                subject: emailTemplate.subject,
+                text: emailTemplate.html.replace(/<[^>]+>/g, ''),
+                html: emailTemplate.html,
+            };
 
-        enqueueEmail(mailOptions);
+            enqueueEmail(mailOptions);
+        }
 
         enqueueNotification({
             recipient: team.leader._id || team.leader,
@@ -174,15 +177,17 @@ const reviewPullRequest= async (req, res) => {
             status,
             reviewNote: reviewNote?.trim() || '',
         });
-        const mailOptions= {
-            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
-            to: senderEmail,
-            subject: emailTemplate.subject,
-            text: emailTemplate.html.replace(/<[^>]+>/g, ''),
-            html: emailTemplate.html,
-        };
-        
-        enqueueEmail(mailOptions);
+        if (senderEmail) {
+            const mailOptions= {
+                from: getSenderAddress("DevDash Support"),
+                to: senderEmail,
+                subject: emailTemplate.subject,
+                text: emailTemplate.html.replace(/<[^>]+>/g, ''),
+                html: emailTemplate.html,
+            };
+            
+            enqueueEmail(mailOptions);
+        }
 
         enqueueNotification({
             recipient: pullRequest.sender._id || pullRequest.sender,

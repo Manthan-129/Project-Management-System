@@ -4,6 +4,7 @@ const User = require("../../models/User");
 const OTP = require("../../models/OTP");
 const bcrypt = require("bcrypt");
 const { enqueueEmail } = require("../../queues/emailQueue");
+const { getSenderAddress } = require("../../configs/nodemailer");
 const { twoFactorTemplateEnable, twoFactorTemplateDisable } = require("../../utils/emailTemplates");
 
 const TWO_FACTOR_ENABLE_PURPOSE = process.env.TWO_FACTOR_ENABLE_PURPOSE || 'two-factor-enable';
@@ -94,7 +95,7 @@ const setupTwoFactorAuthentication = async (req, res) => {
         const template = twoFactorTemplateEnable(otp, TWO_FACTOR_OTP_EXPIRY_MINUTES);
 
         enqueueEmail({
-            from: `"DevDash Security" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
+            from: getSenderAddress("DevDash Security"),
             to: user.email,
             subject: template.subject,
             text: template.html.replace(/<[^>]+>/g, ''),
@@ -185,7 +186,7 @@ const disableTwoFactorAuthentication = async (req, res) => {
         const template = twoFactorTemplateDisable(otp, TWO_FACTOR_OTP_EXPIRY_MINUTES);
 
         enqueueEmail({
-            from: `"DevDash Security" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
+            from: getSenderAddress("DevDash Security"),
             to: user.email,
             subject: template.subject,
             text: template.html.replace(/<[^>]+>/g, ''),

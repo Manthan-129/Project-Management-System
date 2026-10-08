@@ -12,6 +12,7 @@ const OTP = require('../../models/OTP');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 const { enqueueEmail } = require('../../queues/emailQueue');
+const { getSenderAddress } = require('../../configs/nodemailer');
 const { updateEmailTemplate } = require('../../utils/emailTemplates.js');
 const { runInTransaction } = require('../../utils/transactionHelper.js');
 const { emitToUser, emitToAll } = require('../../configs/socket.js');
@@ -59,7 +60,7 @@ const updateUserEmailOTPRequest = async (req, res) => {
 
         const tmpl = updateEmailTemplate(otp, 5);
         const mailOptions = {
-            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
+            from: getSenderAddress("DevDash Support"),
             to: newEmail,
             subject: tmpl.subject,
             text: tmpl.html.replace(/<[^>]+>/g, ''),

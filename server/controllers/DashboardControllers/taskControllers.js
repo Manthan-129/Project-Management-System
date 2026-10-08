@@ -5,6 +5,7 @@ const PullRequest = require('../../models/PullRequest');
 const Notification = require('../../models/Notification');
 const { runInTransaction } = require('../../utils/transactionHelper');
 const { enqueueEmail } = require('../../queues/emailQueue');
+const { getSenderAddress } = require('../../configs/nodemailer');
 const { SOCKET_EVENTS, emitToTeam, emitToUser } = require('../../configs/socket');
 const { updateTaskTemplate, taskAssignmentTemplate } = require('../../utils/emailTemplates');
 const { createNotification, createNotifications } = require('../../utils/notificationService.js');
@@ -121,25 +122,28 @@ const createTask = async (req, res) => {
             : 'Someone';
 
         try{
-            const taskAssignmentNotification = taskAssignmentTemplate({
-            title: newTask.title,
-            description: newTask.description,
-            status: newTask.status,
-            priority: newTask.priority,
-            dueDate: newTask.dueDate,
-            assignedBy: actorName,
-            assignedTo: (newTask.assignedTo?.firstName && newTask.assignedTo?.lastName)
-                ? newTask.assignedTo.firstName + ' ' + newTask.assignedTo.lastName
-                : 'Team Member'
-        })
-        const mailOptions= {
-            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
-            to: newTask.assignedTo.email,
-            subject: taskAssignmentNotification.subject,
-            text: taskAssignmentNotification.html.replace(/<[^>]+>/g, ''),
-            html: taskAssignmentNotification.html,
-        };
-        enqueueEmail(mailOptions);
+            if (newTask.assignedTo && newTask.assignedTo.email) {
+                const taskAssignmentNotification = taskAssignmentTemplate({
+                    title: newTask.title,
+                    description: newTask.description,
+                    status: newTask.status,
+                    priority: newTask.priority,
+                    dueDate: newTask.dueDate,
+                    assignedBy: actorName,
+                    assignedTo: (newTask.assignedTo?.firstName && newTask.assignedTo?.lastName)
+                        ? newTask.assignedTo.firstName + ' ' + newTask.assignedTo.lastName
+                        : 'Team Member'
+                });
+
+                const mailOptions= {
+                    from: getSenderAddress("DevDash Support"),
+                    to: newTask.assignedTo.email,
+                    subject: taskAssignmentNotification.subject,
+                    text: taskAssignmentNotification.html.replace(/<[^>]+>/g, ''),
+                    html: taskAssignmentNotification.html,
+                };
+                enqueueEmail(mailOptions);
+            }
         }catch(error){
             console.log('Error preparing task assignment email:', error.message);
         }
@@ -623,24 +627,30 @@ const updateTask= async (req, res) => {
         ]);
 
         try{
-            const emailTemplate= updateTaskTemplate({
-                title: populatedTask.title,
-                description: populatedTask.description,
-                status: populatedTask.status,
-                priority: populatedTask.priority,
-                dueDate: populatedTask.dueDate,
-                assignedBy: populatedTask.assignedBy.firstName + ' ' + populatedTask.assignedBy.lastName,
-            })
+            if (populatedTask?.assignedTo?.email) {
+                const assignedByName = (populatedTask.assignedBy?.firstName && populatedTask.assignedBy?.lastName)
+                    ? `${populatedTask.assignedBy.firstName} ${populatedTask.assignedBy.lastName}`
+                    : 'Team Lead';
 
-            const mailOptions= {
-                from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
-                to: populatedTask.assignedTo.email,
-                subject: emailTemplate.subject,
-                text: emailTemplate.html.replace(/<[^>]+>/g, ''),
-                html: emailTemplate.html,
+                const emailTemplate= updateTaskTemplate({
+                    title: populatedTask.title,
+                    description: populatedTask.description,
+                    status: populatedTask.status,
+                    priority: populatedTask.priority,
+                    dueDate: populatedTask.dueDate,
+                    assignedBy: assignedByName,
+                });
+
+                const mailOptions= {
+                    from: getSenderAddress("DevDash Support"),
+                    to: populatedTask.assignedTo.email,
+                    subject: emailTemplate.subject,
+                    text: emailTemplate.html.replace(/<[^>]+>/g, ''),
+                    html: emailTemplate.html,
+                };
+
+                enqueueEmail(mailOptions);
             }
-
-            enqueueEmail(mailOptions);
         }catch(error){
             console.log('Error preparing task update email:', error.message);
         }

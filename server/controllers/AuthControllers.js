@@ -4,6 +4,7 @@ const bcrypt= require('bcrypt');
 const jwt= require('jsonwebtoken');
 const validator= require('validator');
 const { enqueueEmail } = require('../queues/emailQueue');
+const { getSenderAddress } = require('../configs/nodemailer');
 const {registrationTemplate, forgetPasswordTemplate, twoFactorTemplate}= require('../utils/emailTemplates.js');
 
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
@@ -70,7 +71,7 @@ const sendRegistrationOTP= async (req, res)=>{
 
         const tmpl = registrationTemplate(otp, 5);
         const mailOptions= {
-            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
+            from: getSenderAddress("DevDash Support"),
             to: email,
             subject: tmpl.subject,
             text: tmpl.html.replace(/<[^>]+>/g, ''),
@@ -204,7 +205,7 @@ const loginUser= async (req, res)=>{
             const mailTemplate= twoFactorTemplate(loginOtp, 5, 'login verification');
 
             enqueueEmail({
-                from: `"DevDash Security" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
+                from: getSenderAddress("DevDash Security"),
                 to: user.email,
                 subject: mailTemplate.subject,
                 text: mailTemplate.html.replace(/<[^>]+>/g, ''),
@@ -333,7 +334,7 @@ const forgetPasswordOTPRequest= async (req, res)=>{
 
         const tmpl = forgetPasswordTemplate(otp, 5);
         const mailOptions= {
-            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
+            from: getSenderAddress("DevDash Support"),
             to: email,
             subject: tmpl.subject,
             text: tmpl.html.replace(/<[^>]+>/g, ''),

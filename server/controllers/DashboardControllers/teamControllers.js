@@ -6,6 +6,7 @@ const Notification = require('../../models/Notification');
 
 const TeamInvitation= require('../../models/TeamInvitation')
 const { enqueueEmail } = require('../../queues/emailQueue')
+const { getSenderAddress } = require('../../configs/nodemailer')
 const { createNotification } = require('../../utils/notificationService.js')
 const { teamInvitationTemplate }= require('../../utils/emailTemplates')
 const { emitToTeam, emitToUser } = require('../../configs/socket')
@@ -214,14 +215,17 @@ const sendTeamInvitation= async (req, res) => {
             customMessage: trimmedMessage
         });
 
-        const mailOptions= {
-            from: `"DevDash Support" <${process.env.SENDER_EMAIL || process.env.SMTP_USER}>`,
-            to: receiver.email,
-            subject:teamInvitationData.subject,
-            text: teamInvitationData.html.replace(/<[^>]+>/g, ''),
-        }
+        if (receiver && receiver.email) {
+            const mailOptions= {
+                from: getSenderAddress("DevDash Support"),
+                to: receiver.email,
+                subject: teamInvitationData.subject,
+                text: teamInvitationData.html.replace(/<[^>]+>/g, ''),
+                html: teamInvitationData.html,
+            }
 
-        enqueueEmail(mailOptions);
+            enqueueEmail(mailOptions);
+        }
         emitToUser(receiver._id, "team:invitation_received", invitation);
 
         return res.status(201).json({success: true, message: "Team invitation sent successfully", invitation});

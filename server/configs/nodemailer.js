@@ -14,6 +14,20 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+const getSenderAddress = (displayName = "DevDash Support") => {
+    let email = process.env.SENDER_EMAIL;
+
+    if (!email && process.env.SMTP_USER && process.env.SMTP_USER.includes("@") && !process.env.SMTP_USER.endsWith("@smtp-brevo.com")) {
+        email = process.env.SMTP_USER;
+    }
+
+    if (!email) {
+        email = "manthan29singla@gmail.com";
+    }
+
+    return `"${displayName}" <${email}>`;
+};
+
 if (process.env.NODE_ENV !== 'production') {
     transporter.verify().then(() => {
         console.log("Brevo SMTP authenticated successfully");
@@ -22,4 +36,4 @@ if (process.env.NODE_ENV !== 'production') {
     });
 }
 
-module.exports= { transporter };
+module.exports = { transporter, getSenderAddress };
