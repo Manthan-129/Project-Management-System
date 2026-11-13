@@ -1,7 +1,7 @@
 const Redis = require("ioredis");
 
 const isRedisConfigured = () => {
-    return Boolean(process.env.REDIS_URL?.trim() || process.env.REDIS_HOST?.trim());
+    return Boolean(process.env.REDIS_URL || process.env.REDIS_HOST);
 };
 
 const getQueuePrefix = () => process.env.REDIS_KEY_PREFIX || "devdash";
@@ -11,30 +11,8 @@ const getRedisConfig = () => {
         return null;
     }
 
-    if (process.env.REDIS_URL?.trim()) {
-        const redisUrl = new URL(process.env.REDIS_URL.trim());
-        const config = {
-            host: redisUrl.hostname,
-            port: Number(redisUrl.port) || (redisUrl.protocol === "rediss:" ? 6380 : 6379),
-            maxRetriesPerRequest: null,
-            enableReadyCheck: false,
-            lazyConnect: true,
-        };
-
-        if (redisUrl.username) {
-            config.username = decodeURIComponent(redisUrl.username);
-        }
-        if (redisUrl.password) {
-            config.password = decodeURIComponent(redisUrl.password);
-        }
-        if (redisUrl.pathname.length > 1) {
-            config.db = Number.parseInt(redisUrl.pathname.slice(1), 10);
-        }
-        if (redisUrl.protocol === "rediss:") {
-            config.tls = {};
-        }
-
-        return config;
+    if (process.env.REDIS_URL) {
+        return process.env.REDIS_URL;
     }
 
     return {
@@ -53,7 +31,9 @@ const createRedisConnection = () => {
         return null;
     }
 
-    const client = new Redis(config);
+    const client = typeof config === "string"
+        ? new Redis(config, { maxRetriesPerRequest: null, enableReadyCheck: false, lazyConnect: true })
+        : new Redis(config);
 
     client.on("error", (err) => {
         console.warn(`Redis connection warning: ${err.message}`);

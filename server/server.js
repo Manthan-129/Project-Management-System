@@ -11,7 +11,6 @@ const rateLimit = require("express-rate-limit");
 const { connectDB } = require("./configs/db");
 const { connectCloudinary } = require("./configs/cloudinary");
 const { initSocket } = require("./configs/socket");
-const { getEmailConfig } = require("./configs/emailConfig");
 const { initEmailQueue, closeEmailQueue } = require("./queues/emailQueue");
 const { initEmailWorker, closeEmailWorker } = require("./workers/emailWorker");
 const { initNotificationQueue, closeNotificationQueue } = require("./queues/notificationQueue");
@@ -160,24 +159,6 @@ const startServer = async () => {
             res.status(200).json({
                 success: true,
                 message: "DevDash API is running",
-            });
-        });
-
-        app.get("/health", (req, res) => {
-            const redisConfigured = Boolean(process.env.REDIS_URL || process.env.REDIS_HOST);
-            const emailConfig = getEmailConfig();
-            const emailConfigured = Boolean(
-                emailConfig.smtpUser &&
-                emailConfig.smtpPass &&
-                emailConfig.senderEmail
-            );
-
-            res.status(200).json({
-                success: true,
-                service: "api",
-                database: "connected",
-                email: emailConfigured ? "configured" : "missing configuration",
-                redis: redisConfigured ? "configured" : "disabled",
             });
         });
 
