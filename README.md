@@ -342,6 +342,7 @@ The application uses MongoDB for data persistence. Configure your MongoDB connec
 - Redis is optional for OTP delivery. If Redis is unavailable, email falls back to direct SMTP send.
 - Configure either `REDIS_URL` **or** `REDIS_HOST`/`REDIS_PORT`/`REDIS_PASSWORD`.
 - On Render/Vercel-style deployments, keep SMTP vars in runtime environment variables and avoid committing `.env` files.
+- Check backend dependency status at `GET http://localhost:5000/health`. OTP requires `SMTP_USER`, `SMTP_PASS`, and a verified `SENDER_EMAIL`; notifications can run without Redis through the direct database fallback.
 
 ### Cloudinary Setup
 - Create a Cloudinary account at https://cloudinary.com
