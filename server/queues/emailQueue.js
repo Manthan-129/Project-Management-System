@@ -1,8 +1,7 @@
 const { Queue } = require("bullmq");
 const { getRedisConfig, isRedisConfigured, getQueuePrefix } = require("../configs/redis");
 const { getTransporter } = require("../configs/nodemailer");
-
-const QUEUE_NAME = "email-queue";
+const { EMAIL_QUEUE_NAME } = require("./constants");
 
 let emailQueue = null;
 
@@ -19,7 +18,7 @@ const initEmailQueue = (redisConfig) => {
             return null;
         }
 
-        emailQueue = new Queue(QUEUE_NAME, {
+        emailQueue = new Queue(EMAIL_QUEUE_NAME, {
             connection,
             prefix: getQueuePrefix(),
             defaultJobOptions: {
